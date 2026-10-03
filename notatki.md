@@ -219,6 +219,22 @@ opis problemu
 - **Dane demo** (`pnpm seed:demo`) są **syntetyczne**: 10 profili, 3 testy (Edki do otwarcia w demo, Senior CUDER i Virtual World otwarte), 3 kręgi z rozmowami.
 - **Scenariusz demo:** ROPS otwiera test Edek w panelu → rodziny z listy dostają zaproszenia → mama widzi powiadomienie.
 
+## 20. Rozmowy z ROPS — szybkość komunikacji użytkownik ↔ administrator
+
+- **Kryterium ROPS** brzmi: „jak system powiadamia administratora o nowym zgłoszeniu i jak wygląda ścieżka odpowiedzi do autora”.
+- **Ścieżka użytkownika (bez konta):**
+  1. Formularz „Napisz do ROPS” (pytanie / ekspert / partnerstwo / pomysł / testy) albo **przekazanie z Mostka z gotowym podsumowaniem sprawy**.
+  2. **Natychmiastowe potwierdzenie** w rozmowie, z informacją o czasie odpowiedzi.
+  3. Odpowiedź ROPS pojawia się w wątku (odświeżanie co kilka sekund), a lista rozmów oznacza nową odpowiedź kropką.
+- **Ścieżka ROPS:**
+  - nowa sprawa tworzy **powiadomienie dla każdego administratora** i licznik na pulpicie;
+  - po wysłaniu odpowiedzi do użytkownika, **w tle (`after()` z Next.js)** rusza **triaż AI** (Sonnet 5.5, tani i szybki): kategoria, priorytet (pilne na górze skrzynki), 1–2-zdaniowe streszczenie i **szkic odpowiedzi** odwołujący się do pasujących innowacji z bazy;
+  - pracownik edytuje szkic. Fragmenty, których AI nie wie, są oznaczone **[DO UZUPEŁNIENIA: …]**, a system **nie pozwoli wysłać odpowiedzi z niewypełnionym znacznikiem**. **Odpowiedź zawsze zatwierdza człowiek.**
+  - można odpowiedzieć jako zespół ROPS albo jako ekspert, zmienić status i odświeżyć triaż;
+  - **mierzymy średni czas pierwszej odpowiedzi** (`first_response_at`), widoczny w skrzynce.
+- **Prywatność:** treść jest zapisywana z zamaskowanymi danymi osobowymi. Kontakt (opcjonalny) jest w osobnej tabeli i widzi go tylko ROPS. Wulgaryzmy są blokowane przy wysłaniu.
+- **Dlaczego triaż w tle:** użytkownik nie czeka na AI (odpowiedź „wysłano” przychodzi od razu), a pracownik ROPS dostaje sprawę już uporządkowaną. To realne skrócenie czasu obsługi, a nie chatbot udający urzędnika.
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [x] Mostek — agent z narzędziami (sekcja 17)
@@ -227,7 +243,7 @@ opis problemu
 - [ ] Kreator pomysłów + generator wniosków + wizualizacja
 - [ ] **Wizualizacja pomysłu (obraz z opisu):** osoba z pomysłem, ale bez środków na projekt czy grafika, generuje obraz innowacji (np. przedmiotu, miejsca, usługi) z opisu w Kreatorze i może wysłać fiszkę z wizualizacją do ROPS do wglądu. Obniża próg wejścia dla oddolnych innowatorów. Koszt kontrolowany limitem obrazów na użytkownika i przełącznikiem w ustawieniach AI.
 - [x] Tester innowacji + **lista oczekujących na testy** (sekcja 19): zapis przez checkboxy, czat lub głos z Mostkiem → kategorie problemu + kontakt. Kontakt wpisuje się w formularzu i nie trafia do LLM. Gdy ROPS oznaczy innowację jako „gotową do testów”, system dopasowuje listę (kategorie + embedding) i tworzy powiadomienia (demo bez wysyłki maili).
-- [ ] Rozmowy z ROPS (Realtime, powiadomienia)
+- [x] Rozmowy z ROPS (sekcja 20)
 - [ ] Panel kosztów i ustawień AI (kaganiec + **tone of voice przez archetypy marki**)
 - [ ] **Sterowanie głosem** (jeśli wystarczy czasu): „Powiedz Mostkowi”, push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności lokalnie bez LLM. Dla seniorów i osób z niepełnosprawnościami ruchowymi lub wzroku.
 - [ ] Deploy i koszt utrzymania

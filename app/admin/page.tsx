@@ -32,7 +32,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
     { label: "Dokumenty w bazie wiedzy", value: documents, href: "/admin/dokumenty" },
     { label: "Nowe zgłoszenia potrzeb", value: needsNew, href: "/admin" },
     { label: "Nowe pomysły", value: ideasNew, href: "/admin" },
-    { label: "Otwarte rozmowy", value: threadsOpen, href: "/admin" },
+    { label: "Rozmowy do odpowiedzi", value: threadsOpen, href: "/admin/rozmowy" },
     { label: "Koszt AI (łącznie)", value: `$${aiCost.toFixed(2)}`, href: "/admin" },
   ]
 
