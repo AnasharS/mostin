@@ -61,6 +61,7 @@ export const RESOURCES: Resource[] = [
       { name: "published", label: "Opublikowana", type: "boolean" },
       { name: "is_sample", label: "Dane przykładowe", type: "boolean", help: "Oznaczane w interfejsie jako przykład." },
       { name: "problem", label: "Problem", type: "textarea", aiFilled: true },
+      { name: "solution", label: "Rozwiązanie", type: "textarea", aiFilled: true },
       { name: "needs", label: "Potrzeby", type: "tags", aiFilled: true },
       { name: "categories", label: "Kategorie", type: "multiselect", options: CATEGORIES, aiFilled: true },
       { name: "target_groups", label: "Grupy docelowe", type: "multiselect", options: TARGET_GROUPS, aiFilled: true },

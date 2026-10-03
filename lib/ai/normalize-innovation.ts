@@ -7,6 +7,7 @@ import { CATEGORIES, TARGET_GROUPS } from "./taxonomy"
 export const InnovationStructure = z.object({
   summary: z.string().describe("2–3 zdania prostym językiem: co to jest i komu pomaga"),
   problem: z.string().describe("Jaki problem społeczny rozwiązuje — konkretnie"),
+  solution: z.string().describe("Na czym polega rozwiązanie — mechanizm działania w 2–4 zdaniach"),
   needs: z.array(z.string()).describe("Potrzeby odbiorców, na które odpowiada (krótkie frazy)"),
   categories: z.array(z.enum(CATEGORIES)).describe("1–3 najlepiej pasujące kategorie"),
   target_groups: z.array(z.enum(TARGET_GROUPS)).describe("Główne grupy docelowe"),

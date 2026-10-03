@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getPersona, isDemoMode } from "@/lib/demo/personas"
 
 const Credentials = z.object({
   email: z.email("Podaj poprawny adres e-mail"),
@@ -42,4 +44,33 @@ export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   redirect("/")
+}
+
+/** Wejście jako persona demo: anonimowa sesja Supabase, rola nadawana serwerowo.
+ *  Persona admina tylko przy DEMO_MODE=true (na produkcji wyłączone). */
+export async function enterAsPersona(personaId: string) {
+  const persona = getPersona(personaId)
+  if (!persona) redirect("/logowanie?blad=" + encodeURIComponent("Nieznana persona"))
+  if (persona.role === "admin" && !isDemoMode()) {
+    redirect("/logowanie?blad=" + encodeURIComponent("Persona administratora jest dostępna tylko w trybie demo"))
+  }
+
+  const supabase = await createClient()
+  const { data: { user: current } } = await supabase.auth.getUser()
+  let userId = current?.is_anonymous ? current.id : null
+  if (!userId) {
+    if (current) await supabase.auth.signOut()
+    const { data, error } = await supabase.auth.signInAnonymously({ options: { data: { display_name: persona.name } } })
+    if (error || !data.user) {
+      redirect("/logowanie?blad=" + encodeURIComponent(`Nie udało się wejść: ${error?.message ?? "brak sesji"}`))
+    }
+    userId = data.user.id
+  }
+
+  const { error } = await createAdminClient()
+    .from("profiles")
+    .update({ role: persona.role, display_name: persona.name, organization: persona.organization, demo_persona: persona.id })
+    .eq("id", userId)
+  if (error) redirect("/logowanie?blad=" + encodeURIComponent(error.message))
+  redirect(persona.home)
 }

@@ -31,6 +31,7 @@ export async function ingestInnovation(id: number) {
     const { error: upErr } = await db.from("innovations").update({
       summary: row.summary?.trim() ? row.summary : data.summary,
       problem: data.problem,
+      solution: data.solution,
       needs: data.needs,
       categories: data.categories,
       target_groups: data.target_groups,
