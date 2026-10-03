@@ -40,7 +40,7 @@ export default async function CirclePage({ params, searchParams }: { params: Pro
             <p className="mt-1 whitespace-pre-wrap">{m.body}</p>
           </li>
         ))}
-        {!messages?.length && <li className="text-muted-foreground">Jeszcze nikt nie napisał — przywitaj się!</li>}
+        {!messages?.length && <li className="text-muted-foreground">Jeszcze nikt nie napisał - przywitaj się!</li>}
       </ol>
       <div id="koniec" />
 

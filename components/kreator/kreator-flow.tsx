@@ -1,5 +1,6 @@
 "use client"
 
+import { Check, ThumbsUp, ThumbsDown, CircleCheck, CircleAlert, CircleX } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -49,7 +50,7 @@ function Checks({ legend, help, options, value, onChange, max }: {
         {options.map((o) => (
           <label key={o} className="cursor-pointer rounded-full border bg-background px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring">
             <input type="checkbox" className="sr-only" checked={value.includes(o)} onChange={() => toggle(o)} disabled={!value.includes(o) && !!max && value.length >= max} />
-            {value.includes(o) ? "✓ " : ""}{o}
+            {value.includes(o) && <Check aria-hidden="true" className="mr-1 inline size-3.5 align-[-2px]" />}{o}
           </label>
         ))}
       </div>
@@ -107,7 +108,7 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
     if (r) setAssessment(r.assessment)
   }
 
-  // wniosek: 6 równoległych żądań po 1–3 sekcje (każde < 25 s); sekcje pojawiają się w miarę gotowości
+  // wniosek: 6 równoległych żądań po 1-3 sekcje (każde < 25 s); sekcje pojawiają się w miarę gotowości
   async function generateApp() {
     setBusy("app"); setError("")
     const groups = [[1, 3], [4], [5], [6, 7], [8, 10, 11], [9]]
@@ -148,7 +149,7 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Szkic wniosku · {app.title}</p>
           <h2 id="wniosek" ref={headRef} tabIndex={-1} className="mt-2 text-2xl font-bold outline-none">{c.title || assessment?.title_suggestion}</h2>
           <p className="mt-3 rounded-lg bg-accent p-3 text-sm">
-            Sekcje <strong>2. Dane pomysłodawcy</strong> i <strong>12. Oświadczenia</strong> wypełniasz samodzielnie w formularzu naboru — MostIn nie przetwarza ich przez AI.
+            Sekcje <strong>2. Dane pomysłodawcy</strong> i <strong>12. Oświadczenia</strong> wypełniasz samodzielnie w formularzu naboru - MostIn nie przetwarza ich przez AI.
             Fragmenty <strong>[DO UZUPEŁNIENIA]</strong> wymagają Twojej wiedzy.
           </p>
           {app.pending > 0 && (
@@ -226,7 +227,7 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
               <textarea id="solution" aria-describedby="sol-h" rows={5} value={c.solution} onChange={(e) => set("solution", e.target.value)} className={field} />
             </div>
             <div>
-              <label htmlFor="title" className="font-medium">Robocza nazwa (opcjonalnie — Mostek może zaproponować)</label>
+              <label htmlFor="title" className="font-medium">Robocza nazwa (opcjonalnie - Mostek może zaproponować)</label>
               <input id="title" value={c.title} onChange={(e) => set("title", e.target.value)} className={field} />
             </div>
             <Radio name="solution_type" legend="Czym jest rozwiązanie?" options={OPTIONS.solution_type} value={c.solution_type} onChange={(v) => set("solution_type", v)} />
@@ -239,12 +240,12 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
           <div className="mt-4 grid gap-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="supporters" className="font-medium">🟢 Kto wspiera zmianę?</label>
+                <label htmlFor="supporters" className="flex items-center gap-1.5 font-medium"><ThumbsUp aria-hidden="true" className="size-4 text-success" /> Kto wspiera zmianę?</label>
                 <p id="sup-h" className="text-sm text-muted-foreground">Kto zyska? Kto już mówi, że problem trzeba rozwiązać? Kto może otworzyć drzwi?</p>
                 <textarea id="supporters" aria-describedby="sup-h" rows={3} value={c.supporters} onChange={(e) => set("supporters", e.target.value)} className={field} />
               </div>
               <div>
-                <label htmlFor="blockers" className="font-medium">🔴 Kto może utrudniać zmianę?</label>
+                <label htmlFor="blockers" className="flex items-center gap-1.5 font-medium"><ThumbsDown aria-hidden="true" className="size-4 text-destructive" /> Kto może utrudniać zmianę?</label>
                 <p id="blk-h" className="text-sm text-muted-foreground">Kto może bać się pracy, kosztów, utraty wpływu? Kto powie „to się nie uda”?</p>
                 <textarea id="blockers" aria-describedby="blk-h" rows={3} value={c.blockers} onChange={(e) => set("blockers", e.target.value)} className={field} />
               </div>
@@ -278,8 +279,9 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
                   <p className="mt-1">{assessment.summary}</p>
                 </div>
                 <div className={`rounded-lg border-2 p-4 ${assessment.uniqueness === "powiela" ? "border-destructive" : assessment.uniqueness === "czesciowo_podobny" ? "border-warning" : "border-success"}`}>
-                  <p className="font-semibold">
-                    {assessment.uniqueness === "unikalny" ? "✓ Pomysł wygląda na nowy w Bibliotece ROPS" : assessment.uniqueness === "czesciowo_podobny" ? "◐ Podobne rozwiązania już istnieją — warto podkreślić różnice" : "✗ Pomysł może powielać istniejącą innowację"}
+                  <p className="flex items-center gap-2 font-semibold">
+                    {assessment.uniqueness === "unikalny" ? <CircleCheck aria-hidden="true" className="size-5 text-success" /> : assessment.uniqueness === "czesciowo_podobny" ? <CircleAlert aria-hidden="true" className="size-5 text-warning" /> : <CircleX aria-hidden="true" className="size-5 text-destructive" />}
+                    {assessment.uniqueness === "unikalny" ? "Pomysł wygląda na nowy w Bibliotece ROPS" : assessment.uniqueness === "czesciowo_podobny" ? "Podobne rozwiązania już istnieją - warto podkreślić różnice" : "Pomysł może powielać istniejącą innowację"}
                   </p>
                   <p className="mt-1 text-sm">{assessment.uniqueness_comment}</p>
                   <ul className="mt-2 flex flex-wrap gap-2 text-sm">
@@ -308,10 +310,10 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
 
                 <div className="flex flex-wrap gap-2 border-t pt-5">
                   <Button type="button" size="lg" className="h-11 px-5" disabled={busy !== "" || !!threadId} onClick={() => save(true)}>
-                    {threadId ? "✓ Wysłano do ROPS" : busy === "send" ? "Wysyłam…" : "Wyślij fiszkę do ROPS"}
+                    {threadId ? <><Check aria-hidden="true" className="size-4" /> Wysłano do ROPS</> : busy === "send" ? "Wysyłam…" : "Wyślij fiszkę do ROPS"}
                   </Button>
                   <Button type="button" variant="outline" size="lg" className="h-11 px-5" disabled={busy !== ""} onClick={() => save(false)}>
-                    {busy === "save" ? "Zapisuję…" : ideaId ? "✓ Zapisano — zapisz zmiany" : "Zapisz szkic"}
+                    {busy === "save" ? "Zapisuję…" : ideaId ? <><Check aria-hidden="true" className="size-4" /> Zapisano - zapisz zmiany</> : "Zapisz szkic"}
                   </Button>
                   <Button type="button" variant="outline" size="lg" className="h-11 px-5" disabled={busy !== ""} onClick={generateApp}>
                     {busy === "app" ? "Mostek pisze wniosek…" : "Przygotuj wniosek do naboru IWS 2.0"}

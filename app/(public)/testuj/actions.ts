@@ -41,7 +41,7 @@ export async function saveNeedsProfile(form: FormData) {
   })
   if (!parsed.success) redirect(`/testuj?blad=${encodeURIComponent(parsed.error.issues[0].message)}#lista`)
   const d = parsed.data
-  if (!d.consent_tests && !d.consent_przesla) redirect(`/testuj?blad=${encodeURIComponent("Zaznacz, na co się zgadzasz — powiadomienia o testach lub Przęsła")}#lista`)
+  if (!d.consent_tests && !d.consent_przesla) redirect(`/testuj?blad=${encodeURIComponent("Zaznacz, na co się zgadzasz - powiadomienia o testach lub Przęsła")}#lista`)
 
   // opis sytuacji i pseudonim: bez wulgaryzmów i bez danych osobowych (opis trafia do embeddingu)
   const policy = await getPolicy()
@@ -75,7 +75,7 @@ export async function saveNeedsProfile(form: FormData) {
     : await db.from("needs_profiles").insert(row).select("id").single()
   if (error || !saved) redirect(`/testuj?blad=${encodeURIComponent(error?.message ?? "Nie udało się zapisać")}#lista`)
 
-  // kontakt osobno — nigdy nie trafia do modeli AI, widoczny tylko dla ROPS
+  // kontakt osobno - nigdy nie trafia do modeli AI, widoczny tylko dla ROPS
   await db.from("profile_contacts").upsert({
     profile_id: saved.id,
     email: d.email || null,

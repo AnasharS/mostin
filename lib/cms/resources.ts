@@ -1,4 +1,4 @@
-// Deklaratywna konfiguracja CMS — jedna definicja = lista, formularz, zapis.
+// Deklaratywna konfiguracja CMS - jedna definicja = lista, formularz, zapis.
 // Dodanie nowego typu treści to dopisanie obiektu tutaj (i tabeli w migracji).
 
 import { CATEGORIES, TARGET_GROUPS } from "@/lib/ai/taxonomy"
@@ -16,7 +16,7 @@ export type Field = {
   options?: readonly string[]   // select / multiselect
   bucket?: string               // file
   accept?: string               // file
-  readOnly?: boolean            // pola uzupełniane przez AI — edytowalne, ale opisane
+  readOnly?: boolean            // pola uzupełniane przez AI - edytowalne, ale opisane
   aiFilled?: boolean
 }
 
@@ -39,7 +39,7 @@ export const RESOURCES: Resource[] = [
     table: "innovations",
     label: "Innowacje",
     singular: "innowację",
-    description: "Biblioteka Innowacji Społecznych — źródło dla matchmakingu. Po zapisaniu kliknij „Przetwórz AI”, aby uzupełnić strukturę i embedding.",
+    description: "Biblioteka Innowacji Społecznych - źródło dla matchmakingu. Po zapisaniu kliknij „Przetwórz AI”, aby uzupełnić strukturę i embedding.",
     listColumns: [
       { name: "title", label: "Tytuł" },
       { name: "stage", label: "Etap" },
@@ -51,8 +51,8 @@ export const RESOURCES: Resource[] = [
     ingest: "innovation",
     fields: [
       { name: "title", label: "Tytuł", type: "text", required: true },
-      { name: "summary", label: "Krótki opis", type: "textarea", required: true, help: "1–3 zdania. AI uzupełni, jeśli zostawisz krótko." },
-      { name: "description", label: "Pełny opis", type: "textarea", help: "Wklej dowolny opis — AI wyciągnie z niego strukturę." },
+      { name: "summary", label: "Krótki opis", type: "textarea", required: true, help: "1-3 zdania. AI uzupełni, jeśli zostawisz krótko." },
+      { name: "description", label: "Pełny opis", type: "textarea", help: "Wklej dowolny opis - AI wyciągnie z niego strukturę." },
       { name: "author_org", label: "Autor / organizacja", type: "text" },
       { name: "contact", label: "Kontakt", type: "text" },
       { name: "source_label", label: "Źródło (nazwa)", type: "text" },
@@ -76,7 +76,7 @@ export const RESOURCES: Resource[] = [
     table: "documents",
     label: "Dokumenty",
     singular: "dokument",
-    description: "Raporty ROPS, Mapa Wyzwań, regulaminy naborów — baza wiedzy dla Mostka (RAG). Po wgraniu PDF kliknij „Przetwórz AI”, aby podzielić go na fragmenty ze stronami.",
+    description: "Raporty ROPS, Mapa Wyzwań, regulaminy naborów - baza wiedzy dla Mostka (RAG). Po wgraniu PDF kliknij „Przetwórz AI”, aby podzielić go na fragmenty ze stronami.",
     listColumns: [
       { name: "title", label: "Tytuł" },
       { name: "kind", label: "Rodzaj" },
@@ -102,7 +102,7 @@ export const RESOURCES: Resource[] = [
     table: "challenges",
     label: "Wyzwania",
     singular: "wyzwanie",
-    description: "Mapa Wyzwań Społecznych Małopolski — wyzwania z danymi i źródłem.",
+    description: "Mapa Wyzwań Społecznych Małopolski - wyzwania z danymi i źródłem.",
     listColumns: [{ name: "title", label: "Tytuł" }, { name: "updated_at", label: "Aktualizacja" }],
     searchColumn: "title",
     orderBy: "updated_at",
@@ -139,13 +139,14 @@ export const RESOURCES: Resource[] = [
     table: "calls",
     label: "Nabory grantowe",
     singular: "nabór",
-    description: "Aktywne nabory — Kreator dopasowuje do nich generator wniosków.",
+    description: "Aktywne nabory - Kreator dopasowuje do nich generator wniosków. Zapis aktywnego naboru z kategoriami powiadamia autorów pomysłów z tych obszarów.",
     listColumns: [{ name: "title", label: "Tytuł" }, { name: "closes_at", label: "Do" }, { name: "active", label: "Aktywny" }],
     searchColumn: "title",
     orderBy: "closes_at",
     fields: [
       { name: "title", label: "Tytuł", type: "text", required: true },
       { name: "description", label: "Opis", type: "textarea" },
+      { name: "categories", label: "Obszary naboru (powiadomienia dla autorów pomysłów)", type: "multiselect", options: CATEGORIES },
       { name: "rules", label: "Zasady (JSON)", type: "textarea", help: '{"kryteria":["…"],"max_kwota":20000,"sekcje_wniosku":["Problem","Rozwiązanie","Budżet"]}' },
       { name: "opens_at", label: "Otwarcie", type: "date" },
       { name: "closes_at", label: "Zamknięcie", type: "date" },

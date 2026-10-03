@@ -76,7 +76,7 @@ export function A11yToolbar() {
   )
 }
 
-/** Odczyt preferencji „prosty język” — przekazywany do AI. */
+/** Odczyt preferencji „prosty język” - przekazywany do AI. */
 export function usePlainLanguage() {
   return Boolean(usePrefs().plain)
 }

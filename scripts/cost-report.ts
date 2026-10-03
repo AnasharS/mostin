@@ -1,4 +1,4 @@
-// Średni koszt AI per funkcja (z licznika ai_usage) — do opisu projektu i slajdu o kosztach utrzymania
+// Średni koszt AI per funkcja (z licznika ai_usage) - do opisu projektu i slajdu o kosztach utrzymania
 import { config } from "dotenv"
 config({ path: ".env.local" })
 async function main() {

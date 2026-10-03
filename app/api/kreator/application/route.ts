@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const { sections, sources, usage } = await generateApplication(p.canvas, wanted, rules, p.policy)
     void logUsage({ route: "kreator.application", model: MODELS.text, input_tokens: usage.input, output_tokens: usage.output, user_id: p.user?.id, session_key: p.sessionKey })
     if (typeof p.body?.ideaId === "number") {
-      // jeden szkic wniosku na pomysł i nabór — kolejne części dopisują sekcje
+      // jeden szkic wniosku na pomysł i nabór - kolejne części dopisują sekcje
       const { data: existing } = await db.from("applications").select("id, content").eq("idea_id", p.body.ideaId).eq("call_id", call.id).maybeSingle()
       const merged = [...((existing?.content as { sections?: typeof sections } | null)?.sections ?? []).filter((s) => !sections.some((n) => n.nr === s.nr)), ...sections]
       if (existing) await db.from("applications").update({ content: { sections: merged }, sources, updated_at: new Date().toISOString() }).eq("id", existing.id)

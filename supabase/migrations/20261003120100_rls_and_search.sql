@@ -168,7 +168,7 @@ language sql stable set search_path = public, extensions as $$
   limit match_count;
 $$;
 
--- Trendy potrzeb (tylko admin — sprawdzane w funkcji)
+-- Trendy potrzeb (tylko admin - sprawdzane w funkcji)
 create or replace function public.needs_trends(days int default 90)
 returns table (area text, region text, week date, count bigint)
 language sql stable security definer set search_path = public as $$

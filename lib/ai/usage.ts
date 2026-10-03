@@ -1,7 +1,7 @@
 import "server-only"
 import { createAdminClient } from "@/lib/supabase/admin"
 
-// Cennik (USD / 1M tokenów) — do licznika kosztów w panelu i slajdu o kosztach utrzymania
+// Cennik (USD / 1M tokenów) - do licznika kosztów w panelu i slajdu o kosztach utrzymania
 const PRICES: Record<string, { in: number; out: number; cacheRead: number }> = {
   "claude-opus-5-5": { in: 4, out: 20, cacheRead: 0.2 },
   "claude-sonnet-5-5": { in: 2, out: 10, cacheRead: 0.2 },

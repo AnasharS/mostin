@@ -43,7 +43,7 @@ export default async function AdminThread({ params, searchParams }: { params: Pr
           <div className="rounded-xl border bg-card p-4">
             <h2 className="font-semibold"><span aria-hidden="true" className="mr-1.5 inline-block size-2 rounded-full bg-brand" />Triaż AI</h2>
             <dl className="mt-2 space-y-1">
-              <div><dt className="inline text-muted-foreground">Kategoria: </dt><dd className="inline">{t.category ? THREAD_CATEGORIES[t.category as keyof typeof THREAD_CATEGORIES] : "—"}</dd></div>
+              <div><dt className="inline text-muted-foreground">Kategoria: </dt><dd className="inline">{t.category ? THREAD_CATEGORIES[t.category as keyof typeof THREAD_CATEGORIES] : "-"}</dd></div>
               <div><dt className="inline text-muted-foreground">Priorytet: </dt><dd className="inline font-semibold">{t.priority}</dd></div>
               <div><dt className="text-muted-foreground">Streszczenie:</dt><dd>{t.ai_summary ?? "w toku…"}</dd></div>
             </dl>
@@ -64,7 +64,7 @@ export default async function AdminThread({ params, searchParams }: { params: Pr
 
       <form action={replyAsRops.bind(null, t.id)} className="mt-8 grid gap-3 rounded-xl border bg-card p-5">
         <label htmlFor="body" className="font-semibold">Odpowiedź</label>
-        {t.ai_draft && <p className="text-sm text-muted-foreground">Pole wypełnia szkic AI — sprawdź, uzupełnij fragmenty [DO UZUPEŁNIENIA…] i wyślij. Odpowiedź zawsze zatwierdza człowiek.</p>}
+        {t.ai_draft && <p className="text-sm text-muted-foreground">Pole wypełnia szkic AI - sprawdź, uzupełnij fragmenty [DO UZUPEŁNIENIA…] i wyślij. Odpowiedź zawsze zatwierdza człowiek.</p>}
         <textarea id="body" name="body" rows={10} defaultValue={t.ai_draft ?? ""} className="w-full rounded-lg border border-input bg-background p-3" />
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm"><input type="radio" name="as" value="rops" defaultChecked className="size-4" /> jako zespół ROPS</label>

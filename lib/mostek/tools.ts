@@ -6,14 +6,16 @@ import { embedOne, toPgVector } from "@/lib/ai/embeddings"
 import { CATEGORIES, TARGET_GROUPS } from "@/lib/ai/taxonomy"
 
 // Narzędzia Mostka. Zasada: narzędzia tylko CZYTAJĄ bazę MostIn; jedyne „działanie” to propose_action,
-// które zwraca kartę z przyciskiem — wykonanie zawsze zatwierdza człowiek kliknięciem.
+// które zwraca kartę z przyciskiem - wykonanie zawsze zatwierdza człowiek kliknięciem.
 
 export type Source = { id: string; kind: "innowacja" | "dokument" | "wyzwanie"; title: string; detail?: string; url: string }
 export type ActionCard = { kind: "dostosuj" | "kreator" | "rozmowa_rops" | "dopasuj" | "otworz" | "lista_testow" | "przesla"; label: string; href: string; description?: string }
 
 export type ToolContext = {
-  /** ostatnia wypowiedź użytkownika — dołączana do wyszukiwania, żeby nie zgubić jego kluczowych słów (np. „spastyczność”) */
+  /** ostatnia wypowiedź użytkownika - dołączana do wyszukiwania, żeby nie zgubić jego kluczowych słów (np. „spastyczność”) */
   userText?: string
+  /** ograniczenie wyszukiwania dokumentów do jednego naboru (np. 'uw:' - Usługa Wrażliwa) */
+  docPrefix?: string
   sources: Source[]
   actions: ActionCard[]
   seenInnovations: Set<number>
@@ -76,7 +78,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: "search_challenges",
     description:
-      "Przeszukuje Mapę Wyzwań Społecznych (8 obszarów: rodzina i piecza, bezdomność, niepełnosprawność, ubóstwo, integracja cudzoziemców, zdrowie, zdrowie psychiczne, seniorzy) — kluczowe wyzwania i fakty. Dane ogólnopolskie.",
+      "Przeszukuje Mapę Wyzwań Społecznych (8 obszarów: rodzina i piecza, bezdomność, niepełnosprawność, ubóstwo, integracja cudzoziemców, zdrowie, zdrowie psychiczne, seniorzy) - kluczowe wyzwania i fakty. Dane ogólnopolskie.",
     input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false },
     strict: true,
     eager_input_streaming: true,
@@ -84,7 +86,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: "przesla_stats",
     description:
-      "Przęsła — sprawdza (anonimowo, tylko liczby), ile osób w podobnej sytuacji zgodziło się na kontakt z innymi oraz jakie kręgi wsparcia już działają. " +
+      "Przęsła - sprawdza (anonimowo, tylko liczby), ile osób w podobnej sytuacji zgodziło się na kontakt z innymi oraz jakie kręgi wsparcia już działają. " +
       "Używaj, gdy użytkownik opisuje osobistą, trudną sytuację (opieka, niepełnosprawność, samotność, migracja), żeby pokazać, że nie jest sam, i zaproponować dołączenie (za zgodą).",
     input_schema: {
       type: "object",
@@ -102,13 +104,13 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     name: "propose_action",
     description:
       "Proponuje użytkownikowi następny krok jako przycisk (wykonuje go użytkownik, nie Ty). Rodzaje: " +
-      "dostosuj — plan wdrożenia wybranej innowacji w instytucji użytkownika (wymaga innovation_id); " +
-      "kreator — stworzenie nowego pomysłu, gdy brak dobrego rozwiązania (text = opis problemu i luki); " +
-      "rozmowa_rops — przekazanie sprawy pracownikowi/ekspertowi ROPS (text = podsumowanie sprawy); " +
-      "dopasuj — pełne dopasowanie innowacji do opisu problemu (text = opis problemu); " +
-      "otworz — przejście do sekcji serwisu (path); " +
-      "lista_testow — zapis na listę oczekujących na testy nowych innowacji (categories, target_groups, text = krótki opis sytuacji BEZ danych osobowych; kontakt użytkownik poda sam w formularzu); " +
-      "przesla — dołączenie do Przęseł, kręgów wsparcia osób w podobnej sytuacji. Proponuj 1–2 akcje na odpowiedź, gdy to naprawdę pomaga.",
+      "dostosuj - plan wdrożenia wybranej innowacji w instytucji użytkownika (wymaga innovation_id); " +
+      "kreator - stworzenie nowego pomysłu, gdy brak dobrego rozwiązania (text = opis problemu i luki); " +
+      "rozmowa_rops - przekazanie sprawy pracownikowi/ekspertowi ROPS (text = podsumowanie sprawy); " +
+      "dopasuj - pełne dopasowanie innowacji do opisu problemu (text = opis problemu); " +
+      "otworz - przejście do sekcji serwisu (path); " +
+      "lista_testow - zapis na listę oczekujących na testy nowych innowacji (categories, target_groups, text = krótki opis sytuacji BEZ danych osobowych; kontakt użytkownik poda sam w formularzu); " +
+      "przesla - dołączenie do Przęseł, kręgów wsparcia osób w podobnej sytuacji. Proponuj 1-2 akcje na odpowiedź, gdy to naprawdę pomaga.",
     input_schema: {
       type: "object",
       properties: {
@@ -139,7 +141,7 @@ export const TOOL_LABELS: Record<string, string> = {
 
 const STOP = new Set("jest moze mozna mamy mama ktory ktora ktore tego taki takie bardzo przez kiedy gdzie dodatkowo swoj moje mojego nasze sobie szukam chcemy prowadze zrobic potrzebuje pomoc pomocy czyli wiele ograniczony".split(" "))
 const fold = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l")
-/** Rdzenie znaczących słów użytkownika (np. „spastyczność” → „spasty”) — do wykrycia innowacji, które nazywają ten sam problem. */
+/** Rdzenie znaczących słów użytkownika (np. „spastyczność” → „spasty”) - do wykrycia innowacji, które nazywają ten sam problem. */
 function userStems(text?: string) {
   if (!text) return []
   return [...new Set(fold(text).split(/[^a-z0-9]+/).filter((w) => w.length >= 6 && !STOP.has(w)).map((w) => w.slice(0, 6)))]
@@ -219,14 +221,15 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
       const { data, error } = await db.rpc("match_chunks", {
         query_embedding: toPgVector(await embedOne(qd)),
         query_text: qd,
-        match_count: 6,
+        match_count: ctx.docPrefix ? 8 : 6,
+        source_prefix: ctx.docPrefix ?? null,
       })
       if (error) return { content: error.message, isError: true }
       const rows = (data ?? []) as { chunk_id: number; document_title: string; source_url: string | null; page_from: number; page_to: number; content: string }[]
       if (!rows.length) return { content: "Brak fragmentów w dokumentach ROPS." }
       return {
         content: JSON.stringify(rows.map((r) => {
-          const pages = r.page_from === r.page_to ? `s. ${r.page_from}` : `s. ${r.page_from}–${r.page_to}`
+          const pages = r.page_from === r.page_to ? `s. ${r.page_from}` : `s. ${r.page_from}-${r.page_to}`
           addSource(ctx, {
             id: `d${r.chunk_id}`, kind: "dokument", title: r.document_title, detail: pages,
             url: r.source_url ? `${r.source_url.split("#")[0]}#page=${r.page_from}` : "/wiedza",
@@ -268,7 +271,7 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
           osoby_w_malopolsce: region ?? 0,
           ...(p.data.district ? { osoby_w_okolicy: local.count ?? 0 } : {}),
           kregi: (circles ?? []).map((c) => ({ nazwa: c.title, gdzie: c.region_label, osob: (c.circle_members as unknown as { count: number }[])[0]?.count ?? 0 })),
-          uwaga: "Tylko liczby — tożsamość osób jest chroniona. Kontakt wyłącznie za zgodą, pod pseudonimem.",
+          uwaga: "Tylko liczby - tożsamość osób jest chroniona. Kontakt wyłącznie za zgodą, pod pseudonimem.",
           zrodlo: "[Przęsła MostIn]",
         }),
       }

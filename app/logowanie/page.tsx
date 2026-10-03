@@ -20,10 +20,10 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center p-6">
-      <Link href="/" className="mb-8 text-2xl" aria-label="MostIn — strona główna"><Logo /></Link>
+      <Link href="/" className="mb-8 text-2xl" aria-label="MostIn - strona główna"><Logo /></Link>
       <h1 className="text-xl font-semibold">Wejdź do MostIn</h1>
       <p className="mt-1 mb-6 text-muted-foreground">
-        Wybierz, kim jesteś — bez zakładania konta. Z większości funkcji możesz też korzystać bez wchodzenia.
+        Wybierz, kim jesteś - bez zakładania konta. Z większości funkcji możesz też korzystać bez wchodzenia.
       </p>
       <Flash ok={ok} error={blad} />
 
@@ -49,7 +49,7 @@ export default async function LoginPage({
       )}
 
       <details className="mt-10 border-t pt-6" open={register || Boolean(blad && !blad.includes("persona"))}>
-        <summary className="cursor-pointer text-sm font-medium">Mam konto — zaloguj e-mailem</summary>
+        <summary className="cursor-pointer text-sm font-medium">Mam konto - zaloguj e-mailem</summary>
         <form action={register ? signUp : signIn} className="mt-4 grid max-w-sm gap-4">
           <input type="hidden" name="next" value={next} />
           {register && (

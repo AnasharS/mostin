@@ -1,5 +1,5 @@
 -- Profil potrzeb (za zgodą) → lista oczekujących na testy + Przęsła (łączenie osób w podobnej sytuacji)
--- Dane kontaktowe NIGDY nie trafiają do modeli AI — trzymane osobno, widoczne tylko dla właściciela i ROPS.
+-- Dane kontaktowe NIGDY nie trafiają do modeli AI - trzymane osobno, widoczne tylko dla właściciela i ROPS.
 
 create table public.needs_profiles (
   id uuid primary key default gen_random_uuid(),
@@ -10,7 +10,7 @@ create table public.needs_profiles (
   target_groups text[] not null default '{}',
   situation text,                                    -- krótki opis sytuacji (bez danych osobowych)
   district text,                                     -- dzielnica / gmina
-  region_label text,                                 -- np. „Kraków — Nowa Huta”
+  region_label text,                                 -- np. „Kraków - Nowa Huta”
   embedding extensions.vector(1536),
   consent_tests boolean not null default false,      -- powiadom, gdy pojawi się innowacja do testów
   consent_przesla boolean not null default false,    -- pokaż mnie (anonimowo) osobom w podobnej sytuacji
@@ -87,7 +87,7 @@ create policy "admin contacts" on public.profile_contacts for select using (publ
 create policy "admin invitations" on public.test_invitations for select using (public.is_admin());
 create policy "public circles" on public.circles for select using (true);
 
--- Ile osób w podobnej sytuacji (anonimowo, tylko liczby) — zgoda consent_przesla
+-- Ile osób w podobnej sytuacji (anonimowo, tylko liczby) - zgoda consent_przesla
 create or replace function public.przesla_similar(p_profile uuid, p_district text default null)
 returns table (same_district bigint, region bigint)
 language sql stable security definer set search_path = public, extensions as $$

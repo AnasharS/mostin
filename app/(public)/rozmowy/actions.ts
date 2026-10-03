@@ -34,7 +34,7 @@ export async function createThread(form: FormData) {
   if (!p.success) redirect(`/rozmowy/nowa?blad=${encodeURIComponent(p.error.issues[0].message)}&temat=${encodeURIComponent(String(form.get("subject") ?? ""))}`)
   const d = p.data
   if (findProfanity(`${d.subject} ${d.body}`, await getPolicy()).length) {
-    redirect(`/rozmowy/nowa?blad=${encodeURIComponent("Usuń proszę wulgaryzmy — pracownicy ROPS chętnie pomogą.")}&temat=${encodeURIComponent(d.subject)}`)
+    redirect(`/rozmowy/nowa?blad=${encodeURIComponent("Usuń proszę wulgaryzmy - pracownicy ROPS chętnie pomogą.")}&temat=${encodeURIComponent(d.subject)}`)
   }
   const { userId } = await getOwnerKeys()
   const sessionKey = await getSessionKey()
@@ -50,12 +50,12 @@ export async function createThread(form: FormData) {
   }).select("id").single()
   if (error || !thread) redirect(`/rozmowy/nowa?blad=${encodeURIComponent(error?.message ?? "Nie udało się wysłać")}`)
 
-  // treść przechowujemy z zamaskowanymi danymi osobowymi; kontakt (jeśli podany) osobno — tylko dla ROPS
+  // treść przechowujemy z zamaskowanymi danymi osobowymi; kontakt (jeśli podany) osobno - tylko dla ROPS
   await db.from("messages").insert([
     { thread_id: thread.id, author_id: userId, author_role: "user", author_label: d.requester_label ?? "Ty", body: maskPersonalData(d.body) },
     {
       thread_id: thread.id, author_role: "system", author_label: "MostIn",
-      body: "Wiadomość dotarła do zespołu Małopolskiego Hubu Innowacji Społecznych. Odpowiadamy zwykle w ciągu 1 dnia roboczego — dostaniesz powiadomienie tutaj, w rozmowie.",
+      body: "Wiadomość dotarła do zespołu Małopolskiego Hubu Innowacji Społecznych. Odpowiadamy zwykle w ciągu 1 dnia roboczego - dostaniesz powiadomienie tutaj, w rozmowie.",
     },
   ])
   if (d.email || d.phone) await db.from("thread_contacts").insert({ thread_id: thread.id, email: d.email || null, phone: d.phone || null })

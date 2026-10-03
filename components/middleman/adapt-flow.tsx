@@ -16,7 +16,7 @@ const INSTITUTIONS = [
   "Grupa mieszkańców / klub",
   "Firma / podmiot ekonomii społecznej",
 ]
-const BUDGETS = ["bez budżetu (zasoby własne)", "do 5 000 zł", "5 000–20 000 zł", "20 000–100 000 zł", "powyżej 100 000 zł"]
+const BUDGETS = ["bez budżetu (zasoby własne)", "do 5 000 zł", "5 000-20 000 zł", "20 000-100 000 zł", "powyżej 100 000 zł"]
 const TIMEFRAMES = ["1 miesiąc", "3 miesiące", "6 miesięcy", "12 miesięcy"]
 
 type Defaults = { institution_type: string; institution_name: string; problem: string }
@@ -72,7 +72,7 @@ export function AdaptFlow({ innovationId, innovationTitle, defaults }: { innovat
         <div>
           <label htmlFor="institution_type" className="font-medium">Typ instytucji <span aria-hidden="true">*</span></label>
           <select id="institution_type" name="institution_type" required defaultValue={defaults.institution_type} className={field}>
-            <option value="">— wybierz —</option>
+            <option value="">- wybierz -</option>
             {INSTITUTIONS.map((x) => <option key={x}>{x}</option>)}
           </select>
         </div>
@@ -95,7 +95,7 @@ export function AdaptFlow({ innovationId, innovationTitle, defaults }: { innovat
         <div>
           <label htmlFor="budget" className="font-medium">Budżet <span aria-hidden="true">*</span></label>
           <select id="budget" name="budget" required defaultValue="" className={field}>
-            <option value="">— wybierz —</option>
+            <option value="">- wybierz -</option>
             {BUDGETS.map((x) => <option key={x}>{x}</option>)}
           </select>
         </div>
@@ -214,7 +214,7 @@ function PlanView({ plan, ctx, title, headingRef, onBack }: {
           <div>
             <h3 className={h2}>Partnerzy do zaangażowania</h3>
             <ul className="mt-3 space-y-2 text-sm">
-              {plan.partners.map((p) => <li key={p.who}><strong>{p.who}</strong> — {p.why}</li>)}
+              {plan.partners.map((p) => <li key={p.who}><strong>{p.who}</strong> - {p.why}</li>)}
             </ul>
           </div>
           <div>
@@ -236,7 +236,7 @@ function PlanView({ plan, ctx, title, headingRef, onBack }: {
 
         {plan.assumptions.length > 0 && (
           <details className="mt-6 text-sm">
-            <summary className="cursor-pointer font-medium">Założenia przyjęte przez Mostka — sprawdź je</summary>
+            <summary className="cursor-pointer font-medium">Założenia przyjęte przez Mostka - sprawdź je</summary>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">{plan.assumptions.map((x) => <li key={x}>{x}</li>)}</ul>
           </details>
         )}

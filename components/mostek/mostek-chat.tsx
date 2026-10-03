@@ -1,5 +1,6 @@
 "use client"
 
+import { Check } from "lucide-react"
 import { Fragment, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -14,7 +15,7 @@ const STARTERS = [
   "Prowadzę fundację dla seniorów i szukam sposobu na ich samotność.",
   "Jakie są największe wyzwania pieczy zastępczej w Małopolsce?",
   "Mam pomysł na innowację dla osób niewidomych, od czego zacząć?",
-  "Jestem z gminy wiejskiej — jak pomóc rodzinom cudzoziemców?",
+  "Jestem z gminy wiejskiej - jak pomóc rodzinom cudzoziemców?",
 ]
 
 /** Minimalny, bezpieczny renderer odpowiedzi: akapity, listy, **pogrubienia**, [cytaty] jako znaczniki źródeł. */
@@ -46,7 +47,14 @@ function RichText({ text }: { text: string }) {
   )
 }
 
-export function MostekChat({ compact = false, initial }: { compact?: boolean; initial?: string }) {
+export function MostekChat({ compact = false, initial, mode, starters = STARTERS, storeKey = STORE, intro }: {
+  compact?: boolean
+  initial?: string
+  mode?: "grant"
+  starters?: string[]
+  storeKey?: string
+  intro?: { title: string; text: string }
+}) {
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [input, setInput] = useState("")
   const [busy, setBusy] = useState(false)
@@ -62,20 +70,20 @@ export function MostekChat({ compact = false, initial }: { compact?: boolean; in
   // przywrócenie rozmowy z tej przeglądarki (historia API i tak żyje po stronie serwera)
   useEffect(() => {
     try {
-      const saved = JSON.parse(sessionStorage.getItem(STORE) ?? "null") as { id: string; msgs: Msg[] } | null
+      const saved = JSON.parse(sessionStorage.getItem(storeKey) ?? "null") as { id: string; msgs: Msg[] } | null
       if (saved?.id) {
         sessionRef.current = saved.id
         // eslint-disable-next-line react-hooks/set-state-in-effect -- jednorazowe przywrócenie stanu z sessionStorage
         setMsgs(saved.msgs)
       }
     } catch {}
-  }, [])
+  }, [storeKey])
   useEffect(() => {
     try {
-      if (sessionRef.current) sessionStorage.setItem(STORE, JSON.stringify({ id: sessionRef.current, msgs }))
+      if (sessionRef.current) sessionStorage.setItem(storeKey, JSON.stringify({ id: sessionRef.current, msgs }))
     } catch {}
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" })
-  }, [msgs])
+  }, [msgs, storeKey])
 
   async function send(text: string) {
     const q = text.trim()
@@ -91,7 +99,7 @@ export function MostekChat({ compact = false, initial }: { compact?: boolean; in
       const res = await fetch("/api/mostek", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: q, sessionId: sessionRef.current, plain, page: pathname }),
+        body: JSON.stringify({ message: q, sessionId: sessionRef.current, plain, page: pathname, mode }),
       })
       if (!res.body) throw new Error("no body")
       const reader = res.body.getReader()
@@ -124,7 +132,7 @@ export function MostekChat({ compact = false, initial }: { compact?: boolean; in
     } finally {
       setBusy(false)
       setStatus("")
-      // czytnik ekranu dostaje pełną odpowiedź raz, po zakończeniu — nie każdy fragment strumienia
+      // czytnik ekranu dostaje pełną odpowiedź raz, po zakończeniu - nie każdy fragment strumienia
       setAnnounce(`Mostek odpowiedział: ${answer.replace(/\[[^\]]+\]/g, "").slice(0, 600)}`)
       inputRef.current?.focus()
     }
@@ -141,7 +149,7 @@ export function MostekChat({ compact = false, initial }: { compact?: boolean; in
   function reset() {
     sessionRef.current = null
     setMsgs([])
-    try { sessionStorage.removeItem(STORE) } catch {}
+    try { sessionStorage.removeItem(storeKey) } catch {}
     inputRef.current?.focus()
   }
 
@@ -158,12 +166,12 @@ export function MostekChat({ compact = false, initial }: { compact?: boolean; in
       <div ref={listRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4" role="log" aria-label="Rozmowa z Mostkiem">
         {msgs.length === 0 && (
           <div>
-            <p className="text-lg font-semibold">W czym mogę pomóc?</p>
+            <p className="text-lg font-semibold">{intro?.title ?? "W czym mogę pomóc?"}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Opisz sytuację własnymi słowami. Znajdę sprawdzone rozwiązania, odpowiem na podstawie raportów ROPS i podpowiem następny krok.
+              {intro?.text ?? "Opisz sytuację własnymi słowami. Znajdę sprawdzone rozwiązania, odpowiem na podstawie raportów ROPS i podpowiem następny krok."}
             </p>
             <ul className="mt-4 grid gap-2">
-              {STARTERS.map((s) => (
+              {starters.map((s) => (
                 <li key={s}>
                   <button type="button" onClick={() => send(s)} className="w-full rounded-lg border bg-background px-3 py-2 text-left text-sm hover:bg-secondary">{s}</button>
                 </li>
@@ -181,7 +189,7 @@ export function MostekChat({ compact = false, initial }: { compact?: boolean; in
               <span className="sr-only">Mostek: </span>
               {m.tools && m.tools.length > 0 && (
                 <p className="mb-1 flex flex-wrap gap-1.5 text-xs text-muted-foreground" aria-hidden="true">
-                  {[...new Set(m.tools)].map((t) => <span key={t} className="rounded-full border px-2 py-0.5">✓ {t}</span>)}
+                  {[...new Set(m.tools)].map((t) => <span key={t} className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5"><Check className="size-3" /> {t}</span>)}
                 </p>
               )}
               <div className="leading-relaxed">{m.text ? <RichText text={m.text} /> : <p className="text-muted-foreground">…</p>}</div>
@@ -228,7 +236,7 @@ export function MostekChat({ compact = false, initial }: { compact?: boolean; in
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input) } }}
             rows={2}
             maxLength={4000}
-            placeholder="Napisz, z czym przychodzisz… (Enter — wyślij, Shift+Enter — nowa linia)"
+            placeholder="Napisz, z czym przychodzisz… (Enter - wyślij, Shift+Enter - nowa linia)"
             className="min-h-11 flex-1 resize-none rounded-lg border border-input bg-background p-2.5 text-base"
           />
           <Button type="submit" size="lg" className="h-11 px-4" disabled={busy || !input.trim()}>

@@ -1,6 +1,6 @@
 import { MostekChat } from "@/components/mostek/mostek-chat"
 
-export const metadata = { title: "Mostek — asystent · MostIn" }
+export const metadata = { title: "Mostek - asystent · MostIn" }
 
 export default async function MostekPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams

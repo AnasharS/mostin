@@ -78,6 +78,12 @@ export async function saveRecord(slug: string, id: string | null, form: FormData
     msg = `Zapisano. Lista oczekujących: wysłano ${invited} ${invited === 1 ? "zaproszenie" : "zaproszeń"} do testów.`
     revalidatePath("/testuj")
   }
+  // ogłoszenie naboru → powiadomienia autorów pomysłów z pasujących kategorii
+  if (resource.table === "calls" && values.active === true) {
+    const { notifyIdeaAuthorsAboutCall } = await import("@/lib/ideas/notify")
+    const { notified } = await notifyIdeaAuthorsAboutCall(Number(data.id))
+    msg = `Zapisano. Powiadomiono ${notified} ${notified === 1 ? "autora pomysłu" : "autorów pomysłów"} z pasujących obszarów.`
+  }
   redirect(`/admin/${slug}/${data.id}?ok=${encodeURIComponent(msg)}`)
 }
 
@@ -99,7 +105,7 @@ export async function runIngest(slug: string, id: string) {
   try {
     if (resource?.ingest === "innovation") {
       await ingestInnovation(Number(id))
-      message = "AI uzupełniło strukturę i embedding — innowacja jest w matchmakingu"
+      message = "AI uzupełniło strukturę i embedding - innowacja jest w matchmakingu"
     } else if (resource?.ingest === "document") {
       const r = await ingestDocument(Number(id))
       message = `Przetworzono ${r.pages} stron → ${r.chunks} fragmentów w bazie wiedzy`
@@ -120,7 +126,7 @@ export async function ingestAllPending() {
   const { data } = await supabase.from("innovations").select("id").in("ingest_status", ["pending", "error"]).limit(15)
   let ok = 0
   let failed = 0
-  // po 3 równolegle — mieścimy się w limicie czasu funkcji na hostingu
+  // po 3 równolegle - mieścimy się w limicie czasu funkcji na hostingu
   for (let i = 0; i < (data ?? []).length; i += 3) {
     const batch = data!.slice(i, i + 3)
     const res = await Promise.allSettled(batch.map((r) => ingestInnovation(r.id)))
@@ -131,7 +137,7 @@ export async function ingestAllPending() {
   redirect(`/admin/innowacje?ok=${encodeURIComponent(`Przetworzono ${ok}, błędy: ${failed}`)}`)
 }
 
-/** Synchronizacja z Biblioteką Innowacji ROPS — nowe i zmienione rekordy (hash) idą do AI, reszta jest pomijana. */
+/** Synchronizacja z Biblioteką Innowacji ROPS - nowe i zmienione rekordy (hash) idą do AI, reszta jest pomijana. */
 export async function syncRopsNow() {
   await requireAdmin()
   const { syncRopsLibrary } = await import("@/lib/ingest/sync-rops")

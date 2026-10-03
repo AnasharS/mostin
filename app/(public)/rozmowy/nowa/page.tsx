@@ -21,7 +21,7 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Pr
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="text-3xl font-bold tracking-tight">Napisz do ROPS</h1>
-      <p className="mt-2 text-muted-foreground">Odpowiadamy zwykle w ciągu 1 dnia roboczego. Nie podawaj danych wrażliwych — wystarczy opis sprawy.</p>
+      <p className="mt-2 text-muted-foreground">Odpowiadamy zwykle w ciągu 1 dnia roboczego. Nie podawaj danych wrażliwych - wystarczy opis sprawy.</p>
       <div className="mt-4"><Flash error={blad} /></div>
       <form action={createThread} className="mt-6 grid gap-5 rounded-xl border bg-card p-5 md:p-6">
         <input type="hidden" name="source" value={fromMostek ? "mostek" : "form"} />
@@ -39,7 +39,7 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Pr
         </div>
         <div>
           <label htmlFor="body" className="font-medium">Wiadomość <span aria-hidden="true">*</span></label>
-          {fromMostek && <p id="body-h" className="text-sm text-muted-foreground">Mostek przygotował podsumowanie Twojej sprawy — możesz je poprawić.</p>}
+          {fromMostek && <p id="body-h" className="text-sm text-muted-foreground">Mostek przygotował podsumowanie Twojej sprawy - możesz je poprawić.</p>}
           <textarea id="body" name="body" required minLength={10} rows={7} maxLength={4000} defaultValue={fromMostek ? temat : ""} aria-describedby={fromMostek ? "body-h" : undefined} className={field} />
         </div>
         <div className="grid gap-4 md:grid-cols-3">

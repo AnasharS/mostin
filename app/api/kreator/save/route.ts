@@ -21,6 +21,7 @@ export async function POST(req: Request) {
     audience: [...c.users, c.users_other].filter(Boolean).join(", "),
     stage: c.readiness ?? "pomysl",
     canvas: c,
+    categories: Array.isArray(p.body?.assessment?.categories) ? p.body.assessment.categories.filter((x: unknown) => typeof x === "string").slice(0, 3) : [],
     assessment: p.body?.assessment ?? null,
     visual_url: typeof p.body?.visual_url === "string" ? p.body.visual_url : null,
     status: send ? "submitted" : "draft",

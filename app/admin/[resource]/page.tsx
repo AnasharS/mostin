@@ -11,7 +11,7 @@ import { ingestAllPending } from "@/app/admin/actions"
 function Cell({ name, value }: { name: string; value: unknown }) {
   if (name === "ingest_status") return <StatusBadge status={String(value)} />
   if (typeof value === "boolean") return <>{value ? "Tak" : "Nie"}</>
-  if (value === null || value === undefined || value === "") return <span className="text-muted-foreground">—</span>
+  if (value === null || value === undefined || value === "") return <span className="text-muted-foreground">-</span>
   if (name.endsWith("_at") && typeof value === "string") return <>{new Date(value).toLocaleDateString("pl-PL")}</>
   return <>{String(value)}</>
 }
@@ -64,7 +64,7 @@ export default async function ResourceList({
 
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
-          <caption className="sr-only">{resource.label} — lista</caption>
+          <caption className="sr-only">{resource.label} - lista</caption>
           <thead className="bg-muted/50 text-left">
             <tr>
               {resource.listColumns.map((c) => (

@@ -25,7 +25,7 @@ alter table public.materials
   add column source_hash text,
   add column last_synced_at timestamptz;
 
--- Dziennik przebiegów importera — widoczny w panelu ROPS
+-- Dziennik przebiegów importera - widoczny w panelu ROPS
 create table public.sync_runs (
   id bigserial primary key,
   source text not null,

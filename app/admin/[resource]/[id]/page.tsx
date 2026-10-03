@@ -1,3 +1,4 @@
+import { Sparkles } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
@@ -48,7 +49,7 @@ export default async function EditRecord({
           <div className="flex items-center gap-3">
             <StatusBadge status={String(values.ingest_status)} />
             <form action={runIngest.bind(null, slug, id)}>
-              <Button type="submit" variant="outline">✨ Przetwórz AI</Button>
+              <Button type="submit" variant="outline"><Sparkles aria-hidden="true" className="size-4 text-brand" /> Przetwórz AI</Button>
             </form>
           </div>
         )}
@@ -67,7 +68,7 @@ export default async function EditRecord({
             <div>
               <h2 id="sekcja-ai" className="font-semibold">Struktura dla matchmakingu</h2>
               <p className="text-sm text-muted-foreground">
-                Pola uzupełnia AI po kliknięciu „Przetwórz AI”. Możesz je poprawić ręcznie — zmiany treści oznaczą rekord do ponownego przetworzenia.
+                Pola uzupełnia AI po kliknięciu „Przetwórz AI”. Możesz je poprawić ręcznie - zmiany treści oznaczą rekord do ponownego przetworzenia.
               </p>
             </div>
             {aiFields.map((f) => <FieldInput key={f.name} field={f} value={values[f.name]} areas={areas ?? []} />)}

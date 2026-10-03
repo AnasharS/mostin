@@ -15,10 +15,10 @@ alter table public.applications
   add column sources jsonb not null default '[]',
   add column updated_at timestamptz not null default now();
 
--- nabór Inkubatora Włączenia Społecznego 2.0 — struktura sekcji wg wzoru formularza aplikacyjnego (zał. nr 3)
+-- nabór Inkubatora Włączenia Społecznego 2.0 - struktura sekcji wg wzoru formularza aplikacyjnego (zał. nr 3)
 insert into public.calls (title, description, rules, opens_at, closes_at, active, is_sample)
-select 'Inkubator Włączenia Społecznego 2.0 — nabór pomysłów na innowacje społeczne',
-  'Nabór pomysłów na innowacje społeczne w obszarze włączenia społecznego (FERS 2021–2027, Działanie 5.1). Granty na przygotowanie i przetestowanie innowacji.',
+select 'Inkubator Włączenia Społecznego 2.0 - nabór pomysłów na innowacje społeczne',
+  'Nabór pomysłów na innowacje społeczne w obszarze włączenia społecznego (FERS 2021-2027, Działanie 5.1). Granty na przygotowanie i przetestowanie innowacji.',
   '{
     "program": "FERS 2021-2027, Działanie 5.1: Innowacje społeczne",
     "okres_przygotowawczy_max_mies": 3,

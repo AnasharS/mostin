@@ -22,7 +22,7 @@ export default async function RozmowyPage() {
       <h1 className="text-3xl font-bold tracking-tight">Rozmowy z ROPS</h1>
       <p className="mt-2 max-w-3xl text-lg text-muted-foreground">
         Zadaj pytanie zespołowi Małopolskiego Hubu Innowacji Społecznych, poproś o kontakt z ekspertem albo zaproponuj współpracę.
-        Bez zakładania konta — rozmowa jest zapisana w tej przeglądarce.
+        Bez zakładania konta - rozmowa jest zapisana w tej przeglądarce.
       </p>
       <div className="mt-6 flex flex-wrap gap-2">
         <Link href="/rozmowy/nowa" className={buttonVariants({ size: "lg" }) + " h-11 px-5 text-base"}>Napisz do ROPS</Link>

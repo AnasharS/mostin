@@ -1,14 +1,14 @@
-// Social Innovation Canvas (ROPS / INNO AGH, na bazie The New Global School) — pola i opcje do zaznaczenia.
+// Social Innovation Canvas (ROPS / INNO AGH, na bazie The New Global School) - pola i opcje do zaznaczenia.
 // Wspólne dla klienta (formularz) i serwera (walidacja, prompty).
 import { z } from "zod"
 
 export const OPTIONS = {
-  intensity: { bardzo_powazny: "🔥 Bardzo poważny problem — stres, wykluczenie, realna krzywda", mocno: "😟 Mocno przeszkadza — regularnie blokuje ważne działania", utrudnia: "😐 Utrudnia działanie — traci się czas lub energię", lekko: "🙂 Lekko przeszkadza — raczej irytuje niż blokuje" },
-  frequency: { bardzo_czesto: "Bardzo często — codziennie", czesto: "Często — co tydzień", czasami: "Czasami — kilka razy w roku/miesiącu", rzadko: "Rzadko — raz w roku lub rzadziej" },
-  scale: { pojedyncze: "Pojedyncze osoby / mała grupa", waska: "Wąska grupa — jedna społeczność, szkoła, okolica", duza: "Duża grupa — wiele osób w mieście, regionie", bardzo_szeroka: "Bardzo szeroka grupa — duża część społeczeństwa" },
+  intensity: { bardzo_powazny: "Bardzo poważny problem - stres, wykluczenie, realna krzywda", mocno: "Mocno przeszkadza - regularnie blokuje ważne działania", utrudnia: "Utrudnia działanie - traci się czas lub energię", lekko: "Lekko przeszkadza - raczej irytuje niż blokuje" },
+  frequency: { bardzo_czesto: "Bardzo często - codziennie", czesto: "Często - co tydzień", czasami: "Czasami - kilka razy w roku/miesiącu", rzadko: "Rzadko - raz w roku lub rzadziej" },
+  scale: { pojedyncze: "Pojedyncze osoby / mała grupa", waska: "Wąska grupa - jedna społeczność, szkoła, okolica", duza: "Duża grupa - wiele osób w mieście, regionie", bardzo_szeroka: "Bardzo szeroka grupa - duża część społeczeństwa" },
   solution_type: { produkt: "Produkt / przedmiot", usluga: "Usługa", aplikacja: "Aplikacja / technologia", model_pracy: "Model pracy / metoda", wydarzenie: "Wydarzenie / zajęcia", inne: "Inne" },
-  readiness: { pomysl: "Pomysł — koncepcja niesprawdzona z odbiorcami", prototyp: "Prototyp — pierwsza wersja do testów", przetestowane: "Przetestowane z realnymi użytkownikami", gotowe: "Gotowe do wdrożenia" },
-  clarity: { niejasne: "❓ Trzeba długo tłumaczyć", czesciowo: "🧩 Ogólny pomysł jasny, sposób użycia jeszcze nie", jasne: "✅ Większość szybko rozumie", sami: "🗣️ Odbiorcy potrafią to wyjaśnić sami" },
+  readiness: { pomysl: "Pomysł - koncepcja niesprawdzona z odbiorcami", prototyp: "Prototyp - pierwsza wersja do testów", przetestowane: "Przetestowane z realnymi użytkownikami", gotowe: "Gotowe do wdrożenia" },
+  clarity: { niejasne: "Trzeba długo tłumaczyć", czesciowo: "Ogólny pomysł jasny, sposób użycia jeszcze nie", jasne: "Większość szybko rozumie", sami: "Odbiorcy potrafią to wyjaśnić sami" },
 } as const
 
 export const USERS = ["dzieci", "młodzież", "rodzice", "seniorzy", "osoby z niepełnosprawnościami", "nauczyciele", "pracownicy instytucji", "osoby w kryzysie", "organizacje społeczne", "mieszkańcy konkretnego miejsca"]

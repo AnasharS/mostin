@@ -46,7 +46,7 @@ async function get(path: string) {
 const clean = (s: string) => s.replace(/STRONA JEST W PRZEBUDOWIE/gi, "").replace(/\s+/g, " ").trim()
 const abs = (href: string) => (href.startsWith("http") ? href : BASE + (href.startsWith("/") ? "" : "/") + href)
 
-/** Zbiera listę innowacji ze wszystkich kategorii (deduplikacja po slugu — innowacja bywa w kilku kategoriach). */
+/** Zbiera listę innowacji ze wszystkich kategorii (deduplikacja po slugu - innowacja bywa w kilku kategoriach). */
 export async function listRopsInnovations(delayMs = 600): Promise<RopsListItem[]> {
   const bySlug = new Map<string, RopsListItem>()
   for (const cat of ROPS_CATEGORIES) {
@@ -118,7 +118,7 @@ export async function fetchRopsInnovation(item: RopsListItem): Promise<RopsInnov
   body.find('a[href$=".zip"]').each((_, a) => add("zip", abs($(a).attr("href")!), "Materiały do pobrania (ZIP)"))
   body.find('img[src*="BIBLIOTEKA_INNOWACJI"]').each((_, img) => add("image", abs($(img).attr("src")!), title))
 
-  // hash tylko z treści merytorycznej — zmiana kosmetyczna strony nie wywołuje ponownej ekstrakcji LLM
+  // hash tylko z treści merytorycznej - zmiana kosmetyczna strony nie wywołuje ponownej ekstrakcji LLM
   const hash = createHash("sha256")
     .update(JSON.stringify({ title, teaser: item.teaser, sections, cats: [...item.categories].sort() }))
     .digest("hex")
@@ -136,7 +136,7 @@ export async function fetchRopsInnovation(item: RopsListItem): Promise<RopsInnov
   }
 }
 
-/** Opis przekazywany do normalizacji LLM — zachowuje oryginalne sekcje ROPS. */
+/** Opis przekazywany do normalizacji LLM - zachowuje oryginalne sekcje ROPS. */
 export function toDescription(i: RopsInnovation) {
   const s = i.sections
   return [

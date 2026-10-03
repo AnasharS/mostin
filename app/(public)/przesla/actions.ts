@@ -31,7 +31,7 @@ export async function leaveCircle(circleId: number) {
 export async function createCircle(form: FormData) {
   const me = await requireProfile()
   const title = z.string().trim().min(5).max(80).safeParse(form.get("title"))
-  if (!title.success) redirect("/przesla?blad=" + encodeURIComponent("Nazwa kręgu: 5–80 znaków"))
+  if (!title.success) redirect("/przesla?blad=" + encodeURIComponent("Nazwa kręgu: 5-80 znaków"))
   const db = createAdminClient()
   const { data } = await db.from("circles").insert({
     title: title.data,
@@ -52,7 +52,7 @@ export async function postMessage(circleId: number, form: FormData) {
   if (!body) redirect(`/przesla/${circleId}`)
   const policy = await getPolicy()
   if (findProfanity(body, policy).length) {
-    redirect(`/przesla/${circleId}?blad=${encodeURIComponent("Przęsła to bezpieczna przestrzeń — usuń proszę wulgaryzmy lub obraźliwe słowa.")}`)
+    redirect(`/przesla/${circleId}?blad=${encodeURIComponent("Przęsła to bezpieczna przestrzeń - usuń proszę wulgaryzmy lub obraźliwe słowa.")}`)
   }
   try {
     const mod = await openai.moderations.create({ model: "omni-moderation-latest", input: body })

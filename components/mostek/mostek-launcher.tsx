@@ -1,5 +1,6 @@
 "use client"
 
+import { X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { MostekChat } from "./mostek-chat"
 
@@ -10,15 +11,18 @@ export function MostekLauncher() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // skrót Alt+M — otwórz Mostka z dowolnego miejsca
+      // skrót Alt+M - otwórz Mostka z dowolnego miejsca
       if (e.altKey && (e.key === "m" || e.key === "M" || e.code === "KeyM")) {
         e.preventDefault()
         ref.current?.showModal()
         setOpen(true)
       }
     }
+    // otwarcie z powitania Mostka („Wolę po prostu porozmawiać”)
+    const onOpen = () => { ref.current?.showModal(); setOpen(true) }
     window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
+    window.addEventListener("mostek-open", onOpen)
+    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("mostek-open", onOpen) }
   }, [])
 
   return (
@@ -36,12 +40,12 @@ export function MostekLauncher() {
       <dialog
         ref={ref}
         onClose={() => setOpen(false)}
-        aria-label="Mostek — asystent MostIn"
+        aria-label="Mostek - asystent MostIn"
         className="m-0 ml-auto h-dvh max-h-dvh w-full max-w-xl bg-card p-0 text-foreground shadow-2xl backdrop:bg-black/30 open:flex open:flex-col"
       >
         <div className="flex justify-end border-b px-2 py-1">
           <button type="button" onClick={() => ref.current?.close()} className="rounded-md px-3 py-1.5 text-sm hover:bg-muted">
-            Zamknij <span aria-hidden="true">✕</span><span className="sr-only"> panel Mostka (Esc)</span>
+            Zamknij <X aria-hidden="true" className="ml-1 inline size-4 align-[-3px]" /><span className="sr-only"> panel Mostka (Esc)</span>
           </button>
         </div>
         <div className="min-h-0 flex-1">{open && <MostekChat compact />}</div>

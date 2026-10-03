@@ -1,3 +1,4 @@
+import { Bell, Check } from "lucide-react"
 import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getMyProfile } from "@/lib/profiles"
@@ -34,7 +35,7 @@ export default async function TestujPage({
       <h1 className="text-3xl font-bold tracking-tight">Testuj innowacje</h1>
       <p className="mt-2 max-w-3xl text-lg text-muted-foreground">
         Nowe rozwiązania społeczne powstają z udziałem ludzi, dla których są tworzone. Zgłoś się do testów, oceniaj i podpowiadaj,
-        co poprawić — albo zapisz się na listę, a damy znać, gdy pojawi się innowacja pasująca do Twojej sytuacji.
+        co poprawić - albo zapisz się na listę, a damy znać, gdy pojawi się innowacja pasująca do Twojej sytuacji.
       </p>
       <div className="mt-4"><Flash ok={sp.ok ?? (sp.zapisano ? `Zapisano profil.${Number(sp.zaproszenia) ? ` Masz ${sp.zaproszenia} nowe zaproszenie do testów!` : ""}` : undefined)} error={sp.blad} /></div>
 
@@ -60,13 +61,13 @@ export default async function TestujPage({
               </li>
             )
           })}
-          {!tests?.length && <li className="text-muted-foreground">Obecnie brak naborów — zapisz się na listę oczekujących poniżej.</li>}
+          {!tests?.length && <li className="text-muted-foreground">Obecnie brak naborów - zapisz się na listę oczekujących poniżej.</li>}
         </ul>
       </section>
 
       {me && (
         <section id="moj-profil" className="mt-10 rounded-xl border-2 border-brand bg-card p-6" aria-labelledby="profil">
-          <h2 id="profil" className="text-xl font-semibold">Twój profil potrzeb — {me.nickname}</h2>
+          <h2 id="profil" className="text-xl font-semibold">Twój profil potrzeb - {me.nickname}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {me.categories.map(label).join(", ")}{me.district ? ` · ${me.district}` : ""} ·{" "}
             {me.consent_tests ? "powiadomienia o testach włączone" : "bez powiadomień o testach"} · {me.consent_przesla ? "widoczny/a w Przęsłach (anonimowo)" : "niewidoczny/a w Przęsłach"}
@@ -79,7 +80,7 @@ export default async function TestujPage({
               return (
                 <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-accent p-3">
                   <div>
-                    <p className="font-medium"><span aria-hidden="true">🔔 </span>Zaproszenie do testów: {t.title}</p>
+                    <p className="flex items-center gap-1.5 font-medium"><Bell aria-hidden="true" className="size-4 text-brand-dark" />Zaproszenie do testów: {t.title}</p>
                     <p className="text-sm">{inv.match_reason}{t.location ? ` · ${t.location}` : ""}</p>
                   </div>
                   {inv.status === "sent" || inv.status === "seen" ? (
@@ -88,17 +89,17 @@ export default async function TestujPage({
                       <form action={respondToInvitation.bind(null, inv.id, false)}><Button type="submit" variant="outline">Nie teraz</Button></form>
                     </div>
                   ) : (
-                    <span className="text-sm font-medium">{inv.status === "accepted" ? "✓ Zgłoszono" : "Odrzucono"}</span>
+                    <span className="flex items-center gap-1 text-sm font-medium">{inv.status === "accepted" ? <><Check aria-hidden="true" className="size-4 text-success" /> Zgłoszono</> : "Odrzucono"}</span>
                   )}
                 </li>
               )
             })}
-            {!invitations.data?.length && <li className="text-sm text-muted-foreground">Brak zaproszeń — damy znać, gdy ROPS otworzy test pasujący do Twojego profilu.</li>}
+            {!invitations.data?.length && <li className="text-sm text-muted-foreground">Brak zaproszeń - damy znać, gdy ROPS otworzy test pasujący do Twojego profilu.</li>}
           </ul>
 
           {me.consent_przesla && sim && (
             <div className="mt-5 rounded-lg border bg-background p-4">
-              <p className="font-semibold"><span aria-hidden="true" className="mr-1.5 inline-block size-2.5 rounded-full bg-brand" />Przęsła — nie jesteś sam/sama</p>
+              <p className="font-semibold"><span aria-hidden="true" className="mr-1.5 inline-block size-2.5 rounded-full bg-brand" />Przęsła - nie jesteś sam/sama</p>
               <p className="mt-1">
                 {sim.same_district > 0 && me.district ? <><strong>{sim.same_district}</strong> {sim.same_district === 1 ? "osoba" : "osób"} w okolicy „{me.district}” i </> : null}
                 <strong>{sim.region}</strong> w całej Małopolsce ma podobną sytuację i zgodziło się na kontakt.
@@ -112,7 +113,7 @@ export default async function TestujPage({
       <section id="lista" className="mt-10" aria-labelledby="zapis">
         <h2 id="zapis" className="text-xl font-semibold">{me ? "Zmień swój profil potrzeb" : "Zapisz się na listę oczekujących"}</h2>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-          Zaznacz, czego dotyczy Twoja sytuacja. Nie podawaj diagnoz ani danych wrażliwych — wystarczą obszary. Dane kontaktowe widzi tylko ROPS
+          Zaznacz, czego dotyczy Twoja sytuacja. Nie podawaj diagnoz ani danych wrażliwych - wystarczą obszary. Dane kontaktowe widzi tylko ROPS
           i nie są przekazywane do asystenta AI. Możesz to zrobić także rozmawiając z <Link href="/mostek">Mostkiem</Link>.
         </p>
         <form action={saveNeedsProfile} className="mt-5 grid gap-6 rounded-xl border bg-card p-5 md:p-6">
@@ -146,7 +147,7 @@ export default async function TestujPage({
             <div className="grid gap-4">
               <div>
                 <label htmlFor="district" className="font-medium">Dzielnica lub gmina (opcjonalnie)</label>
-                <input id="district" name="district" defaultValue={me?.district ?? ""} className={field} placeholder="np. Kraków — Nowa Huta" />
+                <input id="district" name="district" defaultValue={me?.district ?? ""} className={field} placeholder="np. Kraków - Nowa Huta" />
               </div>
               <div>
                 <label htmlFor="nickname" className="font-medium">Pseudonim <span aria-hidden="true">*</span></label>

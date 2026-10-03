@@ -1,4 +1,4 @@
-/** Hasło marki — wyróżnione „Most” i „In” pokazują, skąd nazwa MostIn. */
+/** Hasło marki - wyróżnione „Most” i „In” pokazują, skąd nazwa MostIn. */
 export function Tagline({ className = "" }: { className?: string }) {
   return (
     <span className={className}>

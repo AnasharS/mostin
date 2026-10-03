@@ -32,7 +32,7 @@ export default async function InnovationPage({ params }: { params: Promise<{ id:
   const vid = video ? youtubeId(video.url) : undefined
   const structured = (i.structured ?? {}) as { suitable_for?: string[]; summary?: string }
   const suitable = structured.suitable_for ?? []
-  // zajawka ze strony ROPS bywa samym tytułem — wtedy pokazujemy streszczenie z normalizacji AI
+  // zajawka ze strony ROPS bywa samym tytułem - wtedy pokazujemy streszczenie z normalizacji AI
   const lead = i.summary && i.summary.trim() !== i.title.trim() ? i.summary : structured.summary ?? i.summary
 
   return (

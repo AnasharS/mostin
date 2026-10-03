@@ -46,7 +46,7 @@ export function FileUpload({ name, bucket, accept, defaultValue, label }: {
       <p id={`${name}-status`} className="text-xs text-muted-foreground" aria-live="polite">
         {state === "uploading" && "Wgrywanie…"}
         {state === "error" && <span className="text-red-700 dark:text-red-400">Błąd: {error}</span>}
-        {state === "idle" && (path ? <>Plik: <code>{path}</code> — zapisz formularz</> : `Wybierz ${label.toLowerCase()}`)}
+        {state === "idle" && (path ? <>Plik: <code>{path}</code> - zapisz formularz</> : `Wybierz ${label.toLowerCase()}`)}
       </p>
     </div>
   )

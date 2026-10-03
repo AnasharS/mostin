@@ -40,7 +40,7 @@ export function FieldInput({ field, value, areas }: { field: Field; value: unkno
     case "select":
       control = (
         <select {...common} defaultValue={toText(field, value)} className={selectClass}>
-          <option value="">— wybierz —</option>
+          <option value="">- wybierz -</option>
           {field.options?.map((o) => <option key={o} value={o}>{tagLabel(o)}</option>)}
         </select>
       )
@@ -48,7 +48,7 @@ export function FieldInput({ field, value, areas }: { field: Field; value: unkno
     case "area":
       control = (
         <select {...common} defaultValue={toText(field, value)} className={selectClass}>
-          <option value="">— brak —</option>
+          <option value="">- brak -</option>
           {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
       )

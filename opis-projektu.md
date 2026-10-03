@@ -1,4 +1,4 @@
-# MostIn — Twój Most do Innowacji Społecznych
+# MostIn - Twój Most do Innowacji Społecznych
 
 > Szkic opisu projektu na HackYeah 2026 (wyzwanie UMWM / ROPS Kraków: Małopolski Hub Innowacji Społecznych). Stan na sobotę ok. 16:30. Do redakcji.
 
@@ -20,7 +20,7 @@ ROPS ma ogromny zasób wiedzy: ponad 200 opracowanych innowacji, raporty, diagno
 
 ## Rozwiązanie: 7 modułów + Mostek
 
-1. **Matchmaking społeczny** (moduł obowiązkowy). Opis problemu naturalnym językiem → analiza AI → wyszukiwanie hybrydowe (znaczenie + słowa kluczowe + kategorie) w 115 innowacjach → ranking z oceną 0–100, **uzasadnieniem „dlaczego pasuje”, „co dostosować” i „pierwszym krokiem”**. Uczciwa ocena pokrycia: gdy dobrego rozwiązania brak, MostIn mówi to wprost i prowadzi do Kreatora.
+1. **Matchmaking społeczny** (moduł obowiązkowy). Opis problemu naturalnym językiem → analiza AI → wyszukiwanie hybrydowe (znaczenie + słowa kluczowe + kategorie) w 115 innowacjach → ranking z oceną 0-100, **uzasadnieniem „dlaczego pasuje”, „co dostosować” i „pierwszym krokiem”**. Uczciwa ocena pokrycia: gdy dobrego rozwiązania brak, MostIn mówi to wprost i prowadzi do Kreatora.
 2. **Zasobnik wiedzy.** Biblioteka 115 innowacji z filtrami, 10 dokumentów ROPS (~1600 fragmentów z numerami stron), Mapa Wyzwań Społecznych (8 obszarów, 51 wyzwań). Odpowiedzi z cytatem „Raport X, s. 27”. Trendy potrzeb widoczne dla administratora.
 3. **Kreator pomysłów.** Prowadzenie krok po kroku po **kanwie innowacji społecznej ROPS / INNO AGH**. Mostek sprawdza, czy pomysł **nie powiela innowacji już inkubowanych** (wymóg naboru), wskazuje mocne strony i luki oraz generuje **wizualizację pomysłu**. Fiszkę wysyła się do ROPS jednym kliknięciem. **Generator wniosku do naboru „Inkubator Włączenia Społecznego 2.0”** według prawdziwego wzoru formularza, z diagnozą opartą na raportach ROPS.
 4. **Tester innowacji + lista oczekujących.** Nabory testów. Profil potrzeb (za zgodą) sprawia, że gdy ROPS otwiera test pasującej innowacji, osoby z listy dostają zaproszenie.
@@ -62,8 +62,8 @@ Next.js 16 (TypeScript), Supabase (PostgreSQL + pgvector, RLS, Storage), Claude 
 ## Wdrożenie i koszty utrzymania
 
 - **Infrastruktura:** Supabase Pro ~25 USD/mies., Netlify Pro ~19 USD/mies.
-- **AI, zmierzone na prototypie:** dopasowanie ~0,07 USD, odpowiedź Mostka ~0,05–0,10 USD, plan wdrożenia ~0,10 USD, ocena pomysłu ~0,04 USD, wizualizacja ~0,01 USD, triaż sprawy ~0,01 USD, pełny szkic wniosku ~0,5–0,8 USD. **Import całej Biblioteki ROPS jednorazowo ~3 USD**, synchronizacja tylko zmian to centy.
-- **Przykład skali regionalnej:** 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie daje **ok. 150–200 USD/mies. za AI**. Budżet, limity dzienne i tryb oszczędny ustawia ROPS w panelu.
+- **AI, zmierzone na prototypie:** dopasowanie ~0,07 USD, odpowiedź Mostka ~0,05-0,10 USD, plan wdrożenia ~0,10 USD, ocena pomysłu ~0,04 USD, wizualizacja ~0,01 USD, triaż sprawy ~0,01 USD, pełny szkic wniosku ~0,5-0,8 USD. **Import całej Biblioteki ROPS jednorazowo ~3 USD**, synchronizacja tylko zmian to centy.
+- **Przykład skali regionalnej:** 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie daje **ok. 150-200 USD/mies. za AI**. Budżet, limity dzienne i tryb oszczędny ustawia ROPS w panelu.
 - **Utrzymanie treści:** synchronizacja z Biblioteką ROPS (docelowo automatycznie raz dziennie), CMS dla pracowników ROPS i import dokumentów PDF jednym kliknięciem.
 
 ## Użycie AI w projekcie (ujawnienie)

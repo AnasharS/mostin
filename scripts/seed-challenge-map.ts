@@ -1,5 +1,5 @@
 // Mapa Wyzwań Społecznych (ROPS) → areas + challenges (z embeddingami i numerami stron).
-//   pnpm seed:mapa   — idempotentne (upsert po source_id)
+//   pnpm seed:mapa   - idempotentne (upsert po source_id)
 import { config } from "dotenv"
 import { readFileSync } from "node:fs"
 import { createHash } from "node:crypto"

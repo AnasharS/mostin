@@ -108,7 +108,7 @@ export async function runMatchmaking(text: string, ctx: { userId?: string | null
     }
   })
 
-  // zapis potrzeby — zasila podobne przypadki i trendy w panelu ROPS
+  // zapis potrzeby - zasila podobne przypadki i trendy w panelu ROPS
   const { data: need } = await db.from("needs").insert({
     author_id: ctx.userId ?? null,
     raw_text: guard.text,

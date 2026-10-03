@@ -1,4 +1,4 @@
--- Splot / HubMi — schemat bazowy
+-- Splot / HubMi - schemat bazowy
 -- Postgres w Supabase nie ma słownika polskiego, więc FTS = 'simple' + unaccent.
 
 create extension if not exists vector with schema extensions;

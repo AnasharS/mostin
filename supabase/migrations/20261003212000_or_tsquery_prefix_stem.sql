@@ -7,7 +7,7 @@ language sql immutable set search_path = public, extensions as $$
     nullif(
       array_to_string(
         array(
-          -- prosty stemming dla polskiego: rdzeń (słowo bez 3 ostatnich liter, min. 5) dopasowywany prefiksem — łapie odmianę
+          -- prosty stemming dla polskiego: rdzeń (słowo bez 3 ostatnich liter, min. 5) dopasowywany prefiksem - łapie odmianę
           select distinct left(w, greatest(5, length(w) - 3)) || ':*'
           from regexp_split_to_table(extensions.unaccent('extensions.unaccent', lower(coalesce(txt, ''))), '[^a-z0-9]+') as w
           where length(w) >= 4

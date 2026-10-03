@@ -40,7 +40,7 @@ language sql stable set search_path = public, extensions as $$
          f.semantic, f.lexical,
          ((case when filter_categories is not null and i.categories && filter_categories then 0.6 else 0 end)
         + (case when filter_target_groups is not null and i.target_groups && filter_target_groups then 0.4 else 0 end))::real as meta,
-         -- RRF przeskalowane do ~0–1 (maks. 2/51) + do 0.15 premii za metadane
+         -- RRF przeskalowane do ~0-1 (maks. 2/51) + do 0.15 premii za metadane
          (f.rrf * 25.5 * 0.85
           + 0.15 * ((case when filter_categories is not null and i.categories && filter_categories then 0.6 else 0 end)
                   + (case when filter_target_groups is not null and i.target_groups && filter_target_groups then 0.4 else 0 end)))::real as score

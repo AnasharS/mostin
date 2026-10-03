@@ -6,7 +6,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { createCircle } from "./actions"
 
-export const metadata = { title: "Przęsła — kręgi wsparcia · MostIn" }
+export const metadata = { title: "Przęsła - kręgi wsparcia · MostIn" }
 
 export default async function PrzeslaPage({ searchParams }: { searchParams: Promise<{ blad?: string }> }) {
   const { blad } = await searchParams
@@ -25,7 +25,7 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
       <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Przęsła <span aria-hidden="true" className="text-brand">/</span> kręgi wsparcia</p>
       <h1 className="mt-2 text-3xl font-bold tracking-tight">Nie jesteś z tym sam/sama</h1>
       <p className="mt-2 max-w-3xl text-lg text-muted-foreground">
-        Przęsło to część mostu, która łączy dwa brzegi. Tutaj łączymy ludzi w podobnej sytuacji — rodziców, opiekunów, seniorów — żeby mogli
+        Przęsło to część mostu, która łączy dwa brzegi. Tutaj łączymy ludzi w podobnej sytuacji - rodziców, opiekunów, seniorów - żeby mogli
         porozmawiać, wymienić się doświadczeniem i, jeśli zechcą, spotkać się. Pod pseudonimem, bez oceniania, tylko za zgodą.
       </p>
       <div className="mt-4"><Flash error={blad} /></div>
@@ -50,7 +50,7 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
             <form action={createCircle} className="mt-3 grid max-w-xl gap-3">
               <div>
                 <label htmlFor="title" className="text-sm font-medium">Nazwa kręgu</label>
-                <input id="title" name="title" required minLength={5} maxLength={80} placeholder="np. Rodzice dzieci ze spastycznością — Nowa Huta" className="mt-1 w-full rounded-lg border border-input bg-background p-2.5" />
+                <input id="title" name="title" required minLength={5} maxLength={80} placeholder="np. Rodzice dzieci ze spastycznością - Nowa Huta" className="mt-1 w-full rounded-lg border border-input bg-background p-2.5" />
               </div>
               <div>
                 <label htmlFor="topic" className="text-sm font-medium">O czym chcecie rozmawiać?</label>
@@ -63,7 +63,7 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
       )}
 
       <section className="mt-8" aria-labelledby="kregi">
-        <h2 id="kregi" className="text-xl font-semibold">Kręgi{me?.categories.length ? " — najbardziej pasujące na górze" : ""}</h2>
+        <h2 id="kregi" className="text-xl font-semibold">Kręgi{me?.categories.length ? " - najbardziej pasujące na górze" : ""}</h2>
         <ul className="mt-4 grid gap-4 md:grid-cols-2">
           {sorted.map((c) => {
             const members = (c.circle_members as unknown as { count: number }[])[0]?.count ?? 0
@@ -84,10 +84,10 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
       <aside className="mt-10 rounded-lg bg-secondary p-5 text-sm">
         <h2 className="font-semibold">Zasady Przęseł</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>Rozmawiamy pod pseudonimem — nie podawaj nazwisk, adresów ani numerów telefonów (system je ukrywa).</li>
-          <li>Bez oceniania i bez porad medycznych — dzielimy się doświadczeniem, nie diagnozami.</li>
+          <li>Rozmawiamy pod pseudonimem - nie podawaj nazwisk, adresów ani numerów telefonów (system je ukrywa).</li>
+          <li>Bez oceniania i bez porad medycznych - dzielimy się doświadczeniem, nie diagnozami.</li>
           <li>Wiadomości są moderowane automatycznie; zgłoszenia trafiają do ROPS.</li>
-          <li>Spotkanie na żywo — tylko gdy cała grupa tego chce; ROPS może pomóc znaleźć bezpieczne miejsce.</li>
+          <li>Spotkanie na żywo - tylko gdy cała grupa tego chce; ROPS może pomóc znaleźć bezpieczne miejsce.</li>
         </ul>
       </aside>
     </div>

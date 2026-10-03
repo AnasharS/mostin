@@ -31,9 +31,9 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <h1 className="text-2xl font-semibold">Ustawienia AI — Mostek</h1>
+      <h1 className="text-2xl font-semibold">Ustawienia AI - Mostek</h1>
       <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-        Decydujesz, jak mówi Mostek, czego ma unikać i ile może kosztować. Zmiany działają od następnej odpowiedzi — bez wdrożenia.
+        Decydujesz, jak mówi Mostek, czego ma unikać i ile może kosztować. Zmiany działają od następnej odpowiedzi - bez wdrożenia.
         Zakres merytoryczny (tylko dozwolone źródła, tematy wyłączone) jest zawsze nadrzędny wobec stylu.
       </p>
       <div className="mt-4"><Flash ok={ok} error={blad} /></div>
@@ -85,7 +85,7 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
         </fieldset>
 
         <fieldset>
-          <legend className="text-lg font-semibold">Kaganiec — zakres i moderacja</legend>
+          <legend className="text-lg font-semibold">Kaganiec - zakres i moderacja</legend>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <Toggle name="only_allowed_sources" label="Tylko dozwolone źródła" help="Odpowiedzi wyłącznie z bazy MostIn (innowacje, dokumenty ROPS, Mapa Wyzwań). Brak źródła → „nie wiem, przekażę do ROPS”." checked={p.only_allowed_sources} />
             <Toggle name="avoid_off_topic" label="Tylko polityka społeczna i innowacje" help="Odmowa przy tematach niezwiązanych z misją Hubu." checked={p.avoid_off_topic} />
@@ -151,7 +151,7 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
                 <td>{e.route}</td>
                 <td>{e.reason}</td>
                 <td>{({ blocked: "zablokowano", masked: "zamaskowano", redirected: "przekierowano", degraded: "tryb oszczędny" } as Record<string, string>)[e.action] ?? e.action}</td>
-                <td className="text-muted-foreground">{e.excerpt ?? "—"}</td>
+                <td className="text-muted-foreground">{e.excerpt ?? "-"}</td>
               </tr>
             ))}
             {!events?.length && <tr><td colSpan={5} className="py-3 text-muted-foreground">Brak zdarzeń</td></tr>}

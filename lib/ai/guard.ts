@@ -1,11 +1,12 @@
 import "server-only"
 import { openai } from "./clients"
+import { noDashes } from "@/lib/text"
 import { getPolicy, type AiPolicy } from "./policy"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 // ── filtr deterministyczny (szybki, darmowy, działa przed jakimkolwiek modelem) ──
 
-// rdzenie wulgaryzmów PL — dopasowanie po rdzeniu łapie odmiany i formy z przedrostkami
+// rdzenie wulgaryzmów PL - dopasowanie po rdzeniu łapie odmiany i formy z przedrostkami
 const PROFANITY = /\b\w*(kurw|chuj|huj|pierdol|pierdal|jeb[aiaćn]|zajeb|wyjeb|pizd|skurw|spierd|cip[aey]|dziwk|szmat|kutas|fiut)\w*/giu
 const INSULTS = /\b(debil\w*|idiot\w*|kretyn\w*|imbecyl\w*|głup(i|ek|ia|ol)\w*|frajer\w*|ciul\w*|dureń|durni\w*|baran\w*|matoł\w*|downie)\b/giu
 
@@ -27,9 +28,9 @@ export function findProfanity(text: string, p: Pick<AiPolicy, "block_profanity" 
   return hits
 }
 
-/** Zastępuje wulgaryzmy w odpowiedzi modelu (druga linia obrony — prompt już ich zabrania). */
+/** Zastępuje wulgaryzmy w odpowiedzi modelu (druga linia obrony - prompt już ich zabrania). */
 export function sanitizeOutput(text: string) {
-  return text.replace(PROFANITY, "***")
+  return noDashes(text.replace(PROFANITY, "***"))
 }
 
 async function logEvent(e: { route: string; stage: "input" | "output"; reason: string; action: string; excerpt?: string; userId?: string | null }) {
@@ -77,7 +78,7 @@ export async function guardInput(input: { text: string; route: string; userId?: 
   const policy = await getPolicy()
   const text = input.text.trim()
   if (text.length < 3) return { ok: false, reason: "empty", message: "Opisz proszę swoją sprawę kilkoma słowami." }
-  if (text.length > 4000) return { ok: false, reason: "too_long", message: "Opis jest za długi — skróć go do kilku akapitów." }
+  if (text.length > 4000) return { ok: false, reason: "too_long", message: "Opis jest za długi - skróć go do kilku akapitów." }
 
   const budget = await budgetState(policy)
   if (budget.over && policy.hard_stop) {
@@ -97,7 +98,7 @@ export async function guardInput(input: { text: string; route: string; userId?: 
     return {
       ok: false,
       reason: "profanity",
-      message: "Rozumiem, że sytuacja może być frustrująca. Opisz ją proszę bez wulgaryzmów i obraźliwych słów — wtedy pomogę.",
+      message: "Rozumiem, że sytuacja może być frustrująca. Opisz ją proszę bez wulgaryzmów i obraźliwych słów - wtedy pomogę.",
     }
   }
 
@@ -117,11 +118,11 @@ export async function guardInput(input: { text: string; route: string; userId?: 
         }
         if (cats.some((c) => /harassment|hate|violence|sexual/.test(c))) {
           await logEvent({ route: input.route, stage: "input", reason: `moderation:${cats.join(",")}`, action: "blocked", excerpt: text, userId: input.userId })
-          return { ok: false, reason: "moderation", message: "Ta wiadomość narusza zasady platformy. Opisz proszę swoją sprawę spokojnie — chętnie pomogę." }
+          return { ok: false, reason: "moderation", message: "Ta wiadomość narusza zasady platformy. Opisz proszę swoją sprawę spokojnie - chętnie pomogę." }
         }
       }
     } catch {
-      // awaria moderacji nie blokuje usługi — działa filtr deterministyczny i prompt
+      // awaria moderacji nie blokuje usługi - działa filtr deterministyczny i prompt
     }
   }
 

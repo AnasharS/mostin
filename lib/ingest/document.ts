@@ -8,7 +8,7 @@ const OVERLAP_CHARS = 200
 
 type Chunk = { content: string; page_from: number; page_to: number }
 
-// Spisy treści, wykresów i tabel („Rozdział 3 ........ 27”) to szum w wyszukiwaniu — pomijamy je
+// Spisy treści, wykresów i tabel („Rozdział 3 ........ 27”) to szum w wyszukiwaniu - pomijamy je
 const isTocLike = (p: string) => (p.match(/\.{4,}|…{2,}/g) ?? []).length >= 2 || /^(spis (treści|tabel|wykresów|rysunków|map)|table of contents)/i.test(p)
 
 /** Dzieli tekst stron na fragmenty ~1400 znaków z zakładką, pamiętając zakres stron. */
@@ -39,7 +39,7 @@ export async function ingestPdfBytes(id: number, title: string, bytes: Uint8Arra
   const pdf = await getDocumentProxy(bytes)
   const { totalPages, text } = await extractText(pdf, { mergePages: false })
   const chunks = chunkPages(text)
-  if (chunks.length === 0) throw new Error("PDF nie zawiera tekstu (skan?) — potrzebny OCR")
+  if (chunks.length === 0) throw new Error("PDF nie zawiera tekstu (skan?) - potrzebny OCR")
   // tytuł dokumentu w treści embeddingu poprawia trafność krótkich fragmentów
   const vectors = await embed(chunks.map((c) => `${title}\n${c.content}`))
 
@@ -59,7 +59,7 @@ export async function ingestPdfBytes(id: number, title: string, bytes: Uint8Arra
   return { pages: totalPages, chunks: chunks.length }
 }
 
-/** Ingestion dokumentu: plik z bucketu 'documents' albo — gdy brak pliku — pobranie z source_url. */
+/** Ingestion dokumentu: plik z bucketu 'documents' albo - gdy brak pliku - pobranie z source_url. */
 export async function ingestDocument(id: number) {
   const db = createAdminClient()
   const { data: doc } = await db.from("documents").select("id, title, storage_path, source_url").eq("id", id).single()
@@ -96,4 +96,31 @@ export async function downloadPdf(url: string) {
   const type = res.headers.get("content-type") ?? ""
   if (!type.includes("pdf") && !type.includes("octet-stream")) throw new Error(`To nie jest PDF (${type})`)
   return new Uint8Array(await res.arrayBuffer())
+}
+
+/** Ingestion treści HTML (np. strona naboru) - tekst traktowany jako jedna „strona”. */
+export async function ingestTextPages(id: number, title: string, pages: string[]) {
+  const db = createAdminClient()
+  const chunks = chunkPages(pages)
+  if (!chunks.length) throw new Error("Brak treści")
+  const vectors = await embed(chunks.map((c) => `${title}\n${c.content}`))
+  await db.from("document_chunks").delete().eq("document_id", id)
+  const { error } = await db.from("document_chunks").insert(chunks.map((c, i) => ({
+    document_id: id, chunk_index: i, page_from: c.page_from, page_to: c.page_to, content: c.content, embedding: toPgVector(vectors[i]),
+  })))
+  if (error) throw error
+  return { pages: pages.length, chunks: chunks.length }
+}
+
+export async function downloadHtmlText(url: string) {
+  const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; MOSTIN-importer/1.0; +https://mostin.pl)" } })
+  if (!res.ok) throw new Error(`Pobieranie ${res.status}: ${url}`)
+  const html = await res.text()
+  const { load } = await import("cheerio")
+  const $ = load(html)
+  const main = $(".content__main .text-content").first().length ? $(".content__main .text-content").first() : $(".content__main").first()
+  main.find("script, style, nav").remove()
+  // akapity/listy jako osobne linie - lepszy chunking
+  main.find("p, li, h2, h3, h4, tr").each((_, el) => { $(el).append("\n\n") })
+  return main.text().replace(/[ \t]+/g, " ").replace(/\n\s*\n\s*\n+/g, "\n\n").trim()
 }

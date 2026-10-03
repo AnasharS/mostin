@@ -1,4 +1,4 @@
-// Logo MostIn — wektor z pliku MostIn_logo.svg (Adobe Illustrator), wstawiony inline,
+// Logo MostIn - wektor z pliku MostIn_logo.svg (Adobe Illustrator), wstawiony inline,
 // żeby kolory reagowały na tryb wysokiego kontrastu (--logo-ink / --logo-accent w globals.css).
 export function Logo({ className = "", title = "MostIn" }: { className?: string; title?: string }) {
   return (
@@ -8,7 +8,7 @@ export function Logo({ className = "", title = "MostIn" }: { className?: string;
   )
 }
 
-/** Obecność Mostka oznaczamy pomarańczowym węzłem — punktem łączącym elementy systemu, nie maskotką. */
+/** Obecność Mostka oznaczamy pomarańczowym węzłem - punktem łączącym elementy systemu, nie maskotką. */
 export function MostekMark({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-1.5 font-semibold ${className}`}>

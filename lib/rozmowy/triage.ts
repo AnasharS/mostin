@@ -1,4 +1,5 @@
 import "server-only"
+import { noDashesDeep } from "@/lib/text"
 import { z } from "zod"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
@@ -21,14 +22,14 @@ export const THREAD_CATEGORIES = {
 const Triage = z.object({
   category: z.enum(Object.keys(THREAD_CATEGORIES) as [keyof typeof THREAD_CATEGORIES, ...(keyof typeof THREAD_CATEGORIES)[]]),
   priority: z.enum(["pilne", "normal", "niski"]).describe("pilne: zagrożenie zdrowia/życia, kryzys, krótki termin naboru; niski: ogólne zainteresowanie"),
-  summary: z.string().describe("1–2 zdania dla pracownika ROPS: kto pisze, czego potrzebuje"),
+  summary: z.string().describe("1-2 zdania dla pracownika ROPS: kto pisze, czego potrzebuje"),
   draft_reply: z.string().describe(
     "Szkic odpowiedzi ROPS do autora (do edycji przez pracownika): uprzejmie, konkretnie, z odwołaniem do pasujących innowacji z listy (po nazwie) " +
     "i propozycją następnego kroku. Miejsca wymagające wiedzy pracownika oznacz [DO UZUPEŁNIENIA: …]. Bez obietnic w imieniu ROPS.",
   ),
 })
 
-/** Triaż nowej sprawy: kategoria, priorytet, streszczenie i szkic odpowiedzi (Sonnet 5.5 — szybki, tani krok w tle). */
+/** Triaż nowej sprawy: kategoria, priorytet, streszczenie i szkic odpowiedzi (Sonnet 5.5 - szybki, tani krok w tle). */
 export async function triageThread(threadId: number) {
   const db = createAdminClient()
   const { data: t } = await db.from("threads").select("id, subject, kind, requester_label, messages(body, author_role)").eq("id", threadId).single()
@@ -62,6 +63,6 @@ export async function triageThread(threadId: number) {
   })
   if (!res.parsed_output) return
   void logUsage({ route: "rozmowy.triage", model: MODELS.fast, input_tokens: res.usage.input_tokens, output_tokens: res.usage.output_tokens, cache_read_tokens: res.usage.cache_read_input_tokens ?? 0 })
-  const r = res.parsed_output
+  const r = noDashesDeep(res.parsed_output)
   await db.from("threads").update({ category: r.category, priority: r.priority, ai_summary: r.summary, ai_draft: r.draft_reply }).eq("id", threadId)
 }

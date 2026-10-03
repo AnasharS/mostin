@@ -22,7 +22,7 @@ export async function replyAsRops(threadId: number, form: FormData) {
     status: "answered", last_message_at: now, unread_by_rops: false, unread_by_user: true, first_response_at: t?.first_response_at ?? now,
   }).eq("id", threadId)
   revalidatePath("/admin/rozmowy")
-  redirect(`/admin/rozmowy/${threadId}?ok=${encodeURIComponent("Odpowiedź wysłana — autor zobaczy powiadomienie w rozmowie")}`)
+  redirect(`/admin/rozmowy/${threadId}?ok=${encodeURIComponent("Odpowiedź wysłana - autor zobaczy powiadomienie w rozmowie")}`)
 }
 
 export async function setThreadStatus(threadId: number, status: "open" | "answered" | "closed") {

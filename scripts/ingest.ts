@@ -1,8 +1,8 @@
 // Import / synchronizacja Biblioteki Innowacji ROPS.
-//   pnpm ingest                 — pełna synchronizacja (tylko zmienione rekordy idą do LLM)
-//   pnpm ingest --limit 5       — pierwsze 5 innowacji (test)
-//   pnpm ingest --no-ai         — tylko pobranie i zapis, bez LLM/embeddingów
-//   pnpm ingest --force         — ponowna ekstrakcja wszystkiego
+//   pnpm ingest                 - pełna synchronizacja (tylko zmienione rekordy idą do LLM)
+//   pnpm ingest --limit 5       - pierwsze 5 innowacji (test)
+//   pnpm ingest --no-ai         - tylko pobranie i zapis, bez LLM/embeddingów
+//   pnpm ingest --force         - ponowna ekstrakcja wszystkiego
 import { config } from "dotenv"
 config({ path: ".env.local" })
 

@@ -16,7 +16,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
   const { ok, blad } = await searchParams
   const supabase = await createClient()
   const { data: runs } = await supabase.from("sync_runs").select("*").order("started_at", { ascending: false }).limit(5)
-  const [innovations, ready, documents, needsNew, ideasNew, threadsOpen, usage] = await Promise.all([
+  const [innovations, ready, documents, needsNew, ideasNew, threadsOpen, usage, leads] = await Promise.all([
     count("innovations"),
     count("innovations", (q) => q.eq("ingest_status", "ready")),
     count("documents"),
@@ -24,14 +24,16 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
     count("ideas", (q) => q.eq("status", "submitted")),
     count("threads", (q) => q.eq("status", "open")),
     supabase.from("ai_usage").select("cost_usd"),
+    count("jst_leads", (q) => q.in("status", ["nowy", "w_rozmowie"])),
   ])
   const aiCost = (usage.data ?? []).reduce((s, r) => s + Number(r.cost_usd), 0)
 
   const tiles = [
+    { label: "Gminy w rozmowie o grant", value: leads, sub: "leady z asystenta grantowego", href: "/admin/leady" },
     { label: "Innowacje w katalogu", value: innovations, sub: `${ready} gotowych do dopasowań`, href: "/admin/innowacje" },
     { label: "Dokumenty w bazie wiedzy", value: documents, href: "/admin/dokumenty" },
-    { label: "Nowe zgłoszenia potrzeb", value: needsNew, href: "/admin" },
-    { label: "Nowe pomysły", value: ideasNew, href: "/admin" },
+    { label: "Nowe zgłoszenia potrzeb", value: needsNew, sub: "z matchmakingu - źródło trendów", href: "/admin" },
+    { label: "Nowe pomysły (wg kategorii)", value: ideasNew, href: "/admin/pomysly" },
     { label: "Rozmowy do odpowiedzi", value: threadsOpen, href: "/admin/rozmowy" },
     { label: "Koszt AI (łącznie)", value: `$${aiCost.toFixed(2)}`, href: "/admin" },
   ]

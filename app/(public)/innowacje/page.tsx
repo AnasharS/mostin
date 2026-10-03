@@ -1,3 +1,4 @@
+import { Play } from "lucide-react"
 import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { CATEGORIES, TARGET_GROUPS, label } from "@/lib/ai/taxonomy"
@@ -83,7 +84,7 @@ export default async function Library({
                 <ul className="mt-auto flex flex-wrap gap-1.5 pt-4" aria-label="Kategorie">
                   {i.stage === "upowszechniana" && <li className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium">Upowszechniana</li>}
                   {i.categories.slice(0, 2).map((c: string) => <li key={c} className="rounded-full border px-2 py-0.5 text-xs">{label(c)}</li>)}
-                  {hasVideo && <li className="rounded-full border px-2 py-0.5 text-xs">▶ film</li>}
+                  {hasVideo && <li className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs"><Play aria-hidden="true" className="size-3" /> film</li>}
                 </ul>
               </article>
             </li>

@@ -29,7 +29,7 @@ export default async function ThreadPage({ params, searchParams }: { params: Pro
         {(msgs ?? []).map((m) => (
           <li key={m.id} className={`rounded-xl p-4 ${m.author_role === "user" ? "ml-10 bg-primary text-primary-foreground" : m.author_role === "system" ? "border border-dashed text-sm" : "mr-10 border-2 border-brand bg-card"}`}>
             <p className={`text-sm font-semibold ${m.author_role === "user" ? "" : "text-foreground"}`}>
-              {m.author_role === "user" ? "Ty" : `${ROLE[m.author_role]}${m.author_label && m.author_role !== "system" ? ` — ${m.author_label}` : ""}`}
+              {m.author_role === "user" ? "Ty" : `${ROLE[m.author_role]}${m.author_label && m.author_role !== "system" ? ` - ${m.author_label}` : ""}`}
               <span className="font-normal opacity-80"> · {new Date(m.created_at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}</span>
             </p>
             <p className="mt-1 whitespace-pre-wrap">{m.body}</p>

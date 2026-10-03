@@ -4,15 +4,15 @@
 @custom-variant dark (&:is([data-contrast="high"] *));
 
 /*
- * MostIn — motyw: ciepły pomarańcz + krem + prawie czerń. Bez gradientów, prawie bez cieni.
+ * MostIn - motyw: ciepły pomarańcz + krem + prawie czerń. Bez gradientów, prawie bez cieni.
  * Kontrasty (WCAG 2.1 AA): text/bg 16.2:1 · muted/bg 5.45:1 · biały na primary 4.99:1 ·
- * primary/bg 4.54:1 · link (orange-dark)/bg 5.79:1 · brand/bg 3.17:1 (tylko grafika, fokus, paski — próg 3:1) ·
+ * primary/bg 4.54:1 · link (orange-dark)/bg 5.79:1 · brand/bg 3.17:1 (tylko grafika, fokus, paski - próg 3:1) ·
  * obramowanie pól/bg 3.26:1 (WCAG 1.4.11).
  */
 :root {
   --radius: 0.625rem;
 
-  --brand: #e85d2a;              /* MostIn Orange — znak, „In”, linia mostu, kropka Mostka */
+  --brand: #e85d2a;              /* MostIn Orange - znak, „In”, linia mostu, kropka Mostka */
   --brand-dark: #a83b18;         /* linki w tekście */
   --brand-light: #f6b89e;
   --logo-ink: #414042;           /* grafit z MostIn_logo.svg */
@@ -25,7 +25,7 @@
   --popover: #ffffff;
   --popover-foreground: #181816;
 
-  --primary: #c54415;            /* przyciski — pomarańcz przyciemniony do AA z białym tekstem */
+  --primary: #c54415;            /* przyciski - pomarańcz przyciemniony do AA z białym tekstem */
   --primary-foreground: #ffffff;
   --secondary: #efe9df;
   --secondary-foreground: #181816;

@@ -30,7 +30,7 @@ export async function getMyProfile(): Promise<NeedsProfile | null> {
   return data
 }
 
-/** Tekst do embeddingu profilu — bez danych kontaktowych. */
+/** Tekst do embeddingu profilu - bez danych kontaktowych. */
 export const profileText = (p: { categories: string[]; target_groups: string[]; situation?: string | null }) =>
   [p.situation ?? "", ...p.categories.map(label), ...p.target_groups.map(label)].filter(Boolean).join(". ")
 

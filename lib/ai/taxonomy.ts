@@ -1,4 +1,4 @@
-// Wspólny słownik kategorii i grup docelowych — używany przy normalizacji innowacji
+// Wspólny słownik kategorii i grup docelowych - używany przy normalizacji innowacji
 // i przy analizie problemu użytkownika, żeby filtry metadanych trafiały w te same wartości.
 
 export const CATEGORIES = [

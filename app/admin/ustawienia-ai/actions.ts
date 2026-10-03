@@ -45,7 +45,7 @@ export async function savePolicy(form: FormData) {
     const i = parsed.error.issues[0]
     redirect(`/admin/ustawienia-ai?blad=${encodeURIComponent(`${i.path.join(".")}: ${i.message}`)}`)
   }
-  // zapis przez sesję admina — RLS na ai_policy dopuszcza tylko rolę admin
+  // zapis przez sesję admina - RLS na ai_policy dopuszcza tylko rolę admin
   const supabase = await createClient()
   const { error } = await supabase
     .from("ai_policy")
@@ -54,5 +54,5 @@ export async function savePolicy(form: FormData) {
   if (error) redirect(`/admin/ustawienia-ai?blad=${encodeURIComponent(error.message)}`)
   invalidatePolicyCache()
   revalidatePath("/admin/ustawienia-ai")
-  redirect(`/admin/ustawienia-ai?ok=${encodeURIComponent("Zapisano — Mostek stosuje nowe ustawienia od następnej odpowiedzi")}`)
+  redirect(`/admin/ustawienia-ai?ok=${encodeURIComponent("Zapisano - Mostek stosuje nowe ustawienia od następnej odpowiedzi")}`)
 }

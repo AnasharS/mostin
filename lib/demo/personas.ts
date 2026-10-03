@@ -1,6 +1,6 @@
 import type { Role } from "@/lib/auth"
 
-// Persony do demo — wejście bez hasła (anonimowa sesja Supabase + rola z persony).
+// Persony do demo - wejście bez hasła (anonimowa sesja Supabase + rola z persony).
 export const PERSONAS = [
   {
     id: "mieszkanka",
@@ -37,7 +37,7 @@ export const PERSONAS = [
   {
     id: "rops",
     role: "admin" as Role,
-    name: "Koordynatorka Hubu — ROPS Kraków",
+    name: "Koordynatorka Hubu - ROPS Kraków",
     organization: "Regionalny Ośrodek Polityki Społecznej w Krakowie",
     description: "Zarządza wiedzą, zgłoszeniami i rozmowami. Widzi trendy potrzeb.",
     home: "/admin",

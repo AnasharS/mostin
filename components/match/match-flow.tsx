@@ -1,5 +1,6 @@
 "use client"
 
+import { Check } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -56,7 +57,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
     e?.preventDefault()
     if (text.trim().length < 10) {
       setState("error")
-      setError("Opisz proszę problem nieco dokładniej — wystarczy jedno, dwa zdania.")
+      setError("Opisz proszę problem nieco dokładniej - wystarczy jedno, dwa zdania.")
       return
     }
     setState("loading")
@@ -79,10 +80,10 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
 
   return (
     <>
-      <form onSubmit={submit} className="mt-10 rounded-xl border bg-card p-4 md:p-6" aria-describedby="opis-pomoc">
+      <form onSubmit={submit} className="mt-4 rounded-xl border bg-card p-4 md:p-6" aria-describedby="opis-pomoc">
         <label htmlFor="problem" className="text-lg font-semibold">Twój problem lub potrzeba</label>
         <p id="opis-pomoc" className="mt-1 text-sm text-muted-foreground">
-          Nie musisz znać nazw programów ani urzędów. Nie podawaj danych osobowych — wystarczy opis sytuacji.
+          Nie musisz znać nazw programów ani urzędów. Nie podawaj danych osobowych - wystarczy opis sytuacji.
         </p>
         <textarea
           id="problem"
@@ -101,7 +102,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
           <span className="text-sm text-muted-foreground">lub Ctrl + Enter</span>
         </div>
         <div className="mt-5">
-          <p className="text-sm font-medium" id="przyklady">Przykłady — kliknij, aby wstawić:</p>
+          <p className="text-sm font-medium" id="przyklady">Przykłady - kliknij, aby wstawić:</p>
           <ul className="mt-2 flex flex-wrap gap-2" aria-labelledby="przyklady">
             {EXAMPLES.map((ex) => (
               <li key={ex}>
@@ -121,11 +122,11 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
             <ol className="mt-3 space-y-2">
               {STEPS.map((s, i) => (
                 <li key={s} className={`flex items-center gap-2 ${i > step ? "text-muted-foreground" : ""}`}>
-                  <span aria-hidden="true" className={`inline-block size-5 rounded-full border-2 text-center text-xs leading-4 ${i < step ? "border-success bg-success text-white" : i === step ? "animate-pulse border-brand" : "border-border"}`}>
-                    {i < step ? "✓" : ""}
+                  <span aria-hidden="true" className={`inline-flex size-5 items-center justify-center rounded-full border-2 ${i < step ? "border-success bg-success text-white" : i === step ? "animate-pulse border-brand" : "border-border"}`}>
+                    {i < step && <Check className="size-3" strokeWidth={3} />}
                   </span>
                   {s}
-                  <span className="sr-only">{i < step ? " — gotowe" : i === step ? " — w toku" : ""}</span>
+                  <span className="sr-only">{i < step ? " - gotowe" : i === step ? " - w toku" : ""}</span>
                 </li>
               ))}
             </ol>
@@ -162,7 +163,7 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
           ))}
         </p>
         {analysis.clarifying_question && (
-          <p className="mt-2 text-muted-foreground">Dokładniejszy wynik: <em>{analysis.clarifying_question}</em> — dopisz odpowiedź w opisie i wyszukaj ponownie.</p>
+          <p className="mt-2 text-muted-foreground">Dokładniejszy wynik: <em>{analysis.clarifying_question}</em> - dopisz odpowiedź w opisie i wyszukaj ponownie.</p>
         )}
       </div>
 

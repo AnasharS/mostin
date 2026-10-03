@@ -10,7 +10,7 @@ const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPAB
 const { data, error } = await db.auth.admin.listUsers({ perPage: 1000 })
 if (error) throw error
 const user = data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
-if (!user) throw new Error(`Brak konta ${email} — najpierw zarejestruj się w aplikacji`)
+if (!user) throw new Error(`Brak konta ${email} - najpierw zarejestruj się w aplikacji`)
 const { error: upErr } = await db.from("profiles").update({ role: "admin" }).eq("id", user.id)
 if (upErr) throw upErr
 console.log(`✓ ${email} jest adminem`)
