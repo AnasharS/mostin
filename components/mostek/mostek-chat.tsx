@@ -8,6 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { usePlainLanguage } from "@/components/site/a11y-toolbar"
 import type { Source, ActionCard } from "@/lib/mostek/tools"
 import { quickLinks, type Page } from "@/lib/site/sitemap"
+import { DemoExamples } from "@/components/site/demo-examples"
 import { MicButton, SpeakButton, useVoiceConfig } from "./voice"
 
 type Msg = { role: "user" | "assistant"; text: string; sources?: Source[]; actions?: ActionCard[]; tools?: string[]; quick?: Pick<Page, "path" | "title">[] }
@@ -188,13 +189,9 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
             <p className="mt-1 text-sm text-muted-foreground">
               {intro?.text ?? "Opisz sytuację własnymi słowami. Znajdę sprawdzone rozwiązania, odpowiem na podstawie raportów ROPS i podpowiem następny krok."}
             </p>
-            <ul className="mt-4 border-t">
-              {starters.map((s) => (
-                <li key={s}>
-                  <button type="button" onClick={() => send(s)} className="w-full border-b px-1 py-2.5 text-left text-sm hover:bg-muted">{s}</button>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4">
+              <DemoExamples items={starters} onPick={(s) => void send(s)} hint="kliknij, aby zapytać" />
+            </div>
           </div>
         )}
         {msgs.map((m, i) =>

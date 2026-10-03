@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { label } from "@/lib/ai/taxonomy"
 import type { MatchResult } from "@/lib/match/run"
+import { DemoExamples } from "@/components/site/demo-examples"
 
 const EXAMPLES = [
   "Prowadzę fundację pomagającą seniorom i szukam sposobu na zmniejszenie ich samotności.",
@@ -102,16 +103,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
           <span className="text-sm text-muted-foreground">lub Ctrl + Enter</span>
         </div>
         <div className="mt-5">
-          <p className="text-sm font-medium" id="przyklady">Przykłady - kliknij, aby wstawić:</p>
-          <ul className="mt-2 flex flex-wrap gap-2" aria-labelledby="przyklady">
-            {EXAMPLES.map((ex) => (
-              <li key={ex}>
-                <button type="button" onClick={() => setText(ex)} className="rounded-full border bg-background px-3 py-1.5 text-left text-sm hover:bg-secondary">
-                  {ex.length > 70 ? ex.slice(0, 68) + "…" : ex}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <DemoExamples title="Przykładowe opisy sytuacji" items={EXAMPLES} onPick={setText} />
         </div>
       </form>
 
@@ -170,37 +162,44 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
       <ol className="mt-6 border-t">
         {matches.map((m, i) => (
           <li key={m.id}>
-            <article className="border-b py-6" aria-labelledby={`m-${m.id}`}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <h3 id={`m-${m.id}`} className="text-xl font-semibold">
-                  <span className="sr-only">Wynik {i + 1}: </span>
-                  <Link href={`/innowacje/${m.id}`} className="hover:underline">{m.title}</Link>
-                </h3>
-                <div className="min-w-40 text-right">
-                  <p className="text-sm font-semibold">{fitLabel(m.fit)}</p>
-                  <div className="mt-1 h-2 w-40 overflow-hidden rounded-full bg-muted" role="img" aria-label={`Dopasowanie ${m.fit} na 100`}>
-                    <div className="h-full rounded-full bg-brand" style={{ width: `${m.fit}%` }} />
+            <article className="grid gap-x-8 gap-y-3 border-b py-8 md:grid-cols-[9rem_1fr]" aria-labelledby={`m-${m.id}`}>
+              {/* numer wyniku i stopień dopasowania - pierwsze, co widzi oko */}
+              <div className="flex items-end gap-4 md:block">
+                <p className="text-6xl font-bold leading-none tracking-tight md:text-7xl" aria-hidden="true">
+                  {i + 1}<span className="text-brand">/</span>
+                </p>
+                <div className="md:mt-4">
+                  <p className="text-3xl font-bold leading-none text-brand-dark">{m.fit}%</p>
+                  <p className="mt-1 text-sm font-semibold">{fitLabel(m.fit)}</p>
+                  <div className="mt-2 h-1.5 w-32 bg-muted" role="img" aria-label={`Dopasowanie ${m.fit} na 100`}>
+                    <div className="h-full bg-brand" style={{ width: `${m.fit}%` }} />
                   </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground" aria-hidden="true">{m.fit}/100</p>
                 </div>
               </div>
-              <p className="mt-2 text-muted-foreground">{m.summary}</p>
 
-              <dl className="mt-4 grid border-t md:grid-cols-3 md:divide-x">
-                <div className="py-3 md:px-4 md:first:pl-0">
-                  <dt className="text-sm font-semibold">Dlaczego pasuje</dt>
-                  <dd className="mt-1 text-sm">{m.why}</dd>
-                </div>
-                <div className="py-3 md:px-4 md:first:pl-0">
-                  <dt className="text-sm font-semibold">Co dostosować</dt>
-                  <dd className="mt-1 text-sm">{m.adaptation}</dd>
-                </div>
-                <div className="bg-accent/50 px-3 py-3 md:px-4">
-                  <dt className="text-sm font-semibold">Pierwszy krok</dt>
-                  <dd className="mt-1 text-sm">{m.first_step}</dd>
-                </div>
-              </dl>
+              <div className="min-w-0">
+                {i === 0 && <p className="mb-2 inline-block bg-primary px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-primary-foreground">Najlepsze dopasowanie</p>}
+                <h3 id={`m-${m.id}`} className="text-2xl font-bold leading-tight">
+                  <span className="sr-only">Wynik {i + 1}, dopasowanie {m.fit}%: </span>
+                  <Link href={`/innowacje/${m.id}`} className="text-foreground hover:underline">{m.title}</Link>
+                </h3>
+                <p className="mt-2 text-muted-foreground">{m.summary}</p>
 
+                <div className="mt-4 border-l-4 border-brand pl-4">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-brand-dark">Dlaczego pasuje do Twojej sytuacji</p>
+                  <p className="mt-1 text-lg leading-snug">{m.why}</p>
+                </div>
+
+                <dl className="mt-4 grid gap-4 md:grid-cols-2">
+                  <div className="border-t-2 border-foreground pt-2">
+                    <dt className="text-sm font-semibold">Co dostosować</dt>
+                    <dd className="mt-1 text-sm">{m.adaptation}</dd>
+                  </div>
+                  <div className="border-t-2 border-brand pt-2">
+                    <dt className="text-sm font-semibold">Pierwszy krok</dt>
+                    <dd className="mt-1 text-sm">{m.first_step}</dd>
+                  </div>
+                </dl>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Link href={`/innowacje/${m.id}/dostosuj?problem=${encodeURIComponent(problem)}`} className={buttonVariants({ size: "lg" }) + " h-10 px-4"}>
                   Dostosuj z Mostkiem
@@ -227,6 +226,7 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
                   {m.is_sample && " · dane przykładowe"}
                 </p>
               )}
+              </div>
             </article>
           </li>
         ))}

@@ -419,3 +419,8 @@ opis problemu
   1. **Fiszka pomysłu** - zawsze otwarta: problem + pomysł, ocena Mostka (czy podobne już istnieje = dobre praktyki z Biblioteki), wysyłka do ROPS.
   2. **Wniosek do naboru pomysłów** - tylko gdy trwa nabór z formularzem (dziś: IWS 2.0, 10 sekcji wg wzoru formularza aplikacyjnego). Szkic powstaje z fiszki, z oznaczeniem „trwa nabór”. Bez naboru: zapis fiszki i powiadomienie, gdy nabór ruszy.
   3. **Grant na wdrożenie gotowej innowacji** - osobny nabór (Usługa Wrażliwa) dla gmin i organizacji, w Strefie JST z testem kwalifikacji i przedwstępnym wnioskiem.
+
+### 33. Wyniki dopasowania i oznaczenie elementów demo
+- Wynik dopasowania nie jest już ścianą tekstu. Po lewej duży numer z pomarańczowym ukośnikiem („1/”, „2/”) i stopień dopasowania w procentach z opisem („Bardzo dobre dopasowanie”) oraz paskiem. Pierwszy wynik ma etykietę „Najlepsze dopasowanie”.
+- Treść ma hierarchię: tytuł → krótki opis → wyróżnione „Dlaczego pasuje do Twojej sytuacji” (większy tekst, pomarańczowa linia) → dwie kolumny „Co dostosować” / „Pierwszy krok” → przyciski.
+- Wszystkie przykłady do kliknięcia (opisy sytuacji w dopasowaniu, pytania startowe Mostka, asystenta grantowego i panelu ROPS) są w jednej ramce z przerywaną linią, etykietą „DEMO” i dopiskiem, że to dane na potrzeby prezentacji, których w docelowej wersji nie będzie (`components/site/demo-examples.tsx`). Jury od razu odróżnia element pokazu od usługi.
