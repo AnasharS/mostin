@@ -84,10 +84,11 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
       <aside className="mt-10 border-t-2 border-foreground pt-5 text-sm">
         <h2 className="font-semibold">Zasady Przęseł</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>Rozmawiamy pod pseudonimem - nie podawaj nazwisk, adresów ani numerów telefonów (system je ukrywa).</li>
-          <li>Bez oceniania i bez porad medycznych - dzielimy się doświadczeniem, nie diagnozami.</li>
-          <li>Wiadomości są moderowane automatycznie; zgłoszenia trafiają do ROPS.</li>
-          <li>Spotkanie na żywo - tylko gdy cała grupa tego chce; ROPS może pomóc znaleźć bezpieczne miejsce.</li>
+          <li>Rozmawiamy pod pseudonimem. W grupie system sam ukrywa numery telefonów, adresy e-mail i inne dane kontaktowe, żeby nikt nie podał za dużo w trudnej chwili.</li>
+          <li>Tu można się wygadać. Nie oceniamy i nie dajemy porad medycznych - dzielimy się doświadczeniem.</li>
+          <li>Chcesz porozmawiać z kimś prywatnie? Użyj „Poproś o kontakt”. Kontaktami wymieniacie się tylko wtedy, gdy obie strony się zgodzą.</li>
+          <li>Nikt z ROPS nie czyta Waszych rozmów. Jeśli coś Cię niepokoi, użyj „Zgłoś” - ROPS zobaczy tylko tę jedną wiadomość.</li>
+          <li>Spotkanie na żywo tylko wtedy, gdy cała grupa tego chce. ROPS może pomóc znaleźć bezpieczne miejsce.</li>
         </ul>
       </aside>
     </div>

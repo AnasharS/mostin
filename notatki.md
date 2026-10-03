@@ -424,3 +424,11 @@ opis problemu
 - Wynik dopasowania nie jest już ścianą tekstu. Po lewej duży numer z pomarańczowym ukośnikiem („1/”, „2/”) i stopień dopasowania w procentach z opisem („Bardzo dobre dopasowanie”) oraz paskiem. Pierwszy wynik ma etykietę „Najlepsze dopasowanie”.
 - Treść ma hierarchię: tytuł → krótki opis → wyróżnione „Dlaczego pasuje do Twojej sytuacji” (większy tekst, pomarańczowa linia) → dwie kolumny „Co dostosować” / „Pierwszy krok” → przyciski.
 - Wszystkie przykłady do kliknięcia (opisy sytuacji w dopasowaniu, pytania startowe Mostka, asystenta grantowego i panelu ROPS) są w jednej ramce z przerywaną linią, etykietą „DEMO” i dopiskiem, że to dane na potrzeby prezentacji, których w docelowej wersji nie będzie (`components/site/demo-examples.tsx`). Jury od razu odróżnia element pokazu od usługi.
+
+### 34. Przęsła: anonimowość domyślnie, bliskość z wyboru
+- „Moderacja” brzmiała jak nadzór, a krąg wsparcia musi pozwalać się wygadać. Rozdzieliliśmy to na cztery rzeczy:
+  1. **Treść jest wolna.** Przekleństwa z frustracji przechodzą. Blokujemy tylko obrażanie innych osób z kręgu („ty debilu”, „jesteś idiotą”) oraz groźby i nienawiść (kategorie threatening/hate w moderacji OpenAI). Samookaleczenie celowo nie blokuje wiadomości.
+  2. **Dane kontaktowe w grupie są ukrywane** (telefon, e-mail, PESEL, konto) - ochrona przed podaniem za dużo w kryzysie i przed oszustami. Po ukryciu system podpowiada „Poproś o kontakt”.
+  3. **Kontakt prywatny po obopólnej zgodzie:** „Poproś o kontakt” przy pseudonimie, prośba z własnym kontaktem; adresat widzi go dopiero, gdy się zgodzi i poda swój. Kontakty widzą tylko te dwie osoby (`circle_contact_requests`).
+  4. **ROPS nie czyta rozmów.** Wiadomości widzą tylko członkowie kręgu. ROPS widzi wyłącznie wiadomości zgłoszone przyciskiem „Zgłoś” (Panel → Zgłoszenia z Przęseł) i może je ukryć albo uznać zgłoszenie za bezzasadne.
+- **Kryzys:** treść o myślach samobójczych (słowa kluczowe + kategoria self-harm) nie jest blokowana - pod wiadomością pojawia się ramka z telefonami 116 123, 800 70 2222, 116 111 i 112. Numery zweryfikowane na gov.pl (Ministerstwo Zdrowia).
