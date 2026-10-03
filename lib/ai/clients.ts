@@ -7,6 +7,7 @@ export const openai = new OpenAI()
 
 export const MODELS = {
   text: "claude-opus-5-5",
+  fast: "claude-sonnet-5-5", // analiza zapytania użytkownika — krok na ścieżce krytycznej czasu odpowiedzi
   embedding: process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-small",
 } as const
 

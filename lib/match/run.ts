@@ -48,7 +48,7 @@ export async function runMatchmaking(text: string, ctx: { userId?: string | null
   const { data: analysis, usage: aUsage } = await analyzeProblem(guard.text)
   mark("analyze")
   const usageBase = { model: MODELS.text, user_id: ctx.userId, session_key: ctx.sessionKey }
-  void logUsage({ ...usageBase, route: "match.analyze", input_tokens: aUsage.input_tokens, output_tokens: aUsage.output_tokens, cache_read_tokens: aUsage.cache_read_input_tokens ?? 0 })
+  void logUsage({ ...usageBase, model: MODELS.fast, route: "match.analyze", input_tokens: aUsage.input_tokens, output_tokens: aUsage.output_tokens, cache_read_tokens: aUsage.cache_read_input_tokens ?? 0 })
 
   if (!analysis.on_topic) {
     return { ok: false, reason: "off_topic", message: guard.policy.refusal_message }

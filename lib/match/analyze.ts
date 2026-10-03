@@ -30,7 +30,7 @@ która posłuży do wyszukania istniejących innowacji społecznych.
 
 export async function analyzeProblem(text: string) {
   const res = await anthropic.beta.messages.parse({
-    model: MODELS.text,
+    model: MODELS.fast,
     max_tokens: 3000,
     ...FALLBACK,
     output_config: { effort: "low", format: betaZodOutputFormat(ProblemStructure) },
