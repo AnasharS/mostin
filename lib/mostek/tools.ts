@@ -1,4 +1,5 @@
 import "server-only"
+import { GRANT_FACTS } from "@/lib/jst/facts"
 import { ALL_PATHS, PUBLIC_PATHS } from "@/lib/site/sitemap"
 import type Anthropic from "@anthropic-ai/sdk"
 import { z } from "zod"
@@ -88,6 +89,15 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     eager_input_streaming: true,
   },
   {
+    name: "search_calls",
+    description:
+      "Aktualne nabory i dofinansowania z Radaru naborów ROPS (kwota, termin, dla kogo) oraz zweryfikowane warunki naboru grantowego „Usługa Wrażliwa” z cytatem i stroną regulaminu. " +
+      "Używaj ZAWSZE przy pytaniach o dofinansowanie, granty, nabory, pieniądze, terminy i warunki. Podawaj kwoty i terminy z wyniku wraz ze źródłem.",
+    input_schema: { type: "object", properties: { topic: { type: "string", description: "Czego dotyczy pytanie, np. bezdomność, seniorzy" } }, required: ["topic"], additionalProperties: false },
+    strict: true,
+    eager_input_streaming: true,
+  },
+  {
     name: "przesla_stats",
     description:
       "Przęsła - sprawdza (anonimowo, tylko liczby), ile osób w podobnej sytuacji zgodziło się na kontakt z innymi oraz jakie kręgi wsparcia już działają. " +
@@ -140,6 +150,7 @@ export const TOOL_LABELS: Record<string, string> = {
   search_documents: "Przeszukuję raporty ROPS",
   search_challenges: "Sprawdzam Mapę Wyzwań",
   propose_action: "Przygotowuję następny krok",
+  search_calls: "Sprawdzam Radar naborów",
   przesla_stats: "Sprawdzam, kto jest w podobnej sytuacji",
 }
 
@@ -242,6 +253,30 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
           })
           return { dokument: r.document_title, strony: pages, fragment: clip(r.content, 1200), zrodlo: `[${r.document_title}, ${pages}]` }
         })),
+      }
+    }
+    case "search_calls": {
+      const { data: calls } = await db.from("calls").select("id, title, description, closes_at, opens_at, amount_label, amount_source, audience, is_sample, eligibility_check, source_url")
+        .eq("active", true).order("closes_at", { ascending: true, nullsFirst: false })
+      const today = new Date()
+      const items = (calls ?? []).map((c) => {
+        const days = c.closes_at ? Math.ceil((new Date(c.closes_at).getTime() - today.getTime()) / 86_400_000) : null
+        addSource(ctx, { id: `n${c.id}`, kind: "dokument", title: `Radar naborów: ${String(c.title).replace(/^\[DEMO\]\s*/, "")}`, url: c.eligibility_check ? `/dla-gmin/kwalifikacja?nabor=${c.id}` : "/dla-gmin" })
+        return {
+          nabor: String(c.title).replace(/^\[DEMO\]\s*/, ""), opis: c.description, kwota: c.amount_label, zrodlo_kwoty: c.amount_source,
+          termin: c.closes_at ?? "wg ogłoszenia ROPS", dni_do_konca: days, dla_kogo: c.audience,
+          uwaga: c.is_sample ? "TERMIN PRZYKŁADOWY (dane demonstracyjne) - zaznacz to użytkownikowi; prawdziwy termin podaje ogłoszenie ROPS" : undefined,
+          test_kwalifikacji: c.eligibility_check ? `/dla-gmin/kwalifikacja?nabor=${c.id}` : undefined,
+        }
+      })
+      if (!ctx.actions.some((a) => a.href === "/dla-gmin")) ctx.actions.push({ kind: "otworz", label: "Zobacz Radar naborów", href: "/dla-gmin" })
+      return {
+        content: JSON.stringify({
+          temat: (input as { topic?: string }).topic,
+          nabory: items,
+          warunki_uslugi_wrazliwej: GRANT_FACTS.map((f) => ({ warunek: f.label, wartosc: f.value, zrodlo: `[Regulamin udzielania grantów - projekt „Usługa Wrażliwa”, s. ${f.page}]` })),
+          wskazowka: "Usługa Wrażliwa finansuje wdrożenie innowacji z Biblioteki ROPS wskazanych w ogłoszeniu naboru - powiąż temat użytkownika z pasującymi innowacjami.",
+        }),
       }
     }
     case "search_challenges": {

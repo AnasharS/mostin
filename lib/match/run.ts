@@ -32,8 +32,66 @@ export type MatchResult =
         is_sample: boolean
         signals: { semantic: number; lexical: number; meta: number }
       }[]
+      context: MatchContext
       timings: Record<string, number>
     }
+
+/** „Co wiemy o tym problemie”: fakty z Mapy Wyzwań, fragmenty raportów ROPS i podobne zgłoszenia (anonimowo). Bez dodatkowego wywołania LLM. */
+export type MatchContext = {
+  facts: { challenge: string; fact: string; page: number | null; source: string | null; url: string | null }[]
+  reports: { title: string; pages: string; excerpt: string; url: string | null }[]
+  similar: { count: number; examples: { summary: string; district: string | null; days: number }[] }
+}
+
+async function problemContext(db: ReturnType<typeof createAdminClient>, emb: string, queryText: string, categories: string[]): Promise<MatchContext> {
+  // dopasowanie po słowach (polskie odmiany: porównujemy początki słów)
+  const GENERIC = new Set(["probl", "które", "który", "która", "takżę", "także", "osoby", "osób", "potrz", "działa", "dział", "możli", "wspar", "społe", "jedno", "ponad", "przez", "będzi", "konie", "wyzwa", "główn", "syste"])
+  const stems = new Set(queryText.toLowerCase().split(/[^\p{L}]+/u).filter((w) => w.length >= 5).map((w) => w.slice(0, 5)).filter((w) => !GENERIC.has(w)))
+  const overlap = (t: string) => new Set(t.toLowerCase().split(/[^\p{L}]+/u).filter((w) => w.length >= 5).map((w) => w.slice(0, 5)).filter((w) => stems.has(w))).size
+  const [kn, ch, sim] = await Promise.all([
+    db.rpc("match_knowledge", { query_embedding: emb, match_count: 8 }),
+    db.rpc("match_chunks", { query_embedding: emb, query_text: queryText, match_count: 8, source_prefix: "rops:raport", filter_innovation: null }),
+    db.rpc("match_needs", { query_embedding: emb, match_count: 20, min_similarity: 0.62 }),
+  ])
+  // Mapa Wyzwań: dwa najbliższe wyzwania, po dwa fakty z numerem strony
+  const chIds = ((kn.data ?? []) as { kind: string; id: number }[]).filter((x) => x.kind === "challenge").slice(0, 3).map((x) => x.id)
+  const { data: challenges } = chIds.length
+    ? await db.from("challenges").select("id, title, indicators, source_label, source_url").in("id", chIds)
+    : { data: [] }
+  // z każdego wyzwania fakty najbliższe opisowi problemu (bez dopasowania słów - pomijamy, zamiast pokazywać przypadkowe)
+  const facts = (challenges ?? []).flatMap((c) => ((c.indicators ?? []) as { fakt: string; strona?: number }[]).map((i) => ({
+    score: overlap(i.fakt), challenge: c.title as string, fact: i.fakt, page: i.strona ?? null, source: c.source_label as string | null, url: c.source_url as string | null,
+  }))).filter((x) => x.score >= 2).sort((a, b) => b.score - a.score).slice(0, 2).map(({ score: _s, ...f }) => f) // eslint-disable-line @typescript-eslint/no-unused-vars
+  // raporty i diagnozy ROPS (bez dokumentacji modeli innowacji z paczek ZIP)
+  type Chunk = { chunk_id: number; document_title: string; source_url: string | null; page_from: number; page_to: number; content: string }
+  const chunks = (ch.data ?? []) as Chunk[]
+  const { data: kinds } = chunks.length
+    ? await db.from("document_chunks").select("id, documents(kind)").in("id", chunks.map((c) => c.chunk_id))
+    : { data: [] }
+  const kindOf = new Map((kinds ?? []).map((k) => [k.id as number, (k.documents as unknown as { kind: string } | null)?.kind]))
+  const seenDoc = new Set<string>()
+  const reports = chunks.filter((c) => kindOf.get(c.chunk_id) === "report" && !seenDoc.has(c.document_title) && seenDoc.add(c.document_title))
+    .slice(0, 2)
+    .map((c) => {
+      // tekst z PDF: łączymy wyrazy podzielone na końcu linii, usuwamy nagłówki stron (WERSALIKI z numerem), zaczynamy od zdania
+      let clean = c.content.replace(/\s+/g, " ").replace(/(\p{Ll})- (\p{Ll})/gu, "$1$2").replace(/\d*\s?[A-ZĄĆĘŁŃÓŚŹŻ][A-ZĄĆĘŁŃÓŚŹŻ ]{14,}/g, " ").replace(/\s+/g, " ").trim()
+      const firstStop = clean.search(/[.!?] [A-ZĄĆĘŁŃÓŚŹŻ]/)
+      if (firstStop > -1 && firstStop < 120) clean = clean.slice(firstStop + 2)
+      const cut = clean.length > 280 ? clean.slice(0, 280).replace(/\s\S*$/, "") + "…" : clean
+      return {
+        title: c.document_title, pages: c.page_from === c.page_to ? `s. ${c.page_from}` : `s. ${c.page_from}-${c.page_to}`, excerpt: cut,
+        url: c.source_url ? `${c.source_url.split("#")[0]}#page=${c.page_from}` : null,
+      }
+    })
+  // podobne zgłoszenia: przy znanych kategoriach tylko te ze wspólnym obszarem
+  const simAll = (sim.data ?? []) as { summary: string; categories: string[] | null; district: string | null; created_at: string }[]
+  const simRows = categories.length ? simAll.filter((x) => (x.categories ?? []).some((c) => categories.includes(c))) : simAll
+  return {
+    facts,
+    reports,
+    similar: { count: simRows.length, examples: simRows.slice(0, 2).map((x) => ({ summary: x.summary, district: x.district, days: Math.max(0, Math.round((Date.now() - new Date(x.created_at).getTime()) / 86_400_000)) })) },
+  }
+}
 
 /** Opis problemu → guard → analiza LLM → embedding → hybrydowe wyszukiwanie → rerank z uzasadnieniem → zapis potrzeby. */
 export async function runMatchmaking(text: string, ctx: { userId?: string | null; sessionKey?: string } = {}): Promise<MatchResult> {
@@ -57,6 +115,9 @@ export async function runMatchmaking(text: string, ctx: { userId?: string | null
   const embedding = await embedOne(analysis.search_text)
   mark("embed")
   const db = createAdminClient()
+  // kontekst problemu liczymy równolegle z wyszukiwaniem i rerankiem (przed zapisem tej potrzeby - żeby nie liczyć jej jako „podobnej”)
+  const contextP = problemContext(db, toPgVector(embedding), `${analysis.search_text} ${analysis.summary} ${analysis.needs.join(" ")}`, analysis.categories)
+    .catch(() => ({ facts: [], reports: [], similar: { count: 0, examples: [] } }) as MatchContext)
   const { data: candidates, error } = await db.rpc("match_innovations", {
     query_embedding: toPgVector(embedding),
     query_text: `${analysis.search_text} ${analysis.needs.join(" ")}`,
@@ -108,8 +169,13 @@ export async function runMatchmaking(text: string, ctx: { userId?: string | null
     }
   })
 
+  const context = await contextP
+  mark("context")
   // zapis potrzeby - zasila podobne przypadki i trendy w panelu ROPS
   const { data: need } = await db.from("needs").insert({
+    categories: analysis.categories,
+    target_groups: analysis.target_groups,
+    district: analysis.location && !/nie podano/i.test(analysis.location) ? analysis.location : null,
     author_id: ctx.userId ?? null,
     raw_text: guard.text,
     summary: analysis.summary,
@@ -130,5 +196,5 @@ export async function runMatchmaking(text: string, ctx: { userId?: string | null
   }
   mark("save")
 
-  return { ok: true, needId: need?.id ?? null, analysis, coverage: ranked.coverage, gap: ranked.gap, matches, timings }
+  return { ok: true, needId: need?.id ?? null, analysis, coverage: ranked.coverage, gap: ranked.gap, matches, context, timings }
 }

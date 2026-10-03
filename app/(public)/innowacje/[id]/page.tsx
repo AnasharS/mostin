@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { InnovationReviews } from "@/components/tester/reviews"
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { buttonVariants } from "@/components/ui/button"
@@ -17,8 +18,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: data ? `${data.title} · MostIn` : "Innowacja · MostIn" }
 }
 
-export default async function InnovationPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function InnovationPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ocena?: string; blad?: string }> }) {
   const { id } = await params
+  const { ocena, blad } = await searchParams
   const { data: modelDocs } = await createAdminClient().from("documents").select("id, title, page_count").eq("innovation_id", id).eq("ingest_status", "ready").order("title")
   const { data: i } = await createAdminClient()
     .from("innovations")
@@ -144,6 +146,7 @@ export default async function InnovationPage({ params }: { params: Promise<{ id:
           )}
         </aside>
       </div>
+      <InnovationReviews innovationId={i.id} ok={ocena === "ok"} error={blad} />
     </article>
   )
 }

@@ -139,7 +139,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
 }
 
 function Results({ result, headingRef, problem }: { result: Ok; headingRef: React.RefObject<HTMLHeadingElement | null>; problem: string }) {
-  const { analysis, matches, coverage, gap } = result
+  const { analysis, matches, coverage, gap, context } = result
   const creatorHref = `/kreator?problem=${encodeURIComponent(analysis.summary)}&luka=${encodeURIComponent(gap)}`
   return (
     <section aria-labelledby="wyniki">
@@ -158,6 +158,8 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
           <p className="mt-2 text-muted-foreground">Dokładniejszy wynik: <em>{analysis.clarifying_question}</em> - dopisz odpowiedź w opisie i wyszukaj ponownie.</p>
         )}
       </div>
+
+      {context && <ProblemContext ctx={context} />}
 
       <ol className="mt-6 border-t">
         {matches.map((m, i) => (
@@ -246,6 +248,57 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
           </div>
         </aside>
       )}
+    </section>
+  )
+}
+
+/** „Co wiemy o tym problemie”: dane z Mapy Wyzwań, raporty ROPS i podobne zgłoszenia (anonimowo). */
+function ProblemContext({ ctx }: { ctx: Ok["context"] }) {
+  if (!ctx.facts.length && !ctx.reports.length && !ctx.similar.count) return null
+  const when = (d: number) => (d <= 0 ? "dzisiaj" : d === 1 ? "wczoraj" : `${d} dni temu`)
+  return (
+    <section className="mt-6 border-t-2 border-foreground pt-4" aria-labelledby="co-wiemy">
+      <h3 id="co-wiemy" className="text-lg font-semibold">Co wiemy o tym problemie</h3>
+      <div className="mt-3 grid gap-6 md:grid-cols-3">
+        {ctx.similar.count > 0 && (
+          <div>
+            <p className="text-3xl font-bold leading-none text-brand-dark">{ctx.similar.count}</p>
+            <p className="mt-1 text-sm font-semibold">{ctx.similar.count === 1 ? "osoba opisała" : "osób opisało"} podobny problem w MostIn</p>
+            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+              {ctx.similar.examples.map((e, i) => <li key={i} className="border-l-2 border-brand pl-2">„{e.summary}” <span className="whitespace-nowrap">· {e.district ? `${e.district}, ` : ""}{when(e.days)}</span></li>)}
+            </ul>
+            <p className="mt-2 text-xs text-muted-foreground">Anonimowe streszczenia. Nie jesteś z tym sam/sama - zajrzyj do <Link href="/przesla">Przęseł</Link>.</p>
+          </div>
+        )}
+        {ctx.facts.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">W liczbach · Mapa Wyzwań</p>
+            <ul className="mt-2 space-y-2 text-sm">
+              {ctx.facts.map((f, i) => (
+                <li key={i}>
+                  {f.fact}
+                  <span className="block text-xs text-muted-foreground">
+                    {f.url ? <a href={f.url} target="_blank" rel="noreferrer">{f.source ?? f.challenge}</a> : f.source ?? f.challenge}{f.page ? `, s. ${f.page}` : ""} · dane ogólnopolskie
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {ctx.reports.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Z raportów ROPS</p>
+            <ul className="mt-2 space-y-2 text-sm">
+              {ctx.reports.map((r, i) => (
+                <li key={i}>
+                  <span className="text-muted-foreground">„{r.excerpt}”</span>
+                  <span className="block text-xs">{r.url ? <a href={r.url} target="_blank" rel="noreferrer">{r.title}</a> : r.title}, {r.pages}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </section>
   )
 }

@@ -59,6 +59,56 @@ const NEWS = [
   { title: "Rusza test „Edki” w domach rodzin", lead: "Rodziny dzieci ze spastycznością dłoni mogą zgłosić się do testów kredek terapeutycznych. Zapisz się na listę oczekujących.", kind: "innowacja", audience: ["mieszkancy"], source_url: "/testuj", h: 80 },
 ]
 
+
+// zgłoszenia potrzeb z matchmakingu (anonimowe streszczenia) - źródło trendów i „podobnych zgłoszeń”; [tydzień temu, ...]
+const NEEDS: [string, string[], string[], string, number][] = [
+  ["Córka opiekuje się mamą po udarze na wsi, brakuje jej wsparcia w codziennej opiece i chwili odpoczynku.", ["opieka_i_opiekunowie", "starzenie_sie_i_seniorzy"], ["opiekunowie_nieformalni", "seniorzy"], "Nowy Targ", 0],
+  ["Opiekun osoby zależnej szuka opieki wytchnieniowej na kilka godzin w tygodniu.", ["opieka_i_opiekunowie"], ["opiekunowie_nieformalni"], "Limanowa", 0],
+  ["Rodzina pracuje poza gminą, a senior po wyjściu ze szpitala zostaje sam w domu.", ["opieka_i_opiekunowie", "starzenie_sie_i_seniorzy"], ["seniorzy", "rodziny"], "gmina Łapanów", 0],
+  ["Mąż opiekuje się żoną z chorobą Parkinsona i nie wie, gdzie szukać pomocy w rehabilitacji domowej.", ["opieka_i_opiekunowie", "niepelnosprawnosc_i_dostepnosc"], ["opiekunowie_nieformalni"], "Tarnów", 1],
+  ["Opiekunka mamy z demencją jest wyczerpana i potrzebuje rozmowy z kimś w podobnej sytuacji.", ["opieka_i_opiekunowie", "zdrowie_psychiczne"], ["opiekunowie_nieformalni"], "Kraków - Bronowice", 1],
+  ["Gmina nie ma usług opiekuńczych dla osób po udarze mieszkających w przysiółkach.", ["opieka_i_opiekunowie", "depopulacja_i_obszary_wiejskie"], ["seniorzy", "mieszkancy_wsi"], "gmina Kamienica", 1],
+  ["Syn dojeżdża do ojca po pracy, ojciec wymaga pomocy przy lekach i posiłkach.", ["opieka_i_opiekunowie"], ["seniorzy", "opiekunowie_nieformalni"], "Myślenice", 2],
+  ["Opiekunowie osób z niepełnosprawnością nie mają z kim zostawić podopiecznych w razie choroby.", ["opieka_i_opiekunowie", "niepelnosprawnosc_i_dostepnosc"], ["opiekunowie_nieformalni"], "Wieliczka", 3],
+  ["Samotna seniorka rzadko wychodzi z domu i nie ma z kim porozmawiać.", ["samotnosc_i_izolacja", "starzenie_sie_i_seniorzy"], ["seniorzy"], "Tarnów", 0],
+  ["Klub seniora szuka sposobu, by dotrzeć do osób, które nie wychodzą z domu.", ["samotnosc_i_izolacja", "starzenie_sie_i_seniorzy"], ["seniorzy"], "gmina Tuchów", 2],
+  ["Wdowiec po śmierci żony zamknął się w domu, sąsiedzi się martwią.", ["samotnosc_i_izolacja", "zdrowie_psychiczne"], ["seniorzy"], "Bochnia", 3],
+  ["Seniorzy z małej wsi nie mają transportu na spotkania i zajęcia.", ["samotnosc_i_izolacja", "transport_i_mobilnosc"], ["seniorzy", "mieszkancy_wsi"], "gmina Zakliczyn", 4],
+  ["Fundacja szuka sposobu na zmniejszenie samotności podopiecznych mieszkających samotnie.", ["samotnosc_i_izolacja"], ["seniorzy"], "Tarnów", 5],
+  ["Starsza osoba nie umie korzystać z wideorozmów, a rodzina mieszka za granicą.", ["wykluczenie_cyfrowe", "samotnosc_i_izolacja"], ["seniorzy"], "Gorlice", 6],
+  ["Dziecko ze spastycznością dłoni potrzebuje ćwiczeń, które da się robić w domu przez zabawę.", ["niepelnosprawnosc_i_dostepnosc", "rodzina_i_dzieci"], ["dzieci", "osoby_z_niepelnosprawnoscia"], "Kraków - Nowa Huta", 1],
+  ["Rodzice dziecka z porażeniem mózgowym szukają dofinansowania do sprzętu rehabilitacyjnego.", ["niepelnosprawnosc_i_dostepnosc", "rodzina_i_dzieci"], ["dzieci", "rodziny"], "Kraków - Bieżanów", 3],
+  ["Osoby niewidome mają problem z samodzielnym załatwianiem spraw w urzędzie.", ["niepelnosprawnosc_i_dostepnosc", "koordynacja_instytucji"], ["osoby_z_niepelnosprawnoscia"], "Nowy Sącz", 5],
+  ["Osoba głucha nie może skorzystać z oferty biblioteki bez tłumacza PJM.", ["niepelnosprawnosc_i_dostepnosc"], ["osoby_z_niepelnosprawnoscia"], "gmina Zakliczyn", 6],
+  ["Dzieci z Ukrainy mają trudności z zadaniami domowymi po polsku, rodzice nie rozumieją poleceń.", ["integracja_spoleczna_i_migranci", "edukacja"], ["migranci", "dzieci"], "Kraków - Podgórze", 2],
+  ["Szkoła w gminie przyjęła kilkanaścioro dzieci cudzoziemców i nie ma pomysłu na integrację klasy.", ["integracja_spoleczna_i_migranci", "edukacja"], ["migranci", "dzieci"], "gmina Skawina", 4],
+  ["Matki z Ukrainy szukają kontaktu z innymi rodzicami i nauki języka polskiego.", ["integracja_spoleczna_i_migranci"], ["migranci", "rodziny"], "Kraków - Podgórze", 7],
+  ["Nastolatek w kryzysie psychicznym czeka miesiącami na wizytę u psychiatry.", ["zdrowie_psychiczne", "mlodziez"], ["mlodziez"], "Bochnia", 0],
+  ["Rodzice nie wiedzą, jak rozmawiać z dzieckiem, które samo się okalecza.", ["zdrowie_psychiczne", "mlodziez", "rodzina_i_dzieci"], ["mlodziez", "rodziny"], "Kraków - Krowodrza", 1],
+  ["Młodzież z małej miejscowości nie ma gdzie spędzać czasu po szkole i coraz częściej się izoluje.", ["mlodziez", "zdrowie_psychiczne", "depopulacja_i_obszary_wiejskie"], ["mlodziez", "mieszkancy_wsi"], "gmina Łukowica", 2],
+  ["Pedagog szkolny szuka sposobu na wsparcie uczniów po próbach samobójczych w klasie.", ["zdrowie_psychiczne", "mlodziez", "edukacja"], ["mlodziez"], "Nowy Targ", 4],
+  ["Osoby w kryzysie bezdomności nie mają gdzie się ogrzać zimą poza schroniskiem.", ["ubostwo_i_bezdomnosc"], ["osoby_w_kryzysie_bezdomnosci"], "Gorlice", 3],
+  ["Osoba po wyjściu z bezdomności nie może znaleźć pracy bez stałego adresu.", ["ubostwo_i_bezdomnosc", "rynek_pracy_i_ekonomia_spoleczna"], ["osoby_w_kryzysie_bezdomnosci"], "Kraków - Śródmieście", 6],
+  ["Rodziny adopcyjne zgłaszają kryzysy w okresie dorastania dzieci i brak wsparcia po adopcji.", ["rodzina_i_dzieci"], ["rodziny", "dzieci"], "Myślenice", 2],
+  ["Rodzina zastępcza potrzebuje wytchnienia i wsparcia psychologa dla dziecka po traumie.", ["rodzina_i_dzieci", "zdrowie_psychiczne"], ["rodziny", "dzieci"], "Oświęcim", 5],
+  ["Mieszkańcy przysiółków nie mają dojazdu do lekarza i urzędu bez własnego samochodu.", ["transport_i_mobilnosc", "depopulacja_i_obszary_wiejskie"], ["mieszkancy_wsi"], "gmina Kamienica", 7],
+]
+
+
+// opinie z Testera (oceny + usprawnienia) - [początek tytułu innowacji, ocena, relacja, opinia, usprawnienie, podpis]
+const REVIEWS: [string, number, string, string, string | null, string][] = [
+  ["Edki", 5, "test", "Syn rysuje chętniej niż na zwykłych ćwiczeniach, po dwóch tygodniach lepiej trzyma łyżkę.", "Przydałyby się kredki w wersji dla leworęcznych.", "MamaKuby"],
+  ["Edki", 4, "test", "Dobry pomysł, ale gruba nakładka szybko się brudzi.", "Zdejmowana nakładka, którą można prać.", "Tata_Olka"],
+  ["Edki", 5, "korzystam", "Fizjoterapeutka poleciła je do ćwiczeń w domu - działa.", null, "Kasia_K"],
+  ["Senior CUDER", 5, "wdrazam", "W klubie seniora gramy co tydzień, przychodzą też osoby, które wcześniej siedziały w domu.", "Wersja z większymi kartami dla osób słabowidzących.", "Klub Seniora Tarnów"],
+  ["Senior CUDER", 4, "test", "Dużo śmiechu i rozmów. Instrukcja na początku trudna.", "Krótki film z zasadami gry zamiast instrukcji na kartce.", "Pani_Halina"],
+  ["Strażnik", 4, "wdrazam", "Aplikacja pomogła opiekunom szybciej reagować w nocy.", "Powiadomienie także SMS-em, nie tylko w aplikacji.", "CUS Wieliczka"],
+  ["Strażnik", 3, "opis", "Pomysł dobry, ale nie wiem, czy seniorzy poradzą sobie z telefonem.", "Wersja z prostym przyciskiem zamiast smartfona.", "Zbyszek70"],
+  ["Himalaje", 5, "wdrazam", "Dzieci po wyjeździe były bardziej samodzielne, rodzice to zauważyli.", "Scenariusze wsparcia warto mieć też w wersji obrazkowej.", "Fundacja Razem"],
+  ["Głuchy czytelnik", 5, "korzystam", "Pierwszy raz byłam w bibliotece na spotkaniu autorskim z tłumaczem PJM.", "Informacja o spotkaniach z PJM także w mediach społecznościowych.", "Ola_PJM"],
+  ["Terapeuta przestrzeni", 4, "test", "Po wizycie przestawiliśmy meble w pokoju taty, łatwiej mu się poruszać.", "Lista tanich zmian do zrobienia od razu.", "Ela_z_Limanowej"],
+]
+
 async function main() {
   const { createAdminClient } = await import("@/lib/supabase/admin")
   const db = createAdminClient()
@@ -139,6 +189,23 @@ async function main() {
   })))
   if (newsErr) throw newsErr
 
+  // potrzeby: is_sample = dane demo (czyścimy tylko je)
+  const { embed, toPgVector } = await import("@/lib/ai/embeddings")
+  await db.from("needs").delete().eq("is_sample", true)
+  const vec = await embed(NEEDS.map(([t]) => t))
+  const { error: needsErr } = await db.from("needs").insert(NEEDS.map(([summary, categories, target_groups, district, week], i) => ({
+    raw_text: summary, summary, categories, target_groups, target_group: target_groups[0], district, keywords: [], status: "matched", is_sample: true,
+    embedding: toPgVector(vec[i]), created_at: ago(week * 168 + (i % 6) * 13 + 2),
+  })))
+  if (needsErr) throw needsErr
+
+  // opinie z Testera
+  await db.from("reviews").delete().eq("is_sample", true)
+  for (const [i, [t, rating, relation, feedback, improvement, nickname]] of REVIEWS.entries()) {
+    const inn = (await db.from("innovations").select("id").ilike("title", `${t}%`).limit(1).maybeSingle()).data?.id
+    if (inn) await db.from("reviews").insert({ innovation_id: inn, rating, relation, feedback, improvement, nickname, is_sample: true, session_key: KEY, created_at: ago(i * 9 + 4) })
+  }
+
   // dziennik moderacji (fragmenty już zamaskowane - tak, jak zapisuje je guard)
   await db.from("ai_moderation_events").insert([
     { route: "demo", stage: "input", reason: "pii", action: "masked", excerpt: "Mój numer to [telefon], proszę o kontakt w sprawie mamy", created_at: ago(6) },
@@ -146,6 +213,6 @@ async function main() {
     { route: "demo", stage: "input", reason: "insult", action: "blocked", excerpt: "*** z urzędu nic nie rozumieją", created_at: ago(40) },
   ])
 
-  console.log(`Dodano: ${LEADS.length} leadów z pytaniami, ${PRE.length} przedwstępne wnioski, ${THREADS.length} pytania w Rozmowach, zgłoszenia z Przęseł, ${NEWS.length} aktualności, 3 zdarzenia moderacji.`)
+  console.log(`Dodano: ${LEADS.length} leadów z pytaniami, ${PRE.length} przedwstępne wnioski, ${THREADS.length} pytania w Rozmowach, zgłoszenia z Przęseł, ${NEWS.length} aktualności, 3 zdarzenia moderacji, ${NEEDS.length} zgłoszeń potrzeb, ${REVIEWS.length} opinii.`)
 }
 main().catch((e) => { console.error(e); process.exit(1) })

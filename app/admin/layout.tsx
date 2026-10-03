@@ -22,9 +22,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <ul className="space-y-1 text-sm">
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin">Pulpit</Link></li>
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/leady">Leady gmin (granty)</Link></li>
+            <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/trendy">Trendy potrzeb</Link></li>
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/rozmowy">Rozmowy</Link></li>
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/pomysly">Pomysły wg kategorii</Link></li>
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/przesla">Zgłoszenia z Przęseł</Link></li>
+            <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/opinie">Opinie z testów</Link></li>
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/ustawienia-ai"><span aria-hidden="true" className="mr-1.5 inline-block size-2 rounded-full bg-brand" />Ustawienia AI</Link></li>
             <li className="px-2 pt-4 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Treści</li>
             {RESOURCES.map((r) => (

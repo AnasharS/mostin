@@ -19,6 +19,8 @@ export const PAGES: Page[] = [
   { path: "/mostek", title: "Mostek na pełnym ekranie", hint: "Dłuższa rozmowa z asystentem", keywords: ["mostek", "asystent", "czat"] },
   { path: "/admin", title: "Pulpit ROPS", hint: "Liczby, koszty AI, synchronizacja biblioteki", keywords: ["pulpit", "panel", "statystyki", "synchronizacja", "import"], admin: true },
   { path: "/admin/leady", title: "Leady gmin", hint: "Gminy w rozmowie o grant i przedwstępne wnioski", keywords: ["lead", "leady", "gmina", "przedwstępny", "wnioski", "kontakt"], admin: true },
+  { path: "/admin/trendy", title: "Trendy potrzeb", hint: "Zgłoszenia wg obszarów i tygodni, popyt a podaż innowacji", keywords: ["trend", "trendy", "potrzeby", "statystyki", "analiza", "obszary", "zgłoszenia"], admin: true },
+  { path: "/admin/opinie", title: "Opinie z testów", hint: "Oceny innowacji i propozycje usprawnień", keywords: ["opinie", "oceny", "testy", "usprawnienia", "feedback", "tester"], admin: true },
   { path: "/admin/rozmowy", title: "Rozmowy do odpowiedzi", hint: "Wiadomości od użytkowników z projektem odpowiedzi AI", keywords: ["rozmowy", "wiadomości", "odpowiedz", "skrzynka", "zgłoszenia"], admin: true },
   { path: "/admin/pomysly", title: "Pomysły wg kategorii", hint: "Pomysły z Kreatora, powiadomienia o naborach", keywords: ["pomysły", "kategorie", "kreator", "zgłoszone"], admin: true },
   { path: "/admin/przesla", title: "Zgłoszenia z Przęseł", hint: "Wiadomości zgłoszone przez uczestników kręgów", keywords: ["przęsła", "zgłoszenia", "krąg", "moderacja", "zgłoś"], admin: true },

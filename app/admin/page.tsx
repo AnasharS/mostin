@@ -32,7 +32,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
     { label: "Gminy w rozmowie o grant", value: leads, sub: "leady z asystenta grantowego", href: "/admin/leady" },
     { label: "Innowacje w katalogu", value: innovations, sub: `${ready} gotowych do dopasowań`, href: "/admin/innowacje" },
     { label: "Dokumenty w bazie wiedzy", value: documents, href: "/admin/dokumenty" },
-    { label: "Nowe zgłoszenia potrzeb", value: needsNew, sub: "z matchmakingu - źródło trendów", href: "/admin" },
+    { label: "Nowe zgłoszenia potrzeb", value: needsNew, sub: "z matchmakingu - zobacz trendy", href: "/admin/trendy" },
     { label: "Nowe pomysły (wg kategorii)", value: ideasNew, href: "/admin/pomysly" },
     { label: "Rozmowy do odpowiedzi", value: threadsOpen, href: "/admin/rozmowy" },
     { label: "Koszt AI (łącznie)", value: `$${aiCost.toFixed(2)}`, href: "/admin" },
