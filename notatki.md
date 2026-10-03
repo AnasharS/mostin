@@ -386,3 +386,6 @@ opis problemu
 - Siatki kafelków (pulpit ROPS, archetypy Mostka, funkcje dla gmin): wspólne linie siatki, jak w tabeli urzędowej.
 - Ramki zostały tylko tam, gdzie oznaczają element interaktywny: pola formularzy, okno czatu Mostka, powitanie.
 - Dlaczego: karty z zaokrągleniami i cieniami to typowy wygląd szablonów generowanych przez AI. Linie to język druków i serwisów publicznych (gov.uk, biznes.gov.pl), czytelniejszy przy powiększeniu tekstu (WCAG 1.4.4, 1.4.10).
+
+### 28b. Podpis autora w stopce
+- Jedna linia w stopce: „Projekt i realizacja: Maciej Senderowski · HackYeah 2026”. Dyskretnie, bez logo i linków sprzedażowych - serwis ma wyglądać jak usługa ROPS. Do sprawdzenia: regulamin HackYeah (anonimowość zgłoszeń).

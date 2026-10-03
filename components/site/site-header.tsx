@@ -68,6 +68,7 @@ export function SiteFooter() {
           <p className="mt-2 text-muted-foreground">
             Dane innowacji: <a href="https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie">Biblioteka Innowacji Społecznych ROPS Kraków</a> (CC BY 4.0).
           </p>
+          <p className="mt-2 text-muted-foreground">Projekt i realizacja: Maciej Senderowski · HackYeah 2026</p>
         </div>
         <div>
           <p className="font-semibold">Na skróty</p>
