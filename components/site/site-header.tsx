@@ -36,7 +36,7 @@ export async function SiteHeader() {
         </div>
       </div>
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="text-2xl text-primary" aria-label="MOSTIN — strona główna">
+        <Link href="/" className="text-2xl" aria-label="MostIn — strona główna">
           <Logo />
         </Link>
         <nav aria-label="Główna">
@@ -57,7 +57,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t bg-card">
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-4 py-6 text-sm text-muted-foreground">
-        <p>MOSTIN — Małopolski Hub Innowacji Społecznych · prototyp HackYeah 2026</p>
+        <p>MostIn — Małopolski Hub Innowacji Społecznych · prototyp HackYeah 2026</p>
         <p>
           Dane innowacji: <a className="underline" href="https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie">Biblioteka Innowacji Społecznych ROPS Kraków</a> (CC BY 4.0)
         </p>

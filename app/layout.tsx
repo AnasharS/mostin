@@ -9,9 +9,9 @@ const atkinson = Atkinson_Hyperlegible_Next({
 })
 
 export const metadata: Metadata = {
-  title: "MOSTIN — most między problemem a rozwiązaniem",
+  title: "MostIn — Hub Innowacji Społecznych Małopolski",
   description:
-    "Małopolski Hub Innowacji Społecznych: opisz problem, a MOSTIN znajdzie sprawdzone innowacje, wiedzę ROPS i ludzi, którzy pomogą.",
+    "Małopolski Hub Innowacji Społecznych: opisz problem, a MostIn znajdzie sprawdzone innowacje, wiedzę ROPS i ludzi, którzy pomogą.",
 }
 
 // Ustawienia dostępności przed pierwszym renderem — bez „mignięcia” przy powiększonym tekście / kontraście

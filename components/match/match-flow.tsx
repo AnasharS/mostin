@@ -79,7 +79,7 @@ export function MatchFlow() {
 
   return (
     <>
-      <form onSubmit={submit} className="mt-8 rounded-xl border bg-card p-4 shadow-sm md:p-6" aria-describedby="opis-pomoc">
+      <form onSubmit={submit} className="mt-10 rounded-xl border bg-card p-4 md:p-6" aria-describedby="opis-pomoc">
         <label htmlFor="problem" className="text-lg font-semibold">Twój problem lub potrzeba</label>
         <p id="opis-pomoc" className="mt-1 text-sm text-muted-foreground">
           Nie musisz znać nazw programów ani urzędów. Nie podawaj danych osobowych — wystarczy opis sytuacji.
@@ -96,7 +96,7 @@ export function MatchFlow() {
         />
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <Button type="submit" size="lg" className="h-11 px-5 text-base" disabled={state === "loading"}>
-            {state === "loading" ? "Szukam…" : "Znajdź rozwiązania"}
+            {state === "loading" ? "Szukam…" : <>Znajdź rozwiązanie <span aria-hidden="true">→</span></>}
           </Button>
           <span className="text-sm text-muted-foreground">lub Ctrl + Enter</span>
         </div>
@@ -117,11 +117,11 @@ export function MatchFlow() {
       <div aria-live="polite" className="mt-8">
         {state === "loading" && (
           <div className="rounded-xl border bg-card p-6" role="status">
-            <p className="font-semibold">Budujemy most do rozwiązania…</p>
+            <p className="font-semibold"><span aria-hidden="true" className="mr-2 inline-block size-2.5 animate-pulse rounded-full bg-brand" />Mostek buduje most do rozwiązania…</p>
             <ol className="mt-3 space-y-2">
               {STEPS.map((s, i) => (
                 <li key={s} className={`flex items-center gap-2 ${i > step ? "text-muted-foreground" : ""}`}>
-                  <span aria-hidden="true" className={`inline-block size-5 rounded-full border-2 text-center text-xs leading-4 ${i < step ? "border-success bg-success text-white" : i === step ? "animate-pulse border-primary" : "border-border"}`}>
+                  <span aria-hidden="true" className={`inline-block size-5 rounded-full border-2 text-center text-xs leading-4 ${i < step ? "border-success bg-success text-white" : i === step ? "animate-pulse border-brand" : "border-border"}`}>
                     {i < step ? "✓" : ""}
                   </span>
                   {s}
@@ -133,7 +133,7 @@ export function MatchFlow() {
         )}
 
         {state === "error" && (
-          <div className="rounded-xl border border-warning/40 bg-accent/20 p-5" role="alert">
+          <div className="rounded-xl border border-brand bg-accent p-5" role="alert">
             <h2 ref={resultsRef} tabIndex={-1} className="font-semibold outline-none">Potrzebuję jeszcze chwili uwagi</h2>
             <p className="mt-1">{error}</p>
           </div>
@@ -169,7 +169,7 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
       <ol className="mt-6 space-y-5">
         {matches.map((m, i) => (
           <li key={m.id}>
-            <article className="rounded-xl border bg-card p-5 shadow-sm" aria-labelledby={`m-${m.id}`}>
+            <article className="rounded-xl border bg-card p-5" aria-labelledby={`m-${m.id}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h3 id={`m-${m.id}`} className="text-xl font-semibold">
                   <span className="sr-only">Wynik {i + 1}: </span>
@@ -178,7 +178,7 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
                 <div className="min-w-40 text-right">
                   <p className="text-sm font-semibold">{fitLabel(m.fit)}</p>
                   <div className="mt-1 h-2 w-40 overflow-hidden rounded-full bg-muted" role="img" aria-label={`Dopasowanie ${m.fit} na 100`}>
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${m.fit}%` }} />
+                    <div className="h-full rounded-full bg-brand" style={{ width: `${m.fit}%` }} />
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground" aria-hidden="true">{m.fit}/100</p>
                 </div>
@@ -194,7 +194,7 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
                   <dt className="text-sm font-semibold">Co dostosować</dt>
                   <dd className="mt-1 text-sm">{m.adaptation}</dd>
                 </div>
-                <div className="rounded-lg bg-accent/25 p-3">
+                <div className="rounded-lg bg-accent p-3">
                   <dt className="text-sm font-semibold">Pierwszy krok</dt>
                   <dd className="mt-1 text-sm">{m.first_step}</dd>
                 </div>
@@ -232,7 +232,7 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
       </ol>
 
       {coverage !== "dobre" && (
-        <aside className="mt-8 rounded-xl border-2 border-dashed border-primary/40 bg-card p-6" aria-labelledby="luka">
+        <aside className="mt-8 rounded-xl border-2 border-dashed border-brand bg-card p-6" aria-labelledby="luka">
           <h3 id="luka" className="text-lg font-semibold">
             {matches.length ? "Żadne rozwiązanie nie pasuje w pełni?" : "Może to Ty stworzysz brakujące rozwiązanie?"}
           </h3>

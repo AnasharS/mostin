@@ -2,8 +2,9 @@ import Link from "next/link"
 import { requireAdmin } from "@/lib/auth"
 import { RESOURCES } from "@/lib/cms/resources"
 import { signOut } from "@/app/logowanie/actions"
+import { Logo } from "@/components/site/logo"
 
-export const metadata = { title: "Panel ROPS · MOSTIN" }
+export const metadata = { title: "Panel ROPS · MostIn" }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireAdmin()
@@ -14,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </a>
       <aside className="border-b bg-muted/40 p-4 md:border-b-0 md:border-r">
         <Link href="/admin" className="mb-6 block text-lg font-semibold">
-          MOSTIN <span className="font-normal text-muted-foreground">· Panel ROPS</span>
+          MostIn <span className="font-normal text-muted-foreground">· Panel ROPS</span>
         </Link>
         <nav aria-label="Panel administratora">
           <ul className="space-y-1 text-sm">

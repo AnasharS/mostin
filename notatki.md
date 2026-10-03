@@ -106,6 +106,14 @@ opis problemu
 - **Struktura i komunikaty:** skip-link, landmarki, widoczny fokus 3 px, etykiety i opisy pól, statusy zawsze tekstem (nie tylko kolorem), wyniki i postęp w regionach `aria-live`, a fokus po wyszukiwaniu przechodzi na nagłówek wyników.
 - **Plan:** sterowanie głosem „Powiedz Mostkowi” (push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności obsługiwane lokalnie bez LLM).
 
+## 11a. Marka i paleta
+
+- **Nazwa MostIn** (camel case): **Most** jest czarny, **In** pomarańczowy. „Most” łączy problem z rozwiązaniem, „In” to wejście do świata innowacji.
+- **Paleta:** ciepły pomarańcz `#E85D2A` + krem `#F7F4EE` + prawie czerń `#181816`. Bez gradientów i prawie bez cieni, styl editorial/civic, który odcina się od typowego „purple gradient AI dashboard”.
+- **Pomarańcz jest akcentem, nie tłem:** CTA, linki, linia mostu pod hasłem, paski dopasowania, fokus.
+- **Mostek nie jest maskotką.** Oznacza go pomarańczowy węzeł ● jako punkt łączący elementy systemu.
+- **Decyzja WCAG:** biały tekst na `#E85D2A` ma tylko 3.48:1, czyli poniżej AA. Przyciski dostały pomarańcz przyciemniony do `#C54415` (4.99:1 z białym), linki w tekście `#A83B18` (5.79:1). Czysty `#E85D2A` zostaje tam, gdzie obowiązuje próg 3:1 dla grafiki (znak, linie, paski, fokus 3.17:1). Obramowania pól mają `#8C877D` (3.26:1, WCAG 1.4.11).
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [ ] Mostek — agent z narzędziami (warstwa konwersacyjna nad wszystkimi modułami)

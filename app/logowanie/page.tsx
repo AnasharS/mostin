@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Flash } from "@/components/admin/flash"
+import { Logo } from "@/components/site/logo"
 import { PERSONAS, isDemoMode } from "@/lib/demo/personas"
 import { signIn, signUp, enterAsPersona } from "./actions"
 
-export const metadata = { title: "Wejście · MOSTIN" }
+export const metadata = { title: "Wejście · MostIn" }
 
 export default async function LoginPage({
   searchParams,
@@ -19,8 +20,8 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center p-6">
-      <Link href="/" className="mb-8 text-2xl font-semibold">MOSTIN</Link>
-      <h1 className="text-xl font-semibold">Wejdź do MOSTIN</h1>
+      <Link href="/" className="mb-8 text-2xl" aria-label="MostIn — strona główna"><Logo /></Link>
+      <h1 className="text-xl font-semibold">Wejdź do MostIn</h1>
       <p className="mt-1 mb-6 text-muted-foreground">
         Wybierz, kim jesteś — bez zakładania konta. Z większości funkcji możesz też korzystać bez wchodzenia.
       </p>
