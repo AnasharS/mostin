@@ -400,3 +400,9 @@ opis problemu
 - Szybkie przejścia bez AI: mapa serwisu (`lib/site/sitemap.ts`, słowa kluczowe z polską odmianą) dopasowywana w przeglądarce. Pod polem czatu „Przejdź od razu: …” już podczas pisania, a nad odpowiedzią „Od razu możesz przejść: …” zanim AI skończy. Zero kosztu, zero opóźnienia - AI dopowiada kontekst i źródła.
 - Ta sama mapa trafia do promptu Mostka: przycisk „otworz” może wskazać każdą stronę (strony panelu tylko w trybie ROPS - walidacja w narzędziu). Pytania nawigacyjne: 1-2 zdania + przycisk, bez wyszukiwania.
 - Kliknięcie linku w odpowiedzi zamyka panel, rozmowa zostaje w sesji.
+
+### 30. Kolejność odbiorców, przyciski, lżejszy Kreator
+- Zakładki: Dla mieszkańców → Dla gmin → Dla organizacji. Strona zaczyna od otwartości na każdego; urzędnik i tak kliknie swoją zakładkę. Strona główna podświetla ścieżkę mieszkańców.
+- Przyciski: ciemniejszy pomarańcz #c2410c z białym tekstem (5.18:1, AA). Czarny tekst na jasnym pomarańczu był słabo czytelny w praktyce, mimo spełnionego progu. Hover przyciemnia (#a83b18), zamiast rozjaśniać.
+- Kreator: na start widać tylko „problem” i „gdzie”, potem „pomysł” i nazwę. Skala, częstotliwość, odbiorcy, rodzaj i gotowość są zwinięte jako opcjonalne. Po kroku 2 od razu „Poproś Mostka o ocenę” - kroki „Ludzie i wartość” i „Koszty” dla chętnych.
+- Wniosek przestał być celem ścieżki organizacji. Hasło: „Masz pomysł na innowację? Sprawdźmy go i rozwińmy razem.” Główne działanie po ocenie: fiszka do ROPS (pomysł dojrzewa w inkubatorze, zanim trafi do wniosku). Szkic wniosku zostaje jako podgląd („Zobacz, jak wyglądałby szkic wniosku”) i jako krok po ogłoszeniu naboru - zapisane pomysły dostają powiadomienie.

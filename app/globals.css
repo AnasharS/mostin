@@ -5,7 +5,7 @@
 
 /*
  * MostIn - motyw: ciepły pomarańcz + krem + prawie czerń. Bez gradientów, prawie bez cieni.
- * Kontrasty (WCAG 2.1 AA): text/bg 16.2:1 · muted/bg 5.45:1 · biały na primary 4.99:1 ·
+ * Kontrasty (WCAG 2.1 AA): text/bg 16.2:1 · muted/bg 5.45:1 · biały na primary 5.18:1 ·
  * primary/bg 4.54:1 · link (orange-dark)/bg 5.79:1 · brand/bg 3.17:1 (tylko grafika, fokus, paski - próg 3:1) ·
  * obramowanie pól/bg 3.26:1 (WCAG 1.4.11).
  */
@@ -25,8 +25,8 @@
   --popover: #ffffff;
   --popover-foreground: #181816;
 
-  --primary: #e85d2a;            /* przyciski: pomarańcz marki z CIEMNYM tekstem (5.11:1) */
-  --primary-foreground: #181816;
+  --primary: #c2410c;            /* przyciski: ciemniejszy pomarańcz z BIAŁYM tekstem (5.18:1) - czarny na jasnym pomarańczu był słabo czytelny */
+  --primary-foreground: #ffffff;
   --secondary: #efe9df;
   --secondary-foreground: #181816;
   --muted: #efe9df;

@@ -7,9 +7,22 @@ import { ChevronRight } from "lucide-react"
 type Entry = { href: string; title: string; text: string }
 type Panel = { id: string; tab: string; eyebrow: string; title: [string, string]; lead: string; cta: { href: string; label: string }; note: string; entries: Entry[] }
 
-/** Hero z zakładkami odbiorców (wzorzec ARIA tabs: strzałki zmieniają zakładkę). */
+/** Hero z zakładkami odbiorców (wzorzec ARIA tabs: strzałki zmieniają zakładkę).
+ * Kolejność: mieszkańcy, gminy, organizacje - strona zaczyna od otwartości na każdego; urzędnik i tak kliknie swoją zakładkę. */
 export function HomeHero({ qualifyHref }: { qualifyHref: string | null }) {
   const panels: Panel[] = [
+    {
+      id: "res", tab: "Dla mieszkańców", eyebrow: "Ścieżka dla mieszkańców",
+      title: ["Masz problem społeczny?", "Znajdźmy rozwiązanie."],
+      lead: "Opisz sytuację własnymi słowami - na piśmie albo głosem. Wskażemy sprawdzone rozwiązania, ludzi w podobnej sytuacji i pierwszy krok.",
+      cta: { href: "/dla-mieszkancow", label: "Opisz swoją sytuację" },
+      note: "Bez zakładania konta. Nie podawaj danych osobowych.",
+      entries: [
+        { href: "/przesla", title: "Chcę porozmawiać z kimś w podobnej sytuacji", text: "Przęsła - kręgi wsparcia pod pseudonimem" },
+        { href: "/testuj", title: "Chcę wypróbować nowe rozwiązanie", text: "Zapisz się na listę oczekujących na testy" },
+        { href: "/mostek", title: "Wolę zapytać", text: "Porozmawiaj z Mostkiem, asystentem MostIn" },
+      ],
+    },
     {
       id: "jst", tab: "Dla gmin i instytucji", eyebrow: "Ścieżka dla samorządów",
       title: ["Szukasz rozwiązania dla gminy?", "Znajdźmy innowację do wdrożenia."],
@@ -24,26 +37,14 @@ export function HomeHero({ qualifyHref }: { qualifyHref: string | null }) {
     },
     {
       id: "org", tab: "Dla organizacji i innowatorów", eyebrow: "Ścieżka dla organizacji",
-      title: ["Masz pomysł na innowację?", "Doprowadzimy go do wniosku."],
-      lead: "Kanwa innowacji krok po kroku, sprawdzenie, czy pomysł nie powiela istniejących rozwiązań, wizualizacja i szkic wniosku według wzoru ROPS.",
+      title: ["Masz pomysł na innowację?", "Sprawdźmy go i rozwińmy razem."],
+      lead: "Opisz problem i pomysł w kilku zdaniach. Mostek sprawdzi, czy podobne rozwiązanie już działa w Małopolsce, podpowie, co wzmocnić, i pomoże pokazać pomysł zespołowi Hubu.",
       cta: { href: "/kreator", label: "Otwórz Kreator pomysłów" },
-      note: "Pomysł możesz od razu wysłać do zespołu Hubu.",
+      note: "Na start wystarczą dwa pola. Wniosek przygotujemy razem, gdy ruszy nabór.",
       entries: [
         { href: "/innowacje", title: "Chcę wdrożyć istniejące rozwiązanie", text: "Biblioteka 115 innowacji i plan wdrożenia z Mostkiem" },
         { href: "/testuj", title: "Chcę testować innowacje", text: "Nabory testów i lista oczekujących" },
         { href: "/rozmowy/nowa?rodzaj=partnership", title: "Chcę współpracować z ROPS", text: "Partnerstwo, mentoring, ekspertyza" },
-      ],
-    },
-    {
-      id: "res", tab: "Dla mieszkańców", eyebrow: "Ścieżka dla mieszkańców",
-      title: ["Masz problem społeczny?", "Znajdźmy rozwiązanie."],
-      lead: "Opisz sytuację własnymi słowami - na piśmie albo głosem. Wskażemy sprawdzone rozwiązania, ludzi w podobnej sytuacji i pierwszy krok.",
-      cta: { href: "/dla-mieszkancow", label: "Opisz swoją sytuację" },
-      note: "Bez zakładania konta. Nie podawaj danych osobowych.",
-      entries: [
-        { href: "/przesla", title: "Chcę porozmawiać z kimś w podobnej sytuacji", text: "Przęsła - kręgi wsparcia pod pseudonimem" },
-        { href: "/testuj", title: "Chcę wypróbować nowe rozwiązanie", text: "Zapisz się na listę oczekujących na testy" },
-        { href: "/mostek", title: "Wolę zapytać", text: "Porozmawiaj z Mostkiem, asystentem MostIn" },
       ],
     },
   ]
@@ -83,7 +84,7 @@ export function HomeHero({ qualifyHref }: { qualifyHref: string | null }) {
             <span className="hand-underline">{p.title[1]}</span>
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted-foreground">{p.lead}</p>
-          <Link href={p.cta.href} className="mt-8 inline-flex h-14 items-center bg-primary px-7 text-lg font-bold text-primary-foreground hover:bg-primary/85">
+          <Link href={p.cta.href} className="mt-8 inline-flex h-14 items-center bg-primary px-7 text-lg font-bold text-primary-foreground hover:bg-brand-dark">
             {p.cta.label}
           </Link>
           <p className="mt-3 text-sm text-muted-foreground">{p.note}</p>

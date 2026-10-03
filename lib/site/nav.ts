@@ -6,6 +6,16 @@ export type NavSection = { id: string; label: string; short: string; href: strin
 
 export const SECTIONS: NavSection[] = [
   {
+    id: "res", label: "Dla mieszkańców", short: "Dla mieszkańców", href: "/dla-mieszkancow",
+    match: ["/dla-mieszkancow", "/przesla", "/testuj", "/mostek"],
+    items: [
+      { href: "/dla-mieszkancow", label: "Znajdź rozwiązanie" },
+      { href: "/przesla", label: "Przęsła - kręgi wsparcia" },
+      { href: "/testuj", label: "Testuj nowe rozwiązania" },
+      { href: "/mostek", label: "Porozmawiaj z Mostkiem" },
+    ],
+  },
+  {
     id: "jst", label: "Dla gmin i instytucji", short: "Dla gmin", href: "/dla-gmin",
     match: ["/dla-gmin", "/innowacje/"],
     items: [
@@ -27,16 +37,6 @@ export const SECTIONS: NavSection[] = [
     ],
   },
   {
-    id: "res", label: "Dla mieszkańców", short: "Dla mieszkańców", href: "/dla-mieszkancow",
-    match: ["/dla-mieszkancow", "/przesla", "/testuj", "/mostek"],
-    items: [
-      { href: "/dla-mieszkancow", label: "Znajdź rozwiązanie" },
-      { href: "/przesla", label: "Przęsła - kręgi wsparcia" },
-      { href: "/testuj", label: "Testuj nowe rozwiązania" },
-      { href: "/mostek", label: "Porozmawiaj z Mostkiem" },
-    ],
-  },
-  {
     id: "know", label: "Baza wiedzy", short: "Wiedza", href: "/wiedza",
     match: ["/wiedza", "/innowacje", "/aktualnosci"],
     items: [
@@ -47,7 +47,7 @@ export const SECTIONS: NavSection[] = [
   },
 ]
 
-/** Sekcja dla bieżącej ścieżki (najdłuższe dopasowanie); strona główna = ścieżka JST (priorytet ROPS). */
+/** Sekcja dla bieżącej ścieżki (najdłuższe dopasowanie); strona główna = ścieżka mieszkańców (otwartość na każdego). */
 export function sectionFor(path: string) {
   if (path === "/") return SECTIONS[0]
   let best: NavSection | undefined, len = 0

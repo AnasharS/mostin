@@ -9,7 +9,7 @@ export const PAGES: Page[] = [
   { path: "/dla-gmin/kwalifikacja", title: "Test kwalifikacji i przedwstępny wniosek", hint: "Sprawdź w 60 sekund, czy gmina się kwalifikuje", keywords: ["kwalifikacja", "kwalifikuje", "przedwstępny", "wniosek", "warunki"] },
   { path: "/innowacje", title: "Biblioteka innowacji", hint: "Sprawdzone rozwiązania z inkubatorów ROPS", keywords: ["innowacja", "biblioteka", "rozwiązanie", "katalog", "model"] },
   { path: "/dla-mieszkancow", title: "Znajdź rozwiązanie", hint: "Opisz problem, Mostek dobierze innowacje", keywords: ["problem", "mieszkaniec", "pomoc", "dopasuj", "szukam"] },
-  { path: "/kreator", title: "Kreator pomysłów", hint: "Od pomysłu do wniosku z wizualizacją", keywords: ["pomysł", "kreator", "zgłoś", "nowa innowacja", "wizualizacja"] },
+  { path: "/kreator", title: "Kreator pomysłów", hint: "Sprawdzenie pomysłu, wizualizacja, fiszka do ROPS", keywords: ["pomysł", "kreator", "zgłoś", "nowa innowacja", "wizualizacja"] },
   { path: "/testuj", title: "Testy innowacji", hint: "Nabory testów i lista oczekujących", keywords: ["test", "testowanie", "wypróbuj", "lista oczekujących", "tester"] },
   { path: "/przesla", title: "Przęsła - kręgi wsparcia", hint: "Rozmowa z osobami w podobnej sytuacji", keywords: ["przęsła", "krąg", "wsparcie", "rodzic", "opiekun", "samotność", "rozmowa z kimś"] },
   { path: "/wiedza", title: "Mapa wyzwań i raporty", hint: "Diagnozy, raporty ROPS, dane", keywords: ["wiedza", "raport", "diagnoza", "dane", "wyzwanie", "statystyka", "mapa"] },

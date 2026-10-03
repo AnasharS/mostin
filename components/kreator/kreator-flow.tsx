@@ -58,6 +58,15 @@ function Checks({ legend, help, options, value, onChange, max }: {
   )
 }
 
+function More({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <details className="border-t pt-4 [&[open]>summary]:mb-5">
+      <summary className="cursor-pointer font-semibold text-brand-dark">{label} <span className="font-normal text-muted-foreground">(opcjonalnie)</span></summary>
+      <div className="grid gap-6">{children}</div>
+    </details>
+  )
+}
+
 export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
   const [step, setStep] = useState(0)
   const [c, setC] = useState<Canvas>({ ...empty, problem: initialProblem ?? "" })
@@ -103,6 +112,11 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
 
   async function next() {
     if (step < 3) { setStep(step + 1); return }
+    await assess()
+  }
+
+  // na start wystarczą problem i pomysł - kroki „Ludzie i wartość” i „Koszty” są dla chętnych
+  async function assess() {
     setStep(4)
     const r = await call<{ assessment: Assessment }>("/api/kreator/assess", {}, "assess")
     if (r) setAssessment(r.assessment)
@@ -202,20 +216,20 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
               <p id="problem-h" className="text-sm text-muted-foreground">Opisz, kogo dotyczy i jak wygląda na co dzień. Bez danych osobowych.</p>
               <textarea id="problem" aria-describedby="problem-h" rows={4} value={c.problem} onChange={(e) => set("problem", e.target.value)} className={field} />
             </div>
+            <div>
+              <label htmlFor="location" className="text-sm font-medium">Gdzie? (gmina, dzielnica - opcjonalnie)</label>
+              <input id="location" value={c.location} onChange={(e) => set("location", e.target.value)} className={field} />
+            </div>
+            <More label="Doprecyzuj problem - skala, częstotliwość, odbiorcy">
             <Radio name="intensity" legend="Jak bardzo źle jest bez rozwiązania?" options={OPTIONS.intensity} value={c.intensity} onChange={(v) => set("intensity", v)} />
             <Radio name="frequency" legend="Jak często występuje problem?" options={OPTIONS.frequency} value={c.frequency} onChange={(v) => set("frequency", v)} />
             <Radio name="scale" legend="Ilu ludzi dotyka?" options={OPTIONS.scale} value={c.scale} onChange={(v) => set("scale", v)} />
             <Checks legend="Komu rozwiązanie ma realnie pomóc?" options={USERS} value={c.users} onChange={(v) => set("users", v)} />
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label htmlFor="users_other" className="text-sm font-medium">Inna grupa</label>
-                <input id="users_other" value={c.users_other} onChange={(e) => set("users_other", e.target.value)} className={field} />
-              </div>
-              <div>
-                <label htmlFor="location" className="text-sm font-medium">Gdzie? (gmina, dzielnica)</label>
-                <input id="location" value={c.location} onChange={(e) => set("location", e.target.value)} className={field} />
-              </div>
+            <div>
+              <label htmlFor="users_other" className="text-sm font-medium">Inna grupa</label>
+              <input id="users_other" value={c.users_other} onChange={(e) => set("users_other", e.target.value)} className={field} />
             </div>
+            </More>
           </div>
         )}
 
@@ -230,9 +244,11 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
               <label htmlFor="title" className="font-medium">Robocza nazwa (opcjonalnie - Mostek może zaproponować)</label>
               <input id="title" value={c.title} onChange={(e) => set("title", e.target.value)} className={field} />
             </div>
+            <More label="Dodaj szczegóły - rodzaj, gotowość, zrozumiałość">
             <Radio name="solution_type" legend="Czym jest rozwiązanie?" options={OPTIONS.solution_type} value={c.solution_type} onChange={(v) => set("solution_type", v)} />
             <Radio name="readiness" legend="Gotowość do wdrożenia" options={OPTIONS.readiness} value={c.readiness} onChange={(v) => set("readiness", v)} />
             <Radio name="clarity" legend="Czy osoba, która pierwszy raz widzi rozwiązanie, szybko je rozumie?" options={OPTIONS.clarity} value={c.clarity} onChange={(v) => set("clarity", v)} />
+            </More>
           </div>
         )}
 
@@ -315,10 +331,18 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
                   <Button type="button" variant="outline" size="lg" className="h-11 px-5" disabled={busy !== ""} onClick={() => save(false)}>
                     {busy === "save" ? "Zapisuję…" : ideaId ? <><Check aria-hidden="true" className="size-4" /> Zapisano - zapisz zmiany</> : "Zapisz szkic"}
                   </Button>
-                  <Button type="button" variant="outline" size="lg" className="h-11 px-5" disabled={busy !== ""} onClick={generateApp}>
-                    {busy === "app" ? "Mostek pisze wniosek…" : "Przygotuj wniosek do naboru IWS 2.0"}
-                  </Button>
                   {threadId && <Link href={`/rozmowy/${threadId}`} className={buttonVariants({ variant: "ghost", size: "lg" }) + " h-11 px-4"}>Zobacz rozmowę z ROPS →</Link>}
+                </div>
+
+                <div className="border-t pt-5">
+                  <h3 className="font-semibold">A wniosek?</h3>
+                  <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                    Na tym etapie najważniejsza jest rozmowa z zespołem Hubu - pomysł zwykle dojrzewa w inkubatorze, zanim trafi do wniosku.
+                    Zapisz pomysł, a damy znać, gdy ruszy nabór w jego obszarze. Wtedy Mostek przygotuje szkic wniosku z tej kanwy.
+                  </p>
+                  <button type="button" className="mt-2 text-sm font-semibold underline underline-offset-2 disabled:opacity-50" disabled={busy !== ""} onClick={generateApp}>
+                    {busy === "app" ? "Mostek pisze szkic…" : "Zobacz, jak wyglądałby szkic wniosku"}
+                  </button>
                 </div>
               </div>
             )}
@@ -330,9 +354,12 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
         {step < 4 && (
           <div className="mt-6 flex flex-wrap gap-2">
             {step > 0 && <Button type="button" variant="outline" size="lg" className="h-11 px-5" onClick={() => setStep(step - 1)}>← Wstecz</Button>}
-            <Button type="button" size="lg" className="h-11 px-5" disabled={!canNext} onClick={next}>
-              {step === 3 ? "Poproś Mostka o ocenę →" : "Dalej →"}
+            <Button type="button" size="lg" variant={step === 1 ? "outline" : "default"} className="h-11 px-5" disabled={!canNext} onClick={next}>
+              {step === 3 ? "Poproś Mostka o ocenę →" : step === 1 ? "Uzupełnij kanwę (ludzie, koszty)" : "Dalej →"}
             </Button>
+            {step === 1 && canNext && (
+              <Button type="button" size="lg" className="h-11 px-5 order-first sm:order-none" onClick={assess}>Poproś Mostka o ocenę →</Button>
+            )}
             {!canNext && <p className="self-center text-sm text-muted-foreground">Uzupełnij opis (min. kilka słów), aby przejść dalej.</p>}
           </div>
         )}

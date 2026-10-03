@@ -67,7 +67,7 @@ export function MostekLauncher({ mode, floating = "auto" }: { mode?: "rops"; flo
         <button
           type="button"
           onClick={show}
-          className="fixed bottom-4 right-4 z-30 inline-flex h-12 items-center gap-2 border-2 border-foreground bg-primary px-4 font-bold text-primary-foreground hover:bg-primary/85 print:hidden"
+          className="fixed bottom-4 right-4 z-30 inline-flex h-12 items-center gap-2 border-2 border-foreground bg-primary px-4 font-bold text-primary-foreground hover:bg-brand-dark print:hidden"
           aria-haspopup="dialog"
           aria-keyshortcuts="Alt+M"
         >
