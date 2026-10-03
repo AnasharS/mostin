@@ -154,7 +154,7 @@ html { font-size: calc(100% * var(--font-scale)); }
    Tło zamiast SVG w treści: przy zawijaniu tekstu podkreślona jest każda linijka (box-decoration-break). */
 .hand-underline {
   padding-bottom: 0.16em;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 16' preserveAspectRatio='none'%3E%3Cpath d='M3 10.5 C 48 6, 92 12.5, 141 8.2 S 236 4.6, 282 9.4 S 362 11.8, 397 6.3' fill='none' stroke='%23e85d2a' stroke-width='3.4' stroke-linecap='round'/%3E%3Cpath d='M30 13.2 C 96 10.4, 170 13.6, 248 11.1 S 340 12.4, 372 10.6' fill='none' stroke='%23e85d2a' stroke-width='1.6' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E") left bottom / 100% 0.3em no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9 C 48 4.5, 92 11, 141 6.7 S 236 3.1, 282 7.9 S 362 10.3, 397 4.8' fill='none' stroke='%23e85d2a' stroke-width='3.6' stroke-linecap='round'/%3E%3C/svg%3E") left bottom / 100% 0.3em no-repeat;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }

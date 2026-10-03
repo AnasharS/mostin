@@ -12,7 +12,8 @@ const Pre = z.object({
   institution: z.string().trim().min(3, "Podaj nazwę instytucji").max(160),
   email: z.union([z.literal(""), z.email("Nieprawidłowy e-mail")]),
   phone: z.string().trim().max(20).optional(),
-  innovation_id: z.coerce.number().int().optional(),
+  // pusta opcja „Jeszcze nie wiemy” = brak innowacji (bez preprocess "" zamieniało się na 0 i łamało klucz obcy)
+  innovation_id: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().int().positive().optional()),
   beneficiaries: z.string().trim().max(300).optional(),
   team: z.string().trim().max(500).optional(),
   partners: z.string().trim().max(500).optional(),
