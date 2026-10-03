@@ -30,8 +30,8 @@ function fitLabel(fit: number) {
   return "Słabe dopasowanie"
 }
 
-export function MatchFlow() {
-  const [text, setText] = useState("")
+export function MatchFlow({ initialText = "" }: { initialText?: string }) {
+  const [text, setText] = useState(initialText)
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle")
   const [step, setStep] = useState(0)
   const [result, setResult] = useState<Ok | null>(null)

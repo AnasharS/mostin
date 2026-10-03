@@ -3,6 +3,7 @@ import { getCurrentProfile } from "@/lib/auth"
 import { Logo } from "./logo"
 import { A11yToolbar } from "./a11y-toolbar"
 import { Tagline } from "./tagline"
+import { MostekLauncher } from "@/components/mostek/mostek-launcher"
 
 const NAV = [
   { href: "/", label: "Znajdź rozwiązanie" },
@@ -43,6 +44,7 @@ export async function SiteHeader() {
           </Link>
           <Tagline className="hidden border-l pl-3 text-sm leading-tight text-muted-foreground 2xl:inline" />
         </div>
+        <div className="flex flex-wrap items-center gap-3">
         <nav aria-label="Główna">
           <ul className="flex flex-wrap gap-x-1 gap-y-1 text-[0.95rem]">
             {NAV.map((n) => (
@@ -52,6 +54,8 @@ export async function SiteHeader() {
             ))}
           </ul>
         </nav>
+        <MostekLauncher />
+        </div>
       </div>
     </header>
   )

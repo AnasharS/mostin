@@ -159,14 +159,43 @@ opis problemu
   - Zapis idzie przez sesję admina (RLS), a cache polityki jest unieważniany od razu.
 - **Na tej samej stronie:** wszystkie przełączniki kagańca, limity kosztów i podgląd ostatnich zdarzeń moderacji.
 
+## 17. Mostek — agent AI nad całą platformą
+
+- **Nie jest dymkiem czatu w rogu, tylko warstwą nad serwisem:**
+  - przycisk **● Zapytaj Mostka** w nagłówku każdej strony (panel boczny, skrót **Alt+M**);
+  - pełny ekran `/mostek`;
+  - wejście ze strony głównej.
+  Mostek zna kontekst strony, na której jest użytkownik. Wszystkie moduły są też dostępne klasycznie.
+- **Narzędzia** (Claude tool use, `strict`):
+  - `search_innovations`: wyszukiwanie hybrydowe w Bibliotece;
+  - `get_innovation`: szczegóły innowacji;
+  - `search_documents`: RAG po raportach ROPS z numerami stron;
+  - `search_challenges`: Mapa Wyzwań;
+  - `propose_action`: przycisk następnego kroku (dostosuj / kreator / rozmowa z ROPS / dopasuj / otwórz sekcję).
+- **Bezpieczeństwo działań:**
+  - narzędzia tylko czytają bazę, a jedyne „działanie” to przycisk, który klika człowiek;
+  - „dostosuj” wolno zaproponować tylko dla innowacji, którą Mostek faktycznie widział w wynikach narzędzi (walidacja ID).
+- **Ugruntowanie:**
+  - każda informacja ma cytat w formacie pola `zrodlo` z narzędzia (np. „[Piecza zastępcza w Małopolsce (2024), s. 70–71]”), wyświetlany jako znacznik źródła;
+  - pod odpowiedzią jest lista **zacytowanych** źródeł z linkami do konkretnej strony PDF;
+  - dane z Mapy Wyzwań są oznaczone jako ogólnopolskie, z raportów jako małopolskie;
+  - test: na pytanie o liczbę samotnych seniorów Mostek odpowiedział, że materiały ROPS jej nie zawierają, i nie zgadywał.
+- **Kaganiec:** każda wiadomość przechodzi przez guard (wulgaryzmy, moderacja, dane osobowe, budżet, limit dzienny). Prompt zawiera `<zasady_rops>` i `<styl>` (archetyp) z panelu ROPS, a wyjście jest dodatkowo filtrowane z wulgaryzmów.
+- **Decyzje techniczne:**
+  - **Historia rozmowy po stronie serwera, tylko z dopisywaniem** (`consultant_sessions`). Opus 5.5 odrzuca historię, z której wycięto wcześniejsze wywołania narzędzi lub bloki myślenia, więc klient wysyła tylko nową wiadomość, a serwer dokleja ją do pełnego zapisu. Dostęp do sesji wymaga klucza sesji z ciasteczka httpOnly.
+  - **Pułapka Opus 5.5:** tekst pisany *między* wywołaniami narzędzi wraca jako ukryte bloki myślenia, a nie jako odpowiedź. Rozwiązanie w prompcie: najpierw wszystkie narzędzia (łącznie z `propose_action`), potem jedna końcowa odpowiedź.
+  - **Strumieniowanie (SSE):** tekst pojawia się na bieżąco, a statusy narzędzi („Przeszukuję raporty ROPS…”) pokazują, co się dzieje.
+  - **Równoległe narzędzia:** wszystkie wyniki trafiają w jednej wiadomości. Limit 6 kroków na odpowiedź. Prompt caching dla promptu systemowego i definicji narzędzi.
+  - **Dostępność:** natywny `<dialog>` (fokus w środku, Esc zamyka). Odpowiedź jest ogłaszana czytnikowi ekranu raz, po zakończeniu, a nie fragment po fragmencie. Rola `log`, Enter wysyła, Shift+Enter dodaje nową linię, a preferencja „prosty język” z paska dostępności trafia do Mostka.
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
-- [ ] Mostek — agent z narzędziami (warstwa konwersacyjna nad wszystkimi modułami)
+- [x] Mostek — agent z narzędziami (sekcja 17)
 - [x] Middleman — „Dostosuj z Mostkiem” (sekcja 13)
-- [ ] Knowledge RAG w praktyce (cytowanie stron)
+- [x] Knowledge RAG w praktyce (sekcje 14 i 17)
 - [ ] Kreator pomysłów + generator wniosków + wizualizacja
 - [ ] **Wizualizacja pomysłu (obraz z opisu):** osoba z pomysłem, ale bez środków na projekt czy grafika, generuje obraz innowacji (np. przedmiotu, miejsca, usługi) z opisu w Kreatorze i może wysłać fiszkę z wizualizacją do ROPS do wglądu. Obniża próg wejścia dla oddolnych innowatorów. Koszt kontrolowany limitem obrazów na użytkownika i przełącznikiem w ustawieniach AI.
-- [ ] Tester innowacji
+- [ ] Tester innowacji + **lista oczekujących na testy**: zapis przez checkboxy, czat lub głos z Mostkiem → kategorie problemu + kontakt. Kontakt wpisuje się w formularzu i nie trafia do LLM. Gdy ROPS oznaczy innowację jako „gotową do testów”, system dopasowuje listę (kategorie + embedding) i tworzy powiadomienia (demo bez wysyłki maili).
 - [ ] Rozmowy z ROPS (Realtime, powiadomienia)
 - [ ] Panel kosztów i ustawień AI (kaganiec + **tone of voice przez archetypy marki**)
 - [ ] **Sterowanie głosem** (jeśli wystarczy czasu): „Powiedz Mostkowi”, push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności lokalnie bez LLM. Dla seniorów i osób z niepełnosprawnościami ruchowymi lub wzroku.

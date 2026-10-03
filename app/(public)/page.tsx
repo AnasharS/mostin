@@ -3,7 +3,8 @@ import { MostekMark } from "@/components/site/logo"
 import { Tagline } from "@/components/site/tagline"
 import { createAdminClient } from "@/lib/supabase/admin"
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ problem?: string }> }) {
+  const { problem } = await searchParams
   const { count } = await createAdminClient()
     .from("innovations")
     .select("*", { count: "exact", head: true })
@@ -33,7 +34,11 @@ export default async function Home() {
         <strong className="text-foreground">{count ?? 0} sprawdzonych innowacji społecznych</strong> z Małopolski i wiedzę ROPS,
         wyjaśni, co może pomóc — i podpowie pierwszy krok.
       </p>
-      <MatchFlow />
+      <MatchFlow initialText={problem} />
+      <p className="mt-6 text-center text-muted-foreground">
+        Wolisz rozmowę? <a href="/mostek" className="font-semibold">Porozmawiaj z Mostkiem</a> — zapyta o szczegóły, odpowie na podstawie raportów ROPS
+        i poprowadzi do następnego kroku. <span className="whitespace-nowrap">(Skrót: Alt + M)</span>
+      </p>
     </div>
   )
 }
