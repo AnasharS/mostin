@@ -31,13 +31,13 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
       <div className="mt-4"><Flash error={blad} /></div>
 
       {!me?.consent_przesla ? (
-        <div className="mt-6 rounded-xl border-2 border-brand bg-card p-6">
+        <div className="mt-6 border-l-4 border-brand bg-card py-5 pl-5 pr-4">
           <p className="font-semibold">Jak dołączyć?</p>
           <p className="mt-1">Zapisz krótki profil potrzeb (obszary, okolica, pseudonim) i zaznacz zgodę na Przęsła. Dane kontaktowe nie są widoczne dla innych.</p>
           <Link href="/testuj#lista" className={buttonVariants({ size: "lg" }) + " mt-3 h-10 px-4"}>Utwórz profil i dołącz</Link>
         </div>
       ) : (
-        <div className="mt-6 rounded-xl border-2 border-brand bg-card p-6">
+        <div className="mt-6 border-l-4 border-brand bg-card py-5 pl-5 pr-4">
           <p className="font-semibold"><span aria-hidden="true" className="mr-1.5 inline-block size-2.5 rounded-full bg-brand" />Jesteś w Przęsłach jako „{me.nickname}”</p>
           {sim && (
             <p className="mt-1">
@@ -64,13 +64,13 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
 
       <section className="mt-8" aria-labelledby="kregi">
         <h2 id="kregi" className="text-xl font-semibold">Kręgi{me?.categories.length ? " - najbardziej pasujące na górze" : ""}</h2>
-        <ul className="mt-4 grid gap-4 md:grid-cols-2">
+        <ul className="mt-4 border-t">
           {sorted.map((c) => {
             const members = (c.circle_members as unknown as { count: number }[])[0]?.count ?? 0
             const msgs = (c.circle_messages as unknown as { count: number }[])[0]?.count ?? 0
             const fit = c.categories.some((x: string) => mine.has(x))
             return (
-              <li key={c.id} className="rounded-xl border bg-card p-5">
+              <li key={c.id} className="border-b py-5">
                 {fit && <p className="mb-1 text-xs font-semibold text-brand-dark">Pasuje do Twojej sytuacji</p>}
                 <h3 className="text-lg font-semibold"><Link href={`/przesla/${c.id}`} className="text-foreground hover:underline">{c.title}</Link></h3>
                 {c.topic && <p className="mt-1 text-sm text-muted-foreground">{c.topic}</p>}
@@ -81,7 +81,7 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
         </ul>
       </section>
 
-      <aside className="mt-10 rounded-lg bg-secondary p-5 text-sm">
+      <aside className="mt-10 border-t-2 border-foreground pt-5 text-sm">
         <h2 className="font-semibold">Zasady Przęseł</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>Rozmawiamy pod pseudonimem - nie podawaj nazwisk, adresów ani numerów telefonów (system je ukrywa).</li>

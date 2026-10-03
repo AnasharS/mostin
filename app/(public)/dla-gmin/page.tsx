@@ -36,7 +36,7 @@ export default async function DlaGmin({ searchParams }: { searchParams: Promise<
 
       <GrantRadar />
 
-      <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-8 grid border-l border-t sm:grid-cols-2 lg:grid-cols-4">
         {[
           [FileSearch, "Odpowiedzi z regulaminu", `Każdy wymóg z cytatem i numerem strony (${docs ?? 0} dokumentów naboru).`],
           [ListChecks, "Wymagania vs Wasze zasoby", "Np. wymóg 6 osób, a macie 4 - Mostek podpowie partnerstwo lub inne rozwiązanie."],
@@ -45,7 +45,7 @@ export default async function DlaGmin({ searchParams }: { searchParams: Promise<
         ].map(([Icon, t, d]) => {
           const I = Icon as typeof FileSearch
           return (
-            <li key={t as string} className="rounded-xl border bg-card p-4">
+            <li key={t as string} className="border-b border-r p-4">
               <I aria-hidden="true" className="size-6 text-brand-dark" />
               <p className="mt-2 font-semibold">{t as string}</p>
               <p className="mt-1 text-sm text-muted-foreground">{d as string}</p>
@@ -57,7 +57,7 @@ export default async function DlaGmin({ searchParams }: { searchParams: Promise<
       <div className="mt-4"><Flash error={blad} /></div>
 
       {!lead ? (
-        <section className="mt-8 rounded-xl border-2 border-brand bg-card p-5 md:p-6" aria-labelledby="start">
+        <section className="mt-8 border-l-4 border-brand bg-card py-5 pl-5 pr-4" aria-labelledby="start">
           <h2 id="start" className="text-xl font-semibold">Zacznijmy - kogo reprezentujesz?</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Podaj kontakt, żeby zespół ROPS mógł pomóc, jeśli coś okaże się niejasne - nawet gdy przerwiesz rozmowę. Dane kontaktowe widzi tylko ROPS; nie są przekazywane do asystenta AI.

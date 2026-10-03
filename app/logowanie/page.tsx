@@ -27,13 +27,13 @@ export default async function LoginPage({
       </p>
       <Flash ok={ok} error={blad} />
 
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul className="border-t">
         {personas.map((p) => (
           <li key={p.id}>
             <form action={enterAsPersona.bind(null, p.id)} className="h-full">
               <button
                 type="submit"
-                className="h-full w-full rounded-lg border p-4 text-left transition hover:border-foreground/40 hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring"
+                className="w-full border-b px-1 py-4 text-left hover:bg-muted/50"
               >
                 <span className="block font-medium">{p.name}</span>
                 <span className="mt-1 block text-sm text-muted-foreground">{p.description}</span>

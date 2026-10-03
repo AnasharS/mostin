@@ -26,7 +26,7 @@ export async function GrantRadar({ compact = false }: { compact?: boolean }) {
         {open.map((c) => {
           const d = daysLeft(c.closes_at!)
           return (
-            <li key={c.id} className="rounded-xl border-2 border-brand bg-card p-5">
+            <li key={c.id} className="border-l-4 border-brand bg-card py-5 pl-5 pr-4">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-lg font-bold">{c.title.replace(/^\[DEMO\]\s*/, "")}</p>

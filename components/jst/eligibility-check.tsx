@@ -25,7 +25,7 @@ export function EligibilityCheck({ questions, onDoneId = "wniosek" }: { question
   }
 
   return (
-    <div className="rounded-xl border-2 border-brand bg-card p-5 md:p-6">
+    <div className="border-l-4 border-brand bg-card py-5 pl-5 pr-4">
       <div className="mb-3 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={Math.min(step, questions.length)} aria-label="Postęp testu">
         <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${(Math.min(step, questions.length) / questions.length) * 100}%` }} />
       </div>
@@ -47,7 +47,7 @@ export function EligibilityCheck({ questions, onDoneId = "wniosek" }: { question
           </h2>
           {noes.length > 0 && (
             <ul className="mt-3 space-y-2">
-              {noes.map((q) => <li key={q.id} className="rounded-lg bg-accent p-3 text-sm">{q.ifNo}</li>)}
+              {noes.map((q) => <li key={q.id} className="border-l-2 border-brand pl-3 text-sm">{q.ifNo}</li>)}
             </ul>
           )}
           <p className="mt-3 text-sm text-muted-foreground">To wstępna orientacja na podstawie regulaminu, nie decyzja. Ostateczną ocenę przeprowadza ROPS.</p>

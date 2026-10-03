@@ -40,7 +40,7 @@ export default async function AdminThread({ params, searchParams }: { params: Pr
         </ol>
 
         <aside className="space-y-4 text-sm">
-          <div className="rounded-xl border bg-card p-4">
+          <div className="border-t-2 border-foreground pt-3">
             <h2 className="font-semibold"><span aria-hidden="true" className="mr-1.5 inline-block size-2 rounded-full bg-brand" />Triaż AI</h2>
             <dl className="mt-2 space-y-1">
               <div><dt className="inline text-muted-foreground">Kategoria: </dt><dd className="inline">{t.category ? THREAD_CATEGORIES[t.category as keyof typeof THREAD_CATEGORIES] : "-"}</dd></div>
@@ -49,7 +49,7 @@ export default async function AdminThread({ params, searchParams }: { params: Pr
             </dl>
             <form action={rerunTriage.bind(null, t.id)} className="mt-3"><Button type="submit" variant="outline" size="sm">Odśwież triaż</Button></form>
           </div>
-          <div className="rounded-xl border bg-card p-4">
+          <div className="border-t-2 border-foreground pt-3">
             <h2 className="font-semibold">Status</h2>
             <div className="mt-2 flex flex-wrap gap-2">
               {(["open", "answered", "closed"] as const).map((s) => (
@@ -62,7 +62,7 @@ export default async function AdminThread({ params, searchParams }: { params: Pr
         </aside>
       </div>
 
-      <form action={replyAsRops.bind(null, t.id)} className="mt-8 grid gap-3 rounded-xl border bg-card p-5">
+      <form action={replyAsRops.bind(null, t.id)} className="mt-8 grid gap-3 border-t-2 border-foreground pt-6">
         <label htmlFor="body" className="font-semibold">Odpowiedź</label>
         {t.ai_draft && <p className="text-sm text-muted-foreground">Pole wypełnia szkic AI - sprawdź, uzupełnij fragmenty [DO UZUPEŁNIENIA…] i wyślij. Odpowiedź zawsze zatwierdza człowiek.</p>}
         <textarea id="body" name="body" rows={10} defaultValue={t.ai_draft ?? ""} className="w-full rounded-lg border border-input bg-background p-3" />

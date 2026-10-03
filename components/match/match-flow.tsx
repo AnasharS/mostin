@@ -80,7 +80,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
 
   return (
     <>
-      <form onSubmit={submit} className="mt-4 rounded-xl border bg-card p-4 md:p-6" aria-describedby="opis-pomoc">
+      <form onSubmit={submit} className="mt-4 border-t-2 border-foreground pt-5" aria-describedby="opis-pomoc">
         <label htmlFor="problem" className="text-lg font-semibold">Twój problem lub potrzeba</label>
         <p id="opis-pomoc" className="mt-1 text-sm text-muted-foreground">
           Nie musisz znać nazw programów ani urzędów. Nie podawaj danych osobowych - wystarczy opis sytuacji.
@@ -117,7 +117,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
 
       <div aria-live="polite" className="mt-8">
         {state === "loading" && (
-          <div className="rounded-xl border bg-card p-6" role="status">
+          <div className="border-l-4 border-brand py-4 pl-5" role="status">
             <p className="font-semibold"><span aria-hidden="true" className="mr-2 inline-block size-2.5 animate-pulse rounded-full bg-brand" />Mostek buduje most do rozwiązania…</p>
             <ol className="mt-3 space-y-2">
               {STEPS.map((s, i) => (
@@ -134,7 +134,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
         )}
 
         {state === "error" && (
-          <div className="rounded-xl border border-brand bg-accent p-5" role="alert">
+          <div className="border-l-4 border-brand bg-accent/50 py-4 pl-5 pr-4" role="alert">
             <h2 ref={resultsRef} tabIndex={-1} className="font-semibold outline-none">Potrzebuję jeszcze chwili uwagi</h2>
             <p className="mt-1">{error}</p>
           </div>
@@ -155,7 +155,7 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
         {matches.length ? `Znaleźliśmy ${matches.length} ${matches.length === 1 ? "rozwiązanie" : matches.length < 5 ? "rozwiązania" : "rozwiązań"}` : "Nie znaleźliśmy dobrego dopasowania"}
       </h2>
 
-      <div className="mt-3 rounded-lg bg-secondary p-4 text-sm">
+      <div className="mt-3 border-l-4 border-brand py-1 pl-4 text-sm">
         <p><strong>Tak zrozumieliśmy Twój problem:</strong> {analysis.summary}</p>
         <p className="mt-2 flex flex-wrap gap-1.5">
           {[...analysis.categories, ...analysis.target_groups].map((t) => (
@@ -167,10 +167,10 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
         )}
       </div>
 
-      <ol className="mt-6 space-y-5">
+      <ol className="mt-6 border-t">
         {matches.map((m, i) => (
           <li key={m.id}>
-            <article className="rounded-xl border bg-card p-5" aria-labelledby={`m-${m.id}`}>
+            <article className="border-b py-6" aria-labelledby={`m-${m.id}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h3 id={`m-${m.id}`} className="text-xl font-semibold">
                   <span className="sr-only">Wynik {i + 1}: </span>
@@ -186,16 +186,16 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
               </div>
               <p className="mt-2 text-muted-foreground">{m.summary}</p>
 
-              <dl className="mt-4 grid gap-3 md:grid-cols-3">
-                <div className="rounded-lg bg-secondary/60 p-3">
+              <dl className="mt-4 grid border-t md:grid-cols-3 md:divide-x">
+                <div className="py-3 md:px-4 md:first:pl-0">
                   <dt className="text-sm font-semibold">Dlaczego pasuje</dt>
                   <dd className="mt-1 text-sm">{m.why}</dd>
                 </div>
-                <div className="rounded-lg bg-secondary/60 p-3">
+                <div className="py-3 md:px-4 md:first:pl-0">
                   <dt className="text-sm font-semibold">Co dostosować</dt>
                   <dd className="mt-1 text-sm">{m.adaptation}</dd>
                 </div>
-                <div className="rounded-lg bg-accent p-3">
+                <div className="bg-accent/50 px-3 py-3 md:px-4">
                   <dt className="text-sm font-semibold">Pierwszy krok</dt>
                   <dd className="mt-1 text-sm">{m.first_step}</dd>
                 </div>
@@ -233,7 +233,7 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
       </ol>
 
       {coverage !== "dobre" && (
-        <aside className="mt-8 rounded-xl border-2 border-dashed border-brand bg-card p-6" aria-labelledby="luka">
+        <aside className="mt-8 border-l-4 border-brand bg-card py-5 pl-5 pr-4" aria-labelledby="luka">
           <h3 id="luka" className="text-lg font-semibold">
             {matches.length ? "Żadne rozwiązanie nie pasuje w pełni?" : "Może to Ty stworzysz brakujące rozwiązanie?"}
           </h3>

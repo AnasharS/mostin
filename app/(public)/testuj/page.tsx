@@ -41,11 +41,11 @@ export default async function TestujPage({
 
       <section className="mt-8" aria-labelledby="otwarte">
         <h2 id="otwarte" className="text-xl font-semibold">Testy, które trwają lub ruszają wkrótce</h2>
-        <ul className="mt-4 grid gap-4 md:grid-cols-2">
+        <ul className="mt-4 border-t">
           {(tests ?? []).map((t) => {
             const inn = t.innovations as unknown as { id: number; title: string } | null
             return (
-              <li key={t.id} className="rounded-xl border bg-card p-5">
+              <li key={t.id} className="border-b py-5">
                 <p className="text-sm font-semibold">
                   {t.status === "open" ? <span className="rounded-full bg-accent px-2 py-0.5">Nabór otwarty</span> : <span className="rounded-full border px-2 py-0.5">Wkrótce</span>}
                 </p>
@@ -66,7 +66,7 @@ export default async function TestujPage({
       </section>
 
       {me && (
-        <section id="moj-profil" className="mt-10 rounded-xl border-2 border-brand bg-card p-6" aria-labelledby="profil">
+        <section id="moj-profil" className="mt-10 border-l-4 border-brand bg-card py-5 pl-5 pr-4" aria-labelledby="profil">
           <h2 id="profil" className="text-xl font-semibold">Twój profil potrzeb - {me.nickname}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {me.categories.map(label).join(", ")}{me.district ? ` · ${me.district}` : ""} ·{" "}
@@ -78,7 +78,7 @@ export default async function TestujPage({
             {(invitations.data ?? []).map((inv) => {
               const t = inv.tests as unknown as { title: string; closes_at: string | null; location: string | null; innovations: { id: number; title: string } | null }
               return (
-                <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-accent p-3">
+                <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 border-b bg-accent/50 px-3 py-3">
                   <div>
                     <p className="flex items-center gap-1.5 font-medium"><Bell aria-hidden="true" className="size-4 text-brand-dark" />Zaproszenie do testów: {t.title}</p>
                     <p className="text-sm">{inv.match_reason}{t.location ? ` · ${t.location}` : ""}</p>
@@ -98,7 +98,7 @@ export default async function TestujPage({
           </ul>
 
           {me.consent_przesla && sim && (
-            <div className="mt-5 rounded-lg border bg-background p-4">
+            <div className="mt-5 border-l-4 border-brand pl-4">
               <p className="font-semibold"><span aria-hidden="true" className="mr-1.5 inline-block size-2.5 rounded-full bg-brand" />Przęsła - nie jesteś sam/sama</p>
               <p className="mt-1">
                 {sim.same_district > 0 && me.district ? <><strong>{sim.same_district}</strong> {sim.same_district === 1 ? "osoba" : "osób"} w okolicy „{me.district}” i </> : null}
@@ -116,7 +116,7 @@ export default async function TestujPage({
           Zaznacz, czego dotyczy Twoja sytuacja. Nie podawaj diagnoz ani danych wrażliwych - wystarczą obszary. Dane kontaktowe widzi tylko ROPS
           i nie są przekazywane do asystenta AI. Możesz to zrobić także rozmawiając z <Link href="/mostek">Mostkiem</Link>.
         </p>
-        <form action={saveNeedsProfile} className="mt-5 grid gap-6 rounded-xl border bg-card p-5 md:p-6">
+        <form action={saveNeedsProfile} className="mt-5 grid gap-6 border-t-2 border-foreground pt-6">
           <input type="hidden" name="source" value={sp.zrodlo === "mostek" ? "mostek" : "form"} />
           <fieldset>
             <legend className="font-medium">Czego dotyczy Twoja sytuacja? <span aria-hidden="true">*</span></legend>

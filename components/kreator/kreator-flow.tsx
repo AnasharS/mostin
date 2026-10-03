@@ -145,10 +145,10 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
           <Button type="button" onClick={() => window.print()} size="lg" className="h-10 px-4">Drukuj / zapisz PDF</Button>
           <Button type="button" variant="outline" size="lg" className="h-10 px-4" onClick={() => setApp(null)}>Wróć do kanwy</Button>
         </div>
-        <div className="mt-6 rounded-xl border bg-card p-6 md:p-8 print:border-0 print:p-0">
+        <div className="mt-6 border-t-4 border-brand pt-6 print:border-0 print:pt-0">
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Szkic wniosku · {app.title}</p>
           <h2 id="wniosek" ref={headRef} tabIndex={-1} className="mt-2 text-2xl font-bold outline-none">{c.title || assessment?.title_suggestion}</h2>
-          <p className="mt-3 rounded-lg bg-accent p-3 text-sm">
+          <p className="mt-3 border-l-4 border-brand py-1 pl-4 text-sm">
             Sekcje <strong>2. Dane pomysłodawcy</strong> i <strong>12. Oświadczenia</strong> wypełniasz samodzielnie w formularzu naboru - MostIn nie przetwarza ich przez AI.
             Fragmenty <strong>[DO UZUPEŁNIENIA]</strong> wymagają Twojej wiedzy.
           </p>
@@ -192,7 +192,7 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
         ))}
       </ol>
 
-      <div className="mt-6 rounded-xl border bg-card p-5 md:p-6">
+      <div className="mt-6 border-t-2 border-foreground pt-6">
         <h2 ref={headRef} tabIndex={-1} className="text-xl font-semibold outline-none">{step + 1}. {STEPS[step]}</h2>
 
         {step === 0 && (
@@ -264,7 +264,7 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
           <div className="mt-4 grid gap-6">
             <Checks legend="Koszty stałe" help="Ponosicie je niezależnie od liczby użytkowników." options={COSTS_FIXED} value={c.costs_fixed} onChange={(v) => set("costs_fixed", v)} />
             <Checks legend="Koszty zmienne" help="Rosną z każdą kolejną osobą lub działaniem." options={COSTS_VARIABLE} value={c.costs_variable} onChange={(v) => set("costs_variable", v)} />
-            <p className="rounded-lg bg-secondary p-3 text-sm">Kanwa oparta na Social Innovation Canvas udostępnionej przez ROPS Kraków i INNO AGH. W następnym kroku Mostek sprawdzi, czy podobne rozwiązanie już istnieje w Bibliotece Innowacji, i podpowie, co wzmocnić.</p>
+            <p className="border-l-4 border-brand py-1 pl-4 text-sm">Kanwa oparta na Social Innovation Canvas udostępnionej przez ROPS Kraków i INNO AGH. W następnym kroku Mostek sprawdzi, czy podobne rozwiązanie już istnieje w Bibliotece Innowacji, i podpowie, co wzmocnić.</p>
           </div>
         )}
 
@@ -273,12 +273,12 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
             {busy === "assess" && <p role="status"><span aria-hidden="true" className="mr-2 inline-block size-2.5 animate-pulse rounded-full bg-brand" />Mostek porównuje pomysł ze 115 innowacjami ROPS i analizuje kanwę…</p>}
             {assessment && (
               <div className="grid gap-5">
-                <div className="rounded-lg bg-accent p-4">
+                <div className="border-l-4 border-brand py-1 pl-4">
                   <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Propozycja tytułu</p>
                   <p className="text-lg font-semibold">{assessment.title_suggestion}</p>
                   <p className="mt-1">{assessment.summary}</p>
                 </div>
-                <div className={`rounded-lg border-2 p-4 ${assessment.uniqueness === "powiela" ? "border-destructive" : assessment.uniqueness === "czesciowo_podobny" ? "border-warning" : "border-success"}`}>
+                <div className={`border-l-4 py-3 pl-4 ${assessment.uniqueness === "powiela" ? "border-destructive" : assessment.uniqueness === "czesciowo_podobny" ? "border-warning" : "border-success"}`}>
                   <p className="flex items-center gap-2 font-semibold">
                     {assessment.uniqueness === "unikalny" ? <CircleCheck aria-hidden="true" className="size-5 text-success" /> : assessment.uniqueness === "czesciowo_podobny" ? <CircleAlert aria-hidden="true" className="size-5 text-warning" /> : <CircleX aria-hidden="true" className="size-5 text-destructive" />}
                     {assessment.uniqueness === "unikalny" ? "Pomysł wygląda na nowy w Bibliotece ROPS" : assessment.uniqueness === "czesciowo_podobny" ? "Podobne rozwiązania już istnieją - warto podkreślić różnice" : "Pomysł może powielać istniejącą innowację"}
@@ -293,7 +293,7 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
                   <div><h3 className="font-semibold">Do uzupełnienia</h3><ul className="mt-1 space-y-2 text-sm">{assessment.gaps.map((g) => <li key={g.issue}><strong>{g.issue}</strong><br /><span className="text-muted-foreground">{g.question}</span></li>)}</ul></div>
                 </div>
                 <div><h3 className="font-semibold"><span aria-hidden="true" className="mr-1.5 inline-block size-2 rounded-full bg-brand" />Pomysły Mostka</h3><ul className="mt-1 list-disc space-y-1 pl-5 text-sm">{assessment.ideas.map((x) => <li key={x}>{x}</li>)}</ul></div>
-                <p className="rounded-lg bg-secondary p-3 text-sm"><strong>Następny krok:</strong> {assessment.next_step}</p>
+                <p className="border-l-4 border-brand py-1 pl-4 text-sm"><strong>Następny krok:</strong> {assessment.next_step}</p>
 
                 <div className="border-t pt-5">
                   <h3 className="font-semibold">Wizualizacja pomysłu</h3>

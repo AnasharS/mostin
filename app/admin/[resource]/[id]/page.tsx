@@ -64,7 +64,7 @@ export default async function EditRecord({
         </section>
 
         {aiFields.length > 0 && (
-          <section className="grid gap-5 rounded-lg border border-dashed p-5" aria-labelledby="sekcja-ai">
+          <section className="grid gap-5 border-l-4 border-brand pl-5" aria-labelledby="sekcja-ai">
             <div>
               <h2 id="sekcja-ai" className="font-semibold">Struktura dla matchmakingu</h2>
               <p className="text-sm text-muted-foreground">

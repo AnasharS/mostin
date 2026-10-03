@@ -37,12 +37,12 @@ export default async function Leady() {
       </p>
       <section className="mt-6" aria-labelledby="pre">
         <h2 id="pre" className="text-lg font-semibold">Przedwstępne wnioski ({pre?.length ?? 0})</h2>
-        <ul className="mt-3 grid gap-3 lg:grid-cols-2">
+        <ul className="mt-3 border-t">
           {(pre ?? []).map((p) => {
             const el = p.eligibility as Record<string, boolean>
             const noes = Object.entries(el).filter(([, v]) => v === false).map(([k]) => k)
             return (
-              <li key={p.id} className="rounded-xl border-2 border-brand bg-card p-4 text-sm">
+              <li key={p.id} className="border-b border-l-4 border-l-brand py-4 pl-4 text-sm">
                 <p className="font-semibold">{p.institution}</p>
                 <p className="text-muted-foreground">{(p.calls as unknown as { title: string } | null)?.title?.replace(/^\[DEMO\]\s*/, "")} · {new Date(p.created_at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}</p>
                 <dl className="mt-2 space-y-0.5">
@@ -63,9 +63,9 @@ export default async function Leady() {
       </section>
 
       <h2 className="mt-10 text-lg font-semibold">Rozmowy gmin z asystentem grantowym</h2>
-      <ul className="mt-3 space-y-4">
+      <ul className="mt-3 border-t">
         {(leads ?? []).map((l) => (
-          <li key={l.id} className="rounded-xl border bg-card p-5">
+          <li key={l.id} className="border-b py-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-lg font-semibold">{l.institution}</p>

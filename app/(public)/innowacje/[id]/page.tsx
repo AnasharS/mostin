@@ -106,19 +106,19 @@ export default async function InnovationPage({ params }: { params: Promise<{ id:
 
         <aside className="space-y-6 text-sm" aria-label="Informacje dodatkowe">
           {suitable.length > 0 && (
-            <div className="rounded-lg border bg-card p-4">
+            <div className="border-t-2 border-foreground pt-3">
               <h2 className="font-semibold">Kto może wdrożyć</h2>
               <ul className="mt-2 space-y-1">{suitable.map((s) => <li key={s}>• {s}</li>)}</ul>
             </div>
           )}
-          <div className="rounded-lg border bg-card p-4">
+          <div className="border-t-2 border-foreground pt-3">
             <h2 className="font-semibold">Autorzy i kontakt</h2>
             {i.author_org && <p className="mt-2">{i.author_org}</p>}
             {i.contact && <p className="mt-1"><a href={`mailto:${i.contact}`}>{i.contact}</a></p>}
             {i.location && i.location !== "brak danych" && <p className="mt-1 text-muted-foreground">Gdzie: {i.location}</p>}
           </div>
           {media.filter((m) => m.type === "pdf" || m.type === "zip").length > 0 && (
-            <div className="rounded-lg border bg-card p-4">
+            <div className="border-t-2 border-foreground pt-3">
               <h2 className="font-semibold">Materiały</h2>
               <ul className="mt-2 space-y-1">
                 {media.filter((m) => m.type === "pdf" || m.type === "zip").map((m) => (
@@ -128,7 +128,7 @@ export default async function InnovationPage({ params }: { params: Promise<{ id:
             </div>
           )}
           {(modelDocs ?? []).length > 0 && (
-            <div className="rounded-lg border-2 border-brand bg-card p-4">
+            <div className="border-l-4 border-brand py-1 pl-4">
               <h2 className="font-semibold">Dokumentacja modelu</h2>
               <p className="mt-1 text-xs text-muted-foreground">Przeszukiwalna przez Mostka - zapytaj np. „ile osób potrzeba do wdrożenia?”.</p>
               <ul className="mt-2 space-y-1">

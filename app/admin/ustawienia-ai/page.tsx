@@ -12,7 +12,7 @@ const input = "mt-1 h-9 w-full rounded-md border border-input bg-background px-3
 
 function Toggle({ name, label, help, checked }: { name: string; label: string; help?: string; checked: boolean }) {
   return (
-    <label className="flex items-start gap-3 rounded-lg border bg-card p-3">
+    <label className="flex items-start gap-3 border-t py-3">
       <input type="checkbox" name={name} defaultChecked={checked} className="mt-0.5 size-5 accent-[var(--primary)]" aria-describedby={help ? `${name}-h` : undefined} />
       <span>
         <span className="font-medium">{label}</span>
@@ -51,16 +51,16 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
         <fieldset>
           <legend className="text-lg font-semibold">Osobowość (tone of voice)</legend>
           <p className="text-sm text-muted-foreground">Archetyp marki określa sposób mówienia. Treść i ograniczenia pozostają te same.</p>
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-4 grid border-l border-t md:grid-cols-2 xl:grid-cols-3">
             {Object.entries(ARCHETYPES).map(([id, a]) => (
-              <label key={id} className="relative flex cursor-pointer flex-col rounded-xl border-2 bg-card p-4 has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring">
+              <label key={id} className="relative flex cursor-pointer flex-col border-b border-r bg-card p-4 has-[:checked]:bg-accent has-[:checked]:outline has-[:checked]:outline-3 has-[:checked]:-outline-offset-3 has-[:checked]:outline-brand has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring">
                 <input type="radio" name="tone_archetype" value={id} defaultChecked={p.tone_archetype === id} className="sr-only" />
                 <span className="flex items-center gap-2 font-semibold">
                   <span aria-hidden="true" className="inline-block size-2.5 rounded-full bg-brand" /> {a.name}
                 </span>
                 <span className="text-sm">{a.tagline}</span>
                 <span className="mt-1 text-xs text-muted-foreground">{a.when}</span>
-                <span className="mt-3 rounded-md bg-background p-2.5 text-sm italic">„{a.sample}”</span>
+                <span className="mt-3 border-l-2 border-brand pl-3 text-sm italic">„{a.sample}”</span>
               </label>
             ))}
           </div>
@@ -149,7 +149,7 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
           </p>
           <div className="mt-3 grid gap-2 md:grid-cols-3">
             {VOICE_PAGES.map((v) => (
-              <label key={v.path} className="flex items-center gap-2 rounded-lg border bg-card p-2.5 text-sm">
+              <label key={v.path} className="flex items-center gap-2 border-t py-2.5 text-sm">
                 <input type="checkbox" name={`voice_page:${v.path}`} defaultChecked={Boolean((p.voice_pages as Record<string, boolean>)?.[v.path])} className="size-4" />
                 {v.label}
               </label>

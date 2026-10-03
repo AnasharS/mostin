@@ -36,7 +36,7 @@ export default async function Library({
         <Link href="/">opisz swój problem</Link>, a MostIn dobierze najlepsze.
       </p>
 
-      <form className="mt-6 grid gap-3 rounded-xl border bg-card p-4 md:grid-cols-[2fr_1fr_1fr_1fr_auto] md:items-end" role="search" aria-label="Filtruj innowacje">
+      <form className="mt-6 grid gap-3 border-y py-4 md:grid-cols-[2fr_1fr_1fr_1fr_auto] md:items-end" role="search" aria-label="Filtruj innowacje">
         <div>
           <label htmlFor="q" className="text-sm font-medium">Szukaj</label>
           <input id="q" name="q" defaultValue={q} placeholder="np. samotność, tablet, język migowy" className={field} />
@@ -70,18 +70,20 @@ export default async function Library({
         {(q || kategoria || dla || etap) && <> · <Link href="/innowacje">wyczyść filtry</Link></>}
       </p>
 
-      <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-3 border-t">
         {(items ?? []).map((i) => {
           const lead = i.summary && i.summary.trim() !== i.title.trim() ? i.summary : (i.structured as { summary?: string } | null)?.summary
           const hasVideo = (i.media as { type: string }[] | null)?.some((m) => m.type === "video")
           return (
             <li key={i.id}>
-              <article className="flex h-full flex-col rounded-xl border bg-card p-5">
+              <article className="grid gap-3 border-b py-5 md:grid-cols-[1fr_16rem] md:gap-8">
+                <div>
                 <h2 className="text-lg font-semibold leading-snug">
                   <Link href={`/innowacje/${i.id}`} className="text-foreground hover:underline">{i.title}</Link>
                 </h2>
                 <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{lead}</p>
-                <ul className="mt-auto flex flex-wrap gap-1.5 pt-4" aria-label="Kategorie">
+                </div>
+                <ul className="flex flex-wrap content-start gap-1.5 md:justify-end" aria-label="Kategorie">
                   {i.stage === "upowszechniana" && <li className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium">Upowszechniana</li>}
                   {i.categories.slice(0, 2).map((c: string) => <li key={c} className="rounded-full border px-2 py-0.5 text-xs">{label(c)}</li>)}
                   {hasVideo && <li className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs"><Play aria-hidden="true" className="size-3" /> film</li>}

@@ -23,7 +23,7 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Pr
       <h1 className="text-3xl font-bold tracking-tight">Napisz do ROPS</h1>
       <p className="mt-2 text-muted-foreground">Odpowiadamy zwykle w ciągu 1 dnia roboczego. Nie podawaj danych wrażliwych - wystarczy opis sprawy.</p>
       <div className="mt-4"><Flash error={blad} /></div>
-      <form action={createThread} className="mt-6 grid gap-5 rounded-xl border bg-card p-5 md:p-6">
+      <form action={createThread} className="mt-6 grid gap-5 border-t-2 border-foreground pt-6">
         <input type="hidden" name="source" value={fromMostek ? "mostek" : "form"} />
         <fieldset>
           <legend className="font-medium">W jakiej sprawie?</legend>

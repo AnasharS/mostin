@@ -42,10 +42,10 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
     <>
       <h1 className="mb-6 text-2xl font-semibold">Pulpit</h1>
       <Flash ok={ok} error={blad} />
-      <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid border-l border-t sm:grid-cols-2 xl:grid-cols-3">
         {tiles.map((t) => (
           <li key={t.label}>
-            <Link href={t.href} className="block rounded-lg border p-5 hover:bg-muted/50">
+            <Link href={t.href} className="block h-full border-b border-r p-5 hover:bg-muted/50">
               <p className="text-sm text-muted-foreground">{t.label}</p>
               <p className="mt-1 text-3xl font-semibold tabular-nums">{t.value}</p>
               {t.sub && <p className="mt-1 text-xs text-muted-foreground">{t.sub}</p>}

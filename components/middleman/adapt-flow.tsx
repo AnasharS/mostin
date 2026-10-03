@@ -65,7 +65,7 @@ export function AdaptFlow({ innovationId, innovationTitle, defaults }: { innovat
 
   return (
     <>
-      <form onSubmit={submit} className="mt-8 grid gap-5 rounded-xl border bg-card p-5 md:grid-cols-2 md:p-6 print:hidden" aria-describedby="adapt-info">
+      <form onSubmit={submit} className="mt-8 grid gap-5 border-t-2 border-foreground pt-6 md:grid-cols-2 print:hidden" aria-describedby="adapt-info">
         <p id="adapt-info" className="text-sm text-muted-foreground md:col-span-2">
           Pola z gwiazdką są wymagane. Im więcej szczegółów, tym trafniejszy plan. Nie podawaj danych osobowych.
         </p>
@@ -122,13 +122,13 @@ export function AdaptFlow({ innovationId, innovationTitle, defaults }: { innovat
 
       <div aria-live="polite" className="mt-6">
         {state === "loading" && (
-          <p className="rounded-xl border bg-card p-5" role="status">
+          <p className="border-l-4 border-brand py-4 pl-5" role="status">
             <span aria-hidden="true" className="mr-2 inline-block size-2.5 animate-pulse rounded-full bg-brand" />
             Mostek analizuje innowację i Twoje warunki, układa etapy, budżet i ryzyka… To potrwa około 20 sekund.
           </p>
         )}
         {state === "error" && (
-          <div className="rounded-xl border border-brand bg-accent p-5" role="alert">
+          <div className="border-l-4 border-brand bg-accent/50 py-4 pl-5 pr-4" role="alert">
             <h2 ref={headingRef} tabIndex={-1} className="font-semibold outline-none">Nie udało się przygotować planu</h2>
             <p className="mt-1">{error}</p>
           </div>
@@ -159,13 +159,13 @@ function PlanView({ plan, ctx, title, headingRef, onBack }: {
         <Button type="button" variant="ghost" size="lg" className="h-10 px-4" onClick={onBack}>Zmień warunki</Button>
       </div>
 
-      <div className="mt-6 rounded-xl border bg-card p-6 md:p-8 print:border-0 print:p-0">
+      <div className="mt-6 border-t-4 border-brand pt-6 print:border-0 print:pt-0">
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Plan wdrożenia · {ctx.institution_name || ctx.institution_type}
         </p>
         <h2 id="plan-tytul" ref={headingRef} tabIndex={-1} className="mt-2 text-2xl font-bold outline-none md:text-3xl">{plan.headline}</h2>
 
-        <div className="mt-5 flex flex-wrap items-center gap-4 rounded-lg bg-accent p-4">
+        <div className="mt-5 flex flex-wrap items-center gap-4 border-y py-4">
           <div className="text-center">
             <p className="text-3xl font-bold tabular-nums">{plan.fit.score}<span className="text-base font-normal">/100</span></p>
             <p className="text-xs">wykonalność</p>
@@ -229,7 +229,7 @@ function PlanView({ plan, ctx, title, headingRef, onBack }: {
           </div>
         </div>
 
-        <div className="mt-8 rounded-lg border-2 border-brand p-5">
+        <div className="mt-8 border-l-4 border-brand py-2 pl-5">
           <h3 className={h2}>Pierwszy tydzień</h3>
           <ol className="mt-2 list-decimal space-y-1 pl-5">{plan.first_week.map((x) => <li key={x}>{x}</li>)}</ol>
         </div>

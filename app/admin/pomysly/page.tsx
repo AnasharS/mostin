@@ -28,7 +28,7 @@ export default async function Pomysly({ searchParams }: { searchParams: Promise<
         autorzy pasujących pomysłów automatycznie dostaną powiadomienie - a tutaj od razu widać, do kogo uderzyć.
       </p>
 
-      <section className="mt-6 rounded-xl border bg-card p-5" aria-labelledby="obszary">
+      <section className="mt-6 border-t-2 border-foreground pt-5" aria-labelledby="obszary">
         <h2 id="obszary" className="font-semibold">Zgłoszone pomysły w obszarach</h2>
         <ul className="mt-3 grid gap-1.5 md:grid-cols-2">
           {CATEGORIES.filter((c) => counts.get(c)).sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0)).map((c) => (
@@ -57,9 +57,9 @@ export default async function Pomysly({ searchParams }: { searchParams: Promise<
         {kategoria && <Link href={href({ kategoria: "" })} className="ml-auto underline">Wyczyść filtr: {label(kategoria)}</Link>}
       </div>
 
-      <ul className="mt-4 grid gap-4 lg:grid-cols-2">
+      <ul className="mt-4 border-t">
         {(ideas ?? []).map((i) => (
-          <li key={i.id} className="flex gap-4 rounded-xl border bg-card p-4">
+          <li key={i.id} className="flex gap-4 border-b py-4">
             {i.visual_url ? (
               // eslint-disable-next-line @next/next/no-img-element -- miniatura wizualizacji z Supabase Storage
               <img src={i.visual_url} alt="" width={96} height={96} className="size-24 shrink-0 rounded-lg border object-cover" />

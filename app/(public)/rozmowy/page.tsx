@@ -32,10 +32,10 @@ export default async function RozmowyPage() {
 
       <section className="mt-10" aria-labelledby="moje">
         <h2 id="moje" className="text-xl font-semibold">Twoje rozmowy</h2>
-        <ul className="mt-4 space-y-3">
+        <ul className="mt-4 border-t">
           {(threads ?? []).map((t) => (
             <li key={t.id}>
-              <Link href={`/rozmowy/${t.id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4 text-foreground hover:bg-muted/50">
+              <Link href={`/rozmowy/${t.id}`} className="flex flex-wrap items-center justify-between gap-3 border-b py-4 text-foreground hover:bg-muted/50">
                 <span>
                   <span className="block font-semibold">{t.unread_by_user && <span aria-hidden="true" className="mr-1.5 inline-block size-2.5 rounded-full bg-brand" />}{t.subject}</span>
                   <span className="text-sm text-muted-foreground">{KIND_LABELS[t.kind] ?? t.kind} · {new Date(t.last_message_at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}</span>

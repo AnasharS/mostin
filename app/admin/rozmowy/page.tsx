@@ -37,10 +37,10 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
           ))}
         </nav>
       </div>
-      <ul className="mt-6 space-y-3">
+      <ul className="mt-6 border-t">
         {sorted.map((t) => (
           <li key={t.id}>
-            <Link href={`/admin/rozmowy/${t.id}`} className="block rounded-xl border bg-card p-4 hover:bg-muted/40">
+            <Link href={`/admin/rozmowy/${t.id}`} className="block border-b py-4 hover:bg-muted/40">
               <div className="flex flex-wrap items-center gap-2">
                 <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${PRIO[t.priority]}`}>{t.priority}</span>
                 {t.category && <span className="rounded-full bg-secondary px-2 py-0.5 text-xs">{THREAD_CATEGORIES[t.category as keyof typeof THREAD_CATEGORIES] ?? t.category}</span>}

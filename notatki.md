@@ -378,3 +378,11 @@ opis problemu
 - **„Czy można go zmusić do przeklinania lub tematów politycznych?”** Cztery warstwy obrony (filtr, moderacja, polityka w prompcie, walidacja wyjścia), przełączniki ROPS i dziennik zdarzeń.
 - **„Dlaczego nie zwykły chatbot?”** Matchmaking działa na ustrukturyzowanej wiedzy, a Mostek jest agentem, który wykonuje akcje (zgłoszenie, fiszka, plan wdrożenia, przekazanie do ROPS), a nie tylko odpowiada.
 - **„ROPS mówi o ~200 innowacjach, a w MOSTIN jest 115?”** Publiczna Biblioteka Innowacji ROPS (9 kategorii) zawiera dokładnie 115 opisanych innowacji i wszystkie są w MOSTIN. Liczba ~200 to dorobek wszystkich inkubatorów z 10 lat: na przykład Małopolski Inkubator Innowacji Społecznych (do 2019: 42 innowacje w teście, 39 zakończyło test) i Inkubator Włączenia Społecznego (60 pomysłów). Część z nich nie ma podstron w bibliotece, tylko opisy w publikacjach i raportach. Architektura jest na to gotowa: CMS, importer z `source_type` i ekstrakcja AI z PDF/CSV pozwalają dołączyć resztę bez zmian w kodzie.
+
+### 28a. Listy z liniami zamiast kart (wszystkie ekrany)
+- Listy elementów (innowacje, testy, kręgi, leady, pomysły, rozmowy, aktualności, persony): linia nad listą + linia pod każdym wierszem, bez tła i ramek. Biblioteka innowacji: wiersz z opisem po lewej i kategoriami po prawej, wygodny do skanowania wzrokiem.
+- Formularze i panele: gruba linia u góry zamiast ramki.
+- Rzeczy ważne (radar naborów, start dla gminy, profil testera, luka w ofercie): pomarańczowa linia po lewej.
+- Siatki kafelków (pulpit ROPS, archetypy Mostka, funkcje dla gmin): wspólne linie siatki, jak w tabeli urzędowej.
+- Ramki zostały tylko tam, gdzie oznaczają element interaktywny: pola formularzy, okno czatu Mostka, powitanie.
+- Dlaczego: karty z zaokrągleniami i cieniami to typowy wygląd szablonów generowanych przez AI. Linie to język druków i serwisów publicznych (gov.uk, biznes.gov.pl), czytelniejszy przy powiększeniu tekstu (WCAG 1.4.4, 1.4.10).

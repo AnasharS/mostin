@@ -31,7 +31,7 @@ export default async function Kwalifikacja({ searchParams }: { searchParams: Pro
       </p>
       <ul className="mt-4 grid gap-2 sm:grid-cols-3">
         {REASSURANCE.map((f) => (
-          <li key={f.label} className="rounded-lg bg-secondary p-3 text-sm"><strong>{f.label}:</strong> {f.value} <span className="text-muted-foreground">(s. {f.page})</span></li>
+          <li key={f.label} className="border-t-2 border-brand pt-2 text-sm"><strong>{f.label}:</strong> {f.value} <span className="text-muted-foreground">(s. {f.page})</span></li>
         ))}
       </ul>
 
@@ -42,7 +42,7 @@ export default async function Kwalifikacja({ searchParams }: { searchParams: Pro
         <p className="mt-1 text-muted-foreground">Kilka informacji zamiast 100 stron. To nie jest formalny wniosek - zespół ROPS przeanalizuje zgłoszenie i pomoże przygotować pełną dokumentację.</p>
         <div className="mt-4"><Flash ok={wyslano ? "Dziękujemy! Przedwstępny wniosek trafił do zespołu Hubu Innowacji Społecznych ROPS. Odezwiemy się, żeby omówić kolejne kroki." : undefined} error={blad} /></div>
         {!wyslano && (
-          <form action={submitPreApplication} className="mt-4 grid gap-4 rounded-xl border bg-card p-5 md:grid-cols-2 md:p-6">
+          <form action={submitPreApplication} className="mt-4 grid gap-4 border-t-2 border-foreground pt-6 md:grid-cols-2">
             <input type="hidden" name="call_id" value={call.id} />
             <input type="hidden" name="eligibility" id="eligibility-json" defaultValue="{}" />
             <div className="md:col-span-2">
