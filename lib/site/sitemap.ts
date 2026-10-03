@@ -9,6 +9,8 @@ export const PAGES: Page[] = [
   { path: "/dla-gmin/kwalifikacja", title: "Test kwalifikacji i przedwstępny wniosek", hint: "Sprawdź w 60 sekund, czy gmina się kwalifikuje", keywords: ["kwalifikacja", "kwalifikuje", "przedwstępny", "wniosek", "warunki"] },
   { path: "/innowacje", title: "Biblioteka innowacji", hint: "Sprawdzone rozwiązania z inkubatorów ROPS", keywords: ["innowacja", "biblioteka", "rozwiązanie", "katalog", "model"] },
   { path: "/dla-mieszkancow", title: "Znajdź rozwiązanie", hint: "Opisz problem, Mostek dobierze innowacje", keywords: ["problem", "mieszkaniec", "pomoc", "dopasuj", "szukam"] },
+  { path: "/dla-gmin/znajdz-rozwiazanie", title: "Znajdź rozwiązanie (gminy i instytucje)", hint: "Gmina opisuje potrzebę mieszkańców, Mostek dobiera innowacje", keywords: ["gmina", "ops", "instytucja", "problem w gminie"] },
+  { path: "/dla-organizacji/znajdz-rozwiazanie", title: "Znajdź rozwiązanie (organizacje)", hint: "Organizacja opisuje problem, Mostek dobiera innowacje", keywords: ["organizacja", "fundacja", "stowarzyszenie", "ngo"] },
   { path: "/kreator", title: "Kreator pomysłów", hint: "Sprawdzenie pomysłu, wizualizacja, fiszka do ROPS", keywords: ["pomysł", "kreator", "zgłoś", "nowa innowacja", "wizualizacja"] },
   { path: "/testuj", title: "Testy innowacji", hint: "Nabory testów i lista oczekujących", keywords: ["test", "testowanie", "wypróbuj", "lista oczekujących", "tester"] },
   { path: "/przesla", title: "Przęsła - kręgi wsparcia", hint: "Rozmowa z osobami w podobnej sytuacji", keywords: ["przęsła", "krąg", "wsparcie", "rodzic", "opiekun", "samotność", "rozmowa z kimś"] },

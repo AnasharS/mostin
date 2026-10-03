@@ -21,6 +21,7 @@ export const SECTIONS: NavSection[] = [
     match: ["/dla-gmin"], // strony innowacji (także plan wdrożenia) należą do Bazy wiedzy - jak w okruszkach
     items: [
       { href: "/dla-gmin", label: "Radar naborów" },
+      { href: "/dla-gmin/znajdz-rozwiazanie", label: "Znajdź rozwiązanie" },
       { href: "/dla-gmin#asystent", label: "Asystent grantowy" },
       { href: "/innowacje", label: "Innowacje do wdrożenia" },
       { href: "/dla-gmin/kwalifikacja?nabor=", label: "Sprawdź kwalifikację" },
@@ -29,9 +30,10 @@ export const SECTIONS: NavSection[] = [
   },
   {
     id: "org", label: "Dla organizacji i innowatorów", short: "Dla organizacji", crumb: "Most dla organizacji i innowatorów", href: "/kreator",
-    match: ["/kreator"],
+    match: ["/kreator", "/dla-organizacji"],
     items: [
       { href: "/kreator", label: "Kreator pomysłów" },
+      { href: "/dla-organizacji/znajdz-rozwiazanie", label: "Znajdź rozwiązanie" },
       { href: "/innowacje", label: "Biblioteka innowacji" },
       { href: "/testuj", label: "Testy innowacji" },
       { href: "/rozmowy/nowa?rodzaj=partnership", label: "Partnerstwo z ROPS" },

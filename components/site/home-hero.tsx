@@ -36,6 +36,7 @@ export function HomeHero({ qualifyHref, below }: {
       cta: { href: "/dla-gmin#asystent", label: "Zacznij od potrzeby mieszkańców" },
       note: "Nie musisz wcześniej czytać regulaminu ani pobierać załączników.",
       entries: [
+        { href: "/dla-gmin/znajdz-rozwiazanie", title: "Mamy problem, szukamy rozwiązania", text: "Opiszcie potrzebę mieszkańców - Mostek wskaże sprawdzone innowacje" },
         { href: "/innowacje", title: "Mam wybraną innowację", text: "Sprawdź, czego wymaga i jak ją dostosować do gminy" },
         { href: qualifyHref ?? "/dla-gmin", title: "Chcę sprawdzić nabór", text: "Warunki, terminy i test kwalifikacji w 60 sekund" },
         { href: "/rozmowy/nowa?rodzaj=question", title: "Chcę porozmawiać z ROPS", text: "Zostaw kontakt i krótki opis sprawy" },
@@ -48,6 +49,7 @@ export function HomeHero({ qualifyHref, below }: {
       cta: { href: "/kreator", label: "Otwórz Kreator pomysłów" },
       note: "Na start wystarczą dwa pola. Wniosek przygotujemy razem, gdy ruszy nabór.",
       entries: [
+        { href: "/dla-organizacji/znajdz-rozwiazanie", title: "Szukamy rozwiązania problemu", text: "Opiszcie problem - Mostek wskaże sprawdzone innowacje" },
         { href: "/innowacje", title: "Chcę wdrożyć istniejące rozwiązanie", text: "Biblioteka 115 innowacji i plan wdrożenia z Mostkiem" },
         { href: "/testuj", title: "Chcę testować innowacje", text: "Nabory testów i lista oczekujących" },
         { href: "/rozmowy/nowa?rodzaj=partnership", title: "Chcę współpracować z ROPS", text: "Partnerstwo, mentoring, ekspertyza" },

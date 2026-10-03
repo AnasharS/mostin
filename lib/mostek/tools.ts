@@ -200,10 +200,20 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
           filter_target_groups: p.data.target_groups?.length ? p.data.target_groups : null,
           match_count: 8,
         })
-      const [a, b] = await Promise.all([search(p.data.query), ctx.userText ? search(ctx.userText) : Promise.resolve({ data: [], error: null })])
-      const error = a.error ?? b.error
+      // trzecie: tylko rzadkie słowa użytkownika (występujące w najwyżej 5 innowacjach całej Biblioteki) - w pytaniu „jakie macie
+      // innowacje dla osób ze spastycznością” ogólne „innowacje” i „osoby” pasują do prawie wszystkiego i wypychały Edki poza pulę
+      const rareStems = (await Promise.all(userStems(ctx.userText).slice(0, 8).map(async (st) => {
+        const { count } = await db.from("innovations").select("id", { count: "exact", head: true }).eq("published", true).textSearch("fts", `${st}:*`, { config: "simple" })
+        return count && count <= 5 ? st : null
+      }))).filter((st): st is string => Boolean(st))
+      const [a, b, c] = await Promise.all([
+        search(p.data.query),
+        ctx.userText ? search(ctx.userText) : Promise.resolve({ data: [], error: null }),
+        rareStems.length ? search(rareStems.join(" ")) : Promise.resolve({ data: [], error: null }),
+      ])
+      const error = a.error ?? b.error ?? c.error
       const best = new Map<number, Record<string, unknown> & { id: number; score: number }>()
-      for (const r of [...(a.data ?? []), ...(b.data ?? [])] as (Record<string, unknown> & { id: number; score: number })[]) {
+      for (const r of [...(a.data ?? []), ...(b.data ?? []), ...(c.data ?? [])] as (Record<string, unknown> & { id: number; score: number })[]) {
         const prev = best.get(r.id)
         if (!prev || r.score > prev.score) best.set(r.id, r)
       }
@@ -218,7 +228,8 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
       const withHits = cands.map((c) => ({
         ...c,
         hits: c.hits.filter((h) => (df.get(h) ?? 0) <= 3),
-        rank: c.score + 0.12 * c.hits.reduce((sum, h) => sum + 1 / (df.get(h) || 1), 0),
+        // słowo rzadkie w całej Bibliotece (np. „spastyczność”) to najmocniejszy sygnał, że innowacja nazywa problem użytkownika
+        rank: c.score + 0.12 * c.hits.reduce((sum, h) => sum + 1 / (df.get(h) || 1), 0) + (c.hits.some((h) => rareStems.includes(h)) ? 0.2 : 0),
       }))
       const data = withHits.sort((x, y) => y.rank - x.rank).slice(0, 10)
       if (error) return { content: error.message, isError: true }

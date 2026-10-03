@@ -32,7 +32,13 @@ function fitLabel(fit: number) {
   return "Słabe dopasowanie"
 }
 
-export function MatchFlow({ initialText = "" }: { initialText?: string }) {
+export function MatchFlow({ initialText = "", label = "Twój problem lub potrzeba", placeholder = "Np. Prowadzę klub seniora w małej gminie i chcemy pomóc osobom, które nie wychodzą z domu…", examples = EXAMPLES }: {
+  initialText?: string
+  label?: string
+  placeholder?: string
+  /** przykładowe opisy pod polem - kolejność dopasowana do odbiorcy (mieszkańcy, gminy, organizacje) */
+  examples?: string[]
+}) {
   const [text, setText] = useState(initialText)
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle")
   const [step, setStep] = useState(0)
@@ -82,7 +88,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
   return (
     <>
       <form onSubmit={submit} className="mt-4 border-t-2 border-foreground pt-5" aria-describedby="opis-pomoc">
-        <label htmlFor="problem" className="text-lg font-semibold">Twój problem lub potrzeba</label>
+        <label htmlFor="problem" className="text-lg font-semibold">{label}</label>
         <p id="opis-pomoc" className="mt-1 text-sm text-muted-foreground">
           Nie musisz znać nazw programów ani urzędów. Nie podawaj danych osobowych - wystarczy opis sytuacji.
         </p>
@@ -93,7 +99,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
           onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit() }}
           rows={4}
           maxLength={4000}
-          placeholder="Np. Prowadzę klub seniora w małej gminie i chcemy pomóc osobom, które nie wychodzą z domu…"
+          placeholder={placeholder}
           className="mt-3 w-full resize-y rounded-lg border border-input bg-background p-3 text-base leading-relaxed"
         />
         <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -103,7 +109,7 @@ export function MatchFlow({ initialText = "" }: { initialText?: string }) {
           <span className="text-sm text-muted-foreground">lub Ctrl + Enter</span>
         </div>
         <div className="mt-5">
-          <DemoExamples title="Przykładowe opisy sytuacji" items={EXAMPLES} onPick={setText} />
+          <DemoExamples title="Przykładowe opisy sytuacji" items={examples} onPick={setText} />
         </div>
       </form>
 
