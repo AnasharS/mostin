@@ -30,7 +30,7 @@ export function MostekLauncher() {
       <button
         type="button"
         onClick={() => { ref.current?.showModal(); setOpen(true) }}
-        className="inline-flex items-center gap-2 rounded-full border-2 border-brand bg-card px-3.5 py-1.5 font-semibold hover:bg-accent"
+        className="inline-flex h-10 items-center gap-2 border-2 border-brand bg-card px-3.5 font-semibold hover:bg-accent"
         aria-haspopup="dialog"
         aria-keyshortcuts="Alt+M"
       >

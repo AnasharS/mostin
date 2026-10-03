@@ -10,7 +10,7 @@
  * obramowanie pól/bg 3.26:1 (WCAG 1.4.11).
  */
 :root {
-  --radius: 0.625rem;
+  --radius: 0rem;                /* ostre krawędzie - styl serwisów publicznych, bez „zaokrąglonych kart AI” */
 
   --brand: #e85d2a;              /* MostIn Orange - znak, „In”, linia mostu, kropka Mostka */
   --brand-dark: #a83b18;         /* linki w tekście */
@@ -25,8 +25,8 @@
   --popover: #ffffff;
   --popover-foreground: #181816;
 
-  --primary: #c54415;            /* przyciski - pomarańcz przyciemniony do AA z białym tekstem */
-  --primary-foreground: #ffffff;
+  --primary: #e85d2a;            /* przyciski: pomarańcz marki z CIEMNYM tekstem (5.11:1) */
+  --primary-foreground: #181816;
   --secondary: #efe9df;
   --secondary-foreground: #181816;
   --muted: #efe9df;
@@ -102,10 +102,11 @@ html { font-size: calc(100% * var(--font-scale)); }
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
   --font-sans: var(--font-atkinson), system-ui, sans-serif;
 }
 
@@ -143,3 +144,8 @@ html { font-size: calc(100% * var(--font-scale)); }
   animation-duration: 0.01ms !important;
   transition-duration: 0.01ms !important;
 }
+
+/* System wizualny „civic”: ostre krawędzie, bez cieni, linie zamiast kart.
+   Wyjątek: kropki (np. znak Mostka) pozostają okrągłe. */
+.rounded-full:not([class*="size-"]) { border-radius: 0; }
+[class*="shadow"] { box-shadow: none !important; }

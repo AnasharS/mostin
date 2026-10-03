@@ -299,7 +299,7 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
           href = `/rozmowy/nowa${a.text ? `?temat=${encodeURIComponent(a.text)}` : ""}`
           break
         case "dopasuj":
-          href = `/?problem=${encodeURIComponent(a.text ?? "")}`
+          href = `/dla-mieszkancow?problem=${encodeURIComponent(a.text ?? "")}`
           break
         case "lista_testow": {
           const qs = new URLSearchParams({ zrodlo: "mostek" })

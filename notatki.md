@@ -340,6 +340,23 @@ opis problemu
   - aktualności o wynikach tur I i II mają **prawdziwe źródła** (strony ROPS), a wpisy demonstracyjne mają etykietę „dane przykładowe”;
   - przy okazji wykryłem i usunąłem własne niepotwierdzone daty naboru IWS 2.0 (wcześniej wpisane bez źródła).
 
+## 28. Nowy system wizualny i architektura menu („civic”, nie „AI look”)
+
+- **Problem:** pierwszy interfejs miał wszystkie znamiona generowanego UI: zaokrąglone karty w siatce, ikona w każdej karcie, kolorowe pigułki, „pudełka w pudełkach”, wiele równorzędnych przycisków.
+- **Kierunek** (inspiracja projektem v7 właściciela, nie kopia 1:1), styl serwisów publicznych (GOV.UK, gov.pl), który budzi zaufanie urzędników:
+  - **zero zaokrągleń, bez cieni** (tokeny `--radius: 0`, globalna reguła);
+  - **linie i listy numerowane 01 / 02 / 03 zamiast kart z ikonami**;
+  - **jedno główne działanie** na ekranie, duży nagłówek, krótkie wprowadzenie;
+  - **przyciski: pomarańcz marki `#E85D2A` z ciemnym tekstem `#181816` (5.11:1, AA)**, wzorem v7 (ciemny tekst zamiast białego rozwiązał problem kontrastu pomarańczu);
+  - aktywna zakładka oznaczona pomarańczową linią u dołu;
+  - krój Atkinson Hyperlegible zostaje (czytelność dla osób słabowidzących).
+- **Nowa architektura menu** (`lib/site/nav.ts`), zamiast 9 równorzędnych pozycji:
+  1. **Pasek narzędzi:** dostępność oraz „Wejdź jako… / Panel ROPS”.
+  2. **Zakładki odbiorców:** **Dla gmin i instytucji** (domyślna, wskazanie ROPS) · Dla organizacji i innowatorów · Dla mieszkańców · Baza wiedzy, obok przycisk „Zapytaj Mostka”.
+  3. **Pasek modułów wybranej grupy**, np. dla gmin: Radar naborów · Asystent grantowy · Innowacje do wdrożenia · Sprawdź kwalifikację · Kontakt z ROPS.
+  - Na stronie głównej nawigacją są **zakładki hero** (wzorzec ARIA tabs, strzałki zmieniają zakładkę), więc menu się nie dubluje. Każda zakładka ma własny nagłówek, jedno główne działanie i trzy numerowane wejścia.
+- **Nowe strony:** `/dla-mieszkancow` (dopasowanie, Przęsła, Testuj, Mostek) i **`/wiedza` - Baza wiedzy**: liczniki (115 innowacji, 51 wyzwań, 280+ dokumentów, ~7500 fragmentów), Mapa Wyzwań z rozwijanymi obszarami i linkami do stron PDF, lista raportów. Wcześniej link „Wiedza” prowadził do 404.
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [x] Mostek - agent z narzędziami (sekcja 17)
