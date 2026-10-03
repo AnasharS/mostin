@@ -10,7 +10,8 @@
     "make-admin": "tsx scripts/make-admin.ts",
     "db:push": "./scripts/db-push.sh",
     "ingest": "tsx --conditions=react-server scripts/ingest.ts",
-    "apply-structured": "tsx --conditions=react-server scripts/apply-structured.ts"
+    "apply-structured": "tsx --conditions=react-server scripts/apply-structured.ts",
+    "ingest:docs": "tsx --conditions=react-server scripts/ingest-docs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
