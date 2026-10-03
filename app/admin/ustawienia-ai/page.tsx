@@ -3,6 +3,8 @@ import { ARCHETYPES } from "@/lib/ai/persona"
 import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { savePolicy } from "./actions"
+import { VOICES, VOICE_LABELS, VOICE_PAGES, VOICE_PRICES } from "@/lib/voice"
+import { VoicePreview } from "@/components/admin/voice-preview"
 
 export const metadata = { title: "Ustawienia AI · Panel ROPS" }
 
@@ -23,10 +25,17 @@ function Toggle({ name, label, help, checked }: { name: string; label: string; h
 export default async function AiSettings({ searchParams }: { searchParams: Promise<{ ok?: string; blad?: string }> }) {
   const { ok, blad } = await searchParams
   const supabase = await createClient()
-  const [{ data: p }, { data: events }] = await Promise.all([
+  const monthStart = new Date(); monthStart.setUTCDate(1); monthStart.setUTCHours(0, 0, 0, 0)
+  const [{ data: p }, { data: events }, { data: voiceUsage }] = await Promise.all([
     supabase.from("ai_policy").select("*").eq("id", 1).single(),
     supabase.from("ai_moderation_events").select("created_at, route, stage, reason, action, excerpt").order("created_at", { ascending: false }).limit(8),
+    supabase.from("ai_usage").select("route, units, cost_usd").in("route", ["voice.stt", "voice.tts"]).gte("created_at", monthStart.toISOString()),
   ])
+  const vs = { sttMin: 0, ttsMin: 0, cost: 0, n: 0 }
+  for (const r of voiceUsage ?? []) {
+    vs.n++; vs.cost += Number(r.cost_usd)
+    if (r.route === "voice.stt") vs.sttMin += Number(r.units); else vs.ttsMin += Number(r.units)
+  }
   if (!p) return <Flash error="Brak rekordu ai_policy" />
 
   return (
@@ -113,7 +122,7 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
           <legend className="text-lg font-semibold">Funkcje i koszty</legend>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             <Toggle name="images_enabled" label="Wizualizacje pomysłów (obrazy)" checked={p.images_enabled} />
-            <Toggle name="voice_enabled" label="Tryb głosowy" checked={p.voice_enabled} />
+            <Toggle name="voice_enabled" label="Tryb głosowy (globalnie)" help="Szczegóły i podstrony - sekcja „Tryb głosowy”." checked={p.voice_enabled} />
             <Toggle name="hard_stop" label="Twarde zatrzymanie po budżecie" help="Wyłączone = tryb oszczędny (bez obrazów i głosu)." checked={p.hard_stop} />
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-5">
@@ -129,6 +138,47 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
                 <input id={name as string} name={name as string} type="number" min={0} step="any" defaultValue={String(val)} className={input} />
               </div>
             ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="text-lg font-semibold">Tryb głosowy</legend>
+          <p className="text-sm text-muted-foreground">
+            Mikrofon („Powiedz to Mostkowi”) i odsłuchiwanie odpowiedzi. Domyślnie włączony tam, gdzie pomaga mieszkańcom (np. osobom niewidomym i słabowidzącym),
+            wyłączony w Strefie JST, Kreatorze i panelu - dla optymalizacji kosztów.
+          </p>
+          <div className="mt-3 grid gap-2 md:grid-cols-3">
+            {VOICE_PAGES.map((v) => (
+              <label key={v.path} className="flex items-center gap-2 rounded-lg border bg-card p-2.5 text-sm">
+                <input type="checkbox" name={`voice_page:${v.path}`} defaultChecked={Boolean((p.voice_pages as Record<string, boolean>)?.[v.path])} className="size-4" />
+                {v.label}
+              </label>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_2fr]">
+            <div>
+              <label htmlFor="tts_voice" className="text-sm font-medium">Głos Mostka</label>
+              <select id="tts_voice" name="tts_voice" defaultValue={p.tts_voice} className={input}>
+                {VOICES.map((v) => <option key={v} value={v}>{VOICE_LABELS[v]}</option>)}
+              </select>
+              <VoicePreview />
+            </div>
+            <div>
+              <label htmlFor="tts_instructions" className="text-sm font-medium">Sposób mówienia (ton, tempo)</label>
+              <textarea id="tts_instructions" name="tts_instructions" rows={3} maxLength={500} defaultValue={p.tts_instructions} className={input + " h-auto py-2"} />
+            </div>
+          </div>
+          <div className="mt-3"><Toggle name="tts_auto_read" label="Czytaj odpowiedzi automatycznie" help="Wyłączone = użytkownik klika „Odsłuchaj” przy odpowiedzi." checked={p.tts_auto_read} /></div>
+          <div className="mt-4 rounded-lg bg-secondary p-4 text-sm">
+            <p className="font-semibold">Koszty trybu głosowego w tym miesiącu</p>
+            <p className="mt-1">
+              Rozpoznawanie mowy: <strong>{vs.sttMin.toFixed(1)} min</strong> · czytanie odpowiedzi: <strong>{vs.ttsMin.toFixed(1)} min</strong> ·
+              razem <strong>${vs.cost.toFixed(2)}</strong> ({vs.n} operacji)
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              Stawki: mowa → tekst ${VOICE_PRICES.stt_per_min.toFixed(3)}/min, tekst → mowa ~${VOICE_PRICES.tts_per_min.toFixed(3)}/min.
+              Przykład: 1000 rozmów głosowych po 2 min mówienia i 3 min odsłuchu ≈ ${(1000 * (2 * VOICE_PRICES.stt_per_min + 3 * VOICE_PRICES.tts_per_min)).toFixed(0)} miesięcznie.
+            </p>
           </div>
         </fieldset>
 

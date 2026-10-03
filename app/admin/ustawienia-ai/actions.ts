@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { invalidatePolicyCache } from "@/lib/ai/policy"
 import { ARCHETYPES } from "@/lib/ai/persona"
+import { VOICES, VOICE_PAGES } from "@/lib/voice"
 
 const bool = z.preprocess((v) => v === "on", z.boolean())
 const PolicyForm = z.object({
@@ -35,6 +36,9 @@ const PolicyForm = z.object({
   daily_requests_per_user: z.coerce.number().int().min(1).max(10000),
   daily_images_per_user: z.coerce.number().int().min(0).max(1000),
   daily_voice_minutes_per_user: z.coerce.number().int().min(0).max(1000),
+  tts_voice: z.enum(VOICES),
+  tts_instructions: z.string().max(500),
+  tts_auto_read: bool,
 })
 
 export async function savePolicy(form: FormData) {
@@ -47,9 +51,11 @@ export async function savePolicy(form: FormData) {
   }
   // zapis przez sesję admina - RLS na ai_policy dopuszcza tylko rolę admin
   const supabase = await createClient()
+  // tryb głosowy per podstrona (checkboxy voice_page:/sciezka)
+  const voice_pages = Object.fromEntries(VOICE_PAGES.map((v) => [v.path, form.get(`voice_page:${v.path}`) === "on"]))
   const { error } = await supabase
     .from("ai_policy")
-    .update({ ...parsed.data, updated_at: new Date().toISOString(), updated_by: admin.id })
+    .update({ ...parsed.data, voice_pages, updated_at: new Date().toISOString(), updated_by: admin.id })
     .eq("id", 1)
   if (error) redirect(`/admin/ustawienia-ai?blad=${encodeURIComponent(error.message)}`)
   invalidatePolicyCache()

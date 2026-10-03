@@ -294,6 +294,38 @@ opis problemu
   - Reguła jest w CLAUDE.md z poleceniem kontrolnym.
 - **Ikony:** jednokolorowe SVG (lucide-react) zamiast emoji. Dziedziczą kolor tekstu, więc działają też w trybie wysokiego kontrastu, i są spójne z editorialowym stylem marki.
 
+## 25. Tryb głosowy - „Powiedz to Mostkowi”
+
+- **Dla kogo:** mieszkańcy, szczególnie osoby niewidome, słabowidzące, seniorzy i osoby z trudnościami w pisaniu. **Domyślnie włączony** na stronach mieszkańców (strona główna, Mostek, biblioteka, Testuj, Przęsła, Rozmowy), **wyłączony** w Strefie JST, Kreatorze i panelu ROPS (optymalizacja kosztów, zgodnie ze wskazaniem).
+- **Jak działa:**
+  - mikrofon w czacie Mostka: kliknij, mów (maks. 60 s), kliknij ponownie;
+  - **mowa → tekst:** OpenAI `gpt-4o-mini-transcribe` (język polski, ~$0.003/min). **Rozpoznany tekst trafia do pola wiadomości** i jest widoczny i edytowalny przed wysłaniem (czytnik ekranu ogłasza „Rozpoznano: …, naciśnij Enter”);
+  - **tekst → mowa:** `gpt-4o-mini-tts` (~$0.015/min), przycisk „Odsłuchaj” przy każdej odpowiedzi, opcjonalnie automatyczne czytanie; znaczniki źródeł i formatowanie są pomijane przy czytaniu.
+  - Test w obie strony: synteza zdania „Mój syn ma spastyczność rąk…” i jego rozpoznanie wróciły **słowo w słowo**.
+- **Panel ROPS → Ustawienia AI → Tryb głosowy:**
+  - **przełącznik dla każdej podstrony**;
+  - **wybór głosu** (13 głosów) z **odsłuchem próbki przed zapisaniem**;
+  - **instrukcja sposobu mówienia** (domyślnie: ciepło, wyraźnie, w tempie dla osoby starszej lub słabowidzącej);
+  - automatyczne czytanie wł./wył.;
+  - **licznik kosztów w bieżącym miesiącu** (minuty rozpoznawania, minuty czytania, kwota) z przykładem skali (1000 rozmów × 2 min mówienia + 3 min odsłuchu ≈ $51/mies.).
+- **Kontrola kosztów:** globalny przełącznik, przełączniki podstron, **dzienny limit minut głosu na osobę** (wspólny licznik w `ai_usage`, `units` = minuty), tryb oszczędny po przekroczeniu budżetu.
+- **Prywatność:** nagranie nie jest zapisywane, przechodzi tylko przez rozpoznawanie. Dalej obowiązuje ten sam guard co przy pisaniu (wulgaryzmy, moderacja, dane osobowe).
+
+## 26. Dokumentacja modeli innowacji (paczki ZIP ROPS) w RAG
+
+- **Co jest w paczkach:** instrukcje, specyfikacje i modele pracy (PDF i DOCX, często w obu formatach), czasem kod źródłowy aplikacji.
+- **Pipeline** (`pnpm ingest:zips`, `--all` dla całej biblioteki):
+  - pobranie paczki i rozpakowanie w pamięci (`fflate`);
+  - **PDF ma pierwszeństwo, DOCX tylko bez odpowiednika PDF** (`mammoth`); pomijamy kod, grafiki, wideo i zagnieżdżone ZIP-y;
+  - tekst z numerami stron, fragmenty, embeddingi;
+  - **każdy dokument przypięty do swojej innowacji** (`documents.innovation_id`);
+  - hash każdego pliku, więc ponowna synchronizacja przetwarza tylko zmiany;
+  - skany bez tekstu są oznaczane jako błąd (do OCR).
+- **Dlaczego RAG, a nie normalizacja:** gmina potrzebuje **dokładnych zapisów z modelu z cytatem i stroną** (kadra, sprzęt, czas, sposób działania), a nie streszczenia.
+- **Dlaczego przypięcie do innowacji:** Mostek ma w `search_documents` parametr `innovation_id` i szuka **w dokumentacji tej jednej innowacji**, bez mieszania modeli. Strona innowacji pokazuje listę „Dokumentacja modelu (przeszukiwalna przez Mostka)”.
+- **Kolejność:** najpierw **10 innowacji z dwóch tur naboru „Usługa Wrażliwa”** (wykrywane automatycznie z treści stron tur). Ich dokumenty mają prefiks `uw:zip:`, więc **asystent grantowy widzi je razem z regulaminem** („ile osób potrzeba do Terapeuty przestrzeni?”). Reszta biblioteki to `--all` w tle.
+- **Koszt:** embeddingi grosze. Pobieranie jest jednorazowe (1-2 GB dla całej biblioteki). Plików nie przechowujemy, link prowadzi do paczki ROPS (CC BY 4.0).
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [x] Mostek - agent z narzędziami (sekcja 17)
@@ -304,7 +336,7 @@ opis problemu
 - [x] Tester innowacji + **lista oczekujących na testy** (sekcja 19): zapis przez checkboxy, czat lub głos z Mostkiem → kategorie problemu + kontakt. Kontakt wpisuje się w formularzu i nie trafia do LLM. Gdy ROPS oznaczy innowację jako „gotową do testów”, system dopasowuje listę (kategorie + embedding) i tworzy powiadomienia (demo bez wysyłki maili).
 - [x] Rozmowy z ROPS (sekcja 20)
 - [ ] Panel kosztów i ustawień AI (kaganiec + **tone of voice przez archetypy marki**)
-- [ ] **Sterowanie głosem** (jeśli wystarczy czasu): „Powiedz Mostkowi”, push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności lokalnie bez LLM. Dla seniorów i osób z niepełnosprawnościami ruchowymi lub wzroku.
+- [x] **Tryb głosowy** (sekcja 25). Pierwotny plan: (jeśli wystarczy czasu): „Powiedz Mostkowi”, push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności lokalnie bez LLM. Dla seniorów i osób z niepełnosprawnościami ruchowymi lub wzroku.
 - [ ] Deploy i koszt utrzymania
 
 ## Trudne pytania jury - szkic odpowiedzi

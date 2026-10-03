@@ -29,6 +29,10 @@ export type AiPolicy = {
   plain_language_default: boolean
   allow_emoji: boolean
   custom_instructions: string
+  voice_pages: Record<string, boolean>
+  tts_voice: string
+  tts_instructions: string
+  tts_auto_read: boolean
 }
 
 let cache: { at: number; policy: AiPolicy } | null = null

@@ -19,6 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function InnovationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const { data: modelDocs } = await createAdminClient().from("documents").select("id, title, page_count").eq("innovation_id", id).eq("ingest_status", "ready").order("title")
   const { data: i } = await createAdminClient()
     .from("innovations")
     .select("id, title, summary, problem, solution, needs, categories, target_groups, location, stage, implementation_requirements, resources, structured, author_org, contact, source_url, source_label, media, is_sample")
@@ -123,6 +124,15 @@ export default async function InnovationPage({ params }: { params: Promise<{ id:
                 {media.filter((m) => m.type === "pdf" || m.type === "zip").map((m) => (
                   <li key={m.url}><a href={m.url}>{m.title}</a></li>
                 ))}
+              </ul>
+            </div>
+          )}
+          {(modelDocs ?? []).length > 0 && (
+            <div className="rounded-lg border-2 border-brand bg-card p-4">
+              <h2 className="font-semibold">Dokumentacja modelu</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Przeszukiwalna przez Mostka - zapytaj np. „ile osób potrzeba do wdrożenia?”.</p>
+              <ul className="mt-2 space-y-1">
+                {modelDocs!.map((d) => <li key={d.id}>{d.title.replace(`${i.title} - `, "")}{d.page_count ? ` (${d.page_count} s.)` : ""}</li>)}
               </ul>
             </div>
           )}

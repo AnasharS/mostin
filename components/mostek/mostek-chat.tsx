@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { usePlainLanguage } from "@/components/site/a11y-toolbar"
 import type { Source, ActionCard } from "@/lib/mostek/tools"
+import { MicButton, SpeakButton, useVoiceConfig } from "./voice"
 
 type Msg = { role: "user" | "assistant"; text: string; sources?: Source[]; actions?: ActionCard[]; tools?: string[] }
 
@@ -66,6 +67,8 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
   const plain = usePlainLanguage()
   const pathname = usePathname()
   const sentInitial = useRef(false)
+  const voice = useVoiceConfig(pathname)
+  const [lastDone, setLastDone] = useState(-1)
 
   // przywrócenie rozmowy z tej przeglądarki (historia API i tak żyje po stronie serwera)
   useEffect(() => {
@@ -134,6 +137,7 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
       setStatus("")
       // czytnik ekranu dostaje pełną odpowiedź raz, po zakończeniu - nie każdy fragment strumienia
       setAnnounce(`Mostek odpowiedział: ${answer.replace(/\[[^\]]+\]/g, "").slice(0, 600)}`)
+      setMsgs((all) => { setLastDone(all.length - 1); return all })
       inputRef.current?.focus()
     }
   }
@@ -193,6 +197,9 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
                 </p>
               )}
               <div className="leading-relaxed">{m.text ? <RichText text={m.text} /> : <p className="text-muted-foreground">…</p>}</div>
+              {voice.enabled && m.text && (!busy || i < msgs.length - 1) && (
+                <div className="mt-1"><SpeakButton text={m.text} page={pathname} auto={voice.autoRead && i === lastDone} /></div>
+              )}
               {m.actions && m.actions.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {m.actions.map((a) => (
@@ -239,6 +246,7 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
             placeholder="Napisz, z czym przychodzisz… (Enter - wyślij, Shift+Enter - nowa linia)"
             className="min-h-11 flex-1 resize-none rounded-lg border border-input bg-background p-2.5 text-base"
           />
+          {voice.enabled && <MicButton page={pathname} onText={(t) => { setInput((x) => (x ? x + " " : "") + t); inputRef.current?.focus() }} onStatus={setStatus} />}
           <Button type="submit" size="lg" className="h-11 px-4" disabled={busy || !input.trim()}>
             {busy ? "…" : "Wyślij"}
           </Button>

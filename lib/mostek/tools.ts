@@ -27,7 +27,7 @@ const SearchInnovations = z.object({
   target_groups: z.array(z.enum(TARGET_GROUPS)).optional(),
 })
 const GetInnovation = z.object({ innovation_id: z.number().int() })
-const SearchDocuments = z.object({ query: z.string().min(2).max(500) })
+const SearchDocuments = z.object({ query: z.string().min(2).max(500), innovation_id: z.number().int().optional() })
 const SearchChallenges = z.object({ query: z.string().min(2).max(500) })
 const PrzeslaStats = z.object({ categories: z.array(z.enum(CATEGORIES)).min(1), district: z.string().max(80).optional() })
 const ProposeAction = z.object({
@@ -70,8 +70,9 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     name: "search_documents",
     description:
       "Przeszukuje dokumenty ROPS (raporty z badań o Małopolsce, Mapa Wyzwań Społecznych, Social Innovation Canvas) i zwraca fragmenty z numerami stron. " +
-      "Używaj do pytań o dane, diagnozy, skalę problemu, rekomendacje, usługi społeczne. Każdą informację z dokumentu cytuj z tytułem i stroną.",
-    input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false },
+      "Używaj do pytań o dane, diagnozy, skalę problemu, rekomendacje, usługi społeczne. Każdą informację z dokumentu cytuj z tytułem i stroną. " +
+      "Z innovation_id przeszukuje DOKUMENTACJĘ MODELU tej innowacji (instrukcje, specyfikacje z paczki ROPS) - używaj do pytań o wymagania wdrożeniowe: kadrę, sprzęt, koszty, czas, sposób działania.",
+    input_schema: { type: "object", properties: { query: { type: "string" }, innovation_id: { type: "integer" } }, required: ["query"], additionalProperties: false },
     strict: true,
     eager_input_streaming: true,
   },
@@ -221,8 +222,10 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
       const { data, error } = await db.rpc("match_chunks", {
         query_embedding: toPgVector(await embedOne(qd)),
         query_text: qd,
-        match_count: ctx.docPrefix ? 8 : 6,
-        source_prefix: ctx.docPrefix ?? null,
+        match_count: ctx.docPrefix || p.data.innovation_id ? 8 : 6,
+        // dokumentacja jednej innowacji: bez ograniczenia prefiksem naboru
+        source_prefix: p.data.innovation_id ? null : ctx.docPrefix ?? null,
+        filter_innovation: p.data.innovation_id ?? null,
       })
       if (error) return { content: error.message, isError: true }
       const rows = (data ?? []) as { chunk_id: number; document_title: string; source_url: string | null; page_from: number; page_to: number; content: string }[]
