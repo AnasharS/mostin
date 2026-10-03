@@ -1,6 +1,6 @@
-# HubMi — architektura (HackYeah 2026, wyzwanie UMWM / ROPS Kraków)
+# MOSTIN — architektura (HackYeah 2026, wyzwanie UMWM / ROPS Kraków)
 
-> Robocza nazwa produktu: **HubMi** — „cyfrowe serce" Małopolskiego Hubu Innowacji Społecznych.
+> Nazwa produktu: **MOSTIN** (mostin.pl), asystent AI: **Mostek** — „most" między problemem, innowacją, wiedzą i instytucjami; „cyfrowe serce" Małopolskiego Hubu Innowacji Społecznych.
 > Deadline: **4.10.2026, 11:00**. Solo. Ten dokument to kontrakt na 24h — co poza nim, to „roadmapa" na slajd.
 
 ## 1. Cel i punktacja → decyzje
@@ -10,12 +10,12 @@
 | Stopień spełnienia wyzwania | 40% (matchmaking 10% + 5% za każdy moduł) | Wszystkie 7 modułów w wersji „cienkiej, ale działającej" > 3 dopieszczone |
 | Potencjał wdrożeniowy | 20% | Supabase + Netlify, koszt utrzymania policzony, import danych skryptem, API-first |
 | Dostępność i intuicyjność (WCAG 2.1 AA) | 20% | Tryb „prosty język", duży tekst, wysoki kontrast, pełna klawiatura, głos zamiast pisania |
-| Atrakcyjność / pomysłowość UI | 10% | Konsultant AI jako główny interfejs + wizualizacje innowacji |
+| Atrakcyjność / pomysłowość UI | 10% | Mostek AI jako główny interfejs + wizualizacje innowacji |
 | Jakość materiałów i MVP | 10% | PDF 10 slajdów, demo link, film 3 min, makiety = zrzuty z działającej apki |
 
 ## 2. Moduły (nazwy robocze → wymaganie ROPS)
 
-| # | Moduł w HubMi | Wymaganie | Priorytet |
+| # | Moduł w MOSTIN | Wymaganie | Priorytet |
 |---|---|---|---|
 | I | **Dopasuj** — matchmaking problem → podobne przypadki + innowacje | Matchmaking społeczny (obowiązkowy) | P0 |
 | II | **Wiedza** — mapa wyzwań Małopolski, Biblioteka Innowacji, materiały edukacyjne; trendy potrzeb (tylko admin) | Zasobnik wiedzy | P0 |
@@ -24,7 +24,7 @@
 | V | **Rozmowy** — wątki użytkownik ↔ ROPS ↔ ekspert, powiadomienia | Platforma aktywnej komunikacji | P1 |
 | VI | **Panel ROPS** — moderacja, edycja wiedzy, import danych, kolejka zgłoszeń, trendy | Panel administratora | P0 |
 | VII | **Wdrożeniowiec** — AI dostosowuje innowację do formy usługi dla konkretnej JST/instytucji | Middleman Innowacji | P2 |
-| ★ | **Konsultant** — agent AI spinający wszystkie moduły (patrz §5) | wyróżnik „nowa jakość" | P0 |
+| ★ | **Mostek** — agent AI spinający wszystkie moduły (patrz §5) | wyróżnik „nowa jakość" | P0 |
 
 ## 3. Stack
 
@@ -33,15 +33,15 @@
 | Frontend + lekkie API | **Next.js 16 (App Router), TypeScript, Tailwind, shadcn/ui (Base UI)** na **Netlify** | Base UI daje ARIA i obsługę klawiatury za darmo → WCAG |
 | Trasy AI (długie / streaming) | **Supabase Edge Functions** (Deno, `npm:@anthropic-ai/sdk`, `npm:openai`) | Netlify ucina funkcje strumieniujące po 10 s — agent z narzędziami się nie zmieści; Edge Functions mają limit rzędu minut |
 | Baza / auth / storage | **Supabase**: Postgres + **pgvector** + RLS + Auth (magic link) + Storage + Realtime | Jeden dostawca, RLS na role, Realtime do czatu i powiadomień |
-| LLM tekst | **Anthropic** `claude-opus-5-5` (`@anthropic-ai/sdk`, streaming, tool runner, prompt caching) | Konsultant, matchmaking-uzasadnienia, wnioski, Wdrożeniowiec |
+| LLM tekst | **Anthropic** `claude-opus-5-5` (`@anthropic-ai/sdk`, streaming, tool runner, prompt caching) | Mostek, matchmaking-uzasadnienia, wnioski, Wdrożeniowiec |
 | LLM obrazy | **OpenAI Images API** (model w env `OPENAI_IMAGE_MODEL`) | Wizualizacja pomysłu / „innowacyjnego przedmiotu" |
 | Embeddingi | **OpenAI** `text-embedding-3-small` (1536 wym.) | Anthropic nie ma endpointu embeddingów; tanio |
 | Mowa → tekst | **OpenAI `gpt-4o-mini-transcribe`** (push-to-talk, ~$0.003/min); fallback: Web Speech API | Dobra jakość polskiego, działa we wszystkich przeglądarkach |
-| Tekst → mowa | **OpenAI TTS** (model w env) — odczyt odpowiedzi Konsultanta; fallback: `speechSynthesis` | Seniorzy, słabowidzący, wykluczenie cyfrowe |
+| Tekst → mowa | **OpenAI TTS** (model w env) — odczyt odpowiedzi Mosteka; fallback: `speechSynthesis` | Seniorzy, słabowidzący, wykluczenie cyfrowe |
 | Hosting | **Netlify** (frontend) + **Supabase Cloud, region EU** (baza, auth, storage, Edge Functions AI) | Dostępne konta, RODO-friendly region |
 
 Effort per trasa (Opus 5.5 ma domyślnie `medium`, ustawiamy jawnie):
-- Konsultant (agent z narzędziami): `medium`
+- Mostek (agent z narzędziami): `medium`
 - Uzasadnienia dopasowań, tagowanie zgłoszeń, streszczenia: `low`
 - Generator wniosku, Wdrożeniowiec: `high`
 
@@ -73,7 +73,7 @@ Użytkownik opisuje problem (tekst / głos)
 
 Zasady ugruntowania: model **nie może** proponować innowacji spoza wyników [2] (walidacja ID po stronie serwera). Brak dobrych dopasowań → komunikat „nie mamy jeszcze rozwiązania" + przejście do Kreatora / zgłoszenia potrzeby (to zasila trendy).
 
-## 5. Konsultant — agent, nie FAQ-bot
+## 5. Mostek — agent, nie FAQ-bot
 
 Jeden czat dostępny z każdego miejsca (pływający przycisk + pełny ekran). Rozumie kontekst strony, na której jest użytkownik.
 
@@ -94,7 +94,7 @@ Jeden czat dostępny z każdego miejsca (pływający przycisk + pełny ekran). R
 | `handoff_to_human` | Otwiera wątek do ROPS/eksperta z podsumowaniem rozmowy | **potwierdzenie w UI** |
 | `navigate` | Sterowanie głosem/tekstem: „pokaż innowacje dla seniorów", „otwórz kreator" → przejście w UI z filtrami | nie |
 
-**Tryb głosowy:** przycisk mikrofonu (push-to-talk, też spacją) → Edge Function `voice-transcribe` (OpenAI STT) → tekst trafia do Konsultanta jak zwykła wiadomość (widoczny, edytowalny) → odpowiedź strumieniowana tekstem + opcjonalnie czytana (Edge Function `voice-speak`, OpenAI TTS). Świadomie **nie** Realtime speech-to-speech: droższe, a logika narzędzi i ugruntowanie musiałyby być zdublowane poza Claude. Limity: max 60 s nagrania, limit minut na użytkownika/dzień.
+**Tryb głosowy:** przycisk mikrofonu (push-to-talk, też spacją) → Edge Function `voice-transcribe` (OpenAI STT) → tekst trafia do Mosteka jak zwykła wiadomość (widoczny, edytowalny) → odpowiedź strumieniowana tekstem + opcjonalnie czytana (Edge Function `voice-speak`, OpenAI TTS). Świadomie **nie** Realtime speech-to-speech: droższe, a logika narzędzi i ugruntowanie musiałyby być zdublowane poza Claude. Limity: max 60 s nagrania, limit minut na użytkownika/dzień.
 
 **Co odróżnia go od czatbota urzędowego:**
 - Działa na danych platformy (narzędzia), zawsze pokazuje **źródła jako klikalne karty**, nie wymyśla.
@@ -181,7 +181,7 @@ hubmi/
 
 ## 9. Dostępność (WCAG 2.1 AA) — lista na prototyp
 
-Skip-link, semantyczne nagłówki, focus widoczny, pełna obsługa klawiaturą (Base UI), kontrast ≥ 4.5:1, przełącznik rozmiaru tekstu i wysokiego kontrastu, tryb „prosty język" (UI + Konsultant), etykiety formularzy i komunikaty błędów tekstem, `aria-live` dla strumienia odpowiedzi Konsultanta, alternatywa tekstowa dla mapy wyzwań (tabela), napisy/transkrypcje przy filmach. Przed oddaniem: axe + przejście klawiaturą + VoiceOver na głównym scenariuszu.
+Skip-link, semantyczne nagłówki, focus widoczny, pełna obsługa klawiaturą (Base UI), kontrast ≥ 4.5:1, przełącznik rozmiaru tekstu i wysokiego kontrastu, tryb „prosty język" (UI + Mostek), etykiety formularzy i komunikaty błędów tekstem, `aria-live` dla strumienia odpowiedzi Mosteka, alternatywa tekstowa dla mapy wyzwań (tabela), napisy/transkrypcje przy filmach. Przed oddaniem: axe + przejście klawiaturą + VoiceOver na głównym scenariuszu.
 
 ## 10. Koszt utrzymania (szkic do slajdu)
 
@@ -200,10 +200,18 @@ Do dopracowania na koniec na podstawie realnych liczników z `ai_usage`.
 |---|---|
 | do ~15:00 | Szkielet Next.js + Supabase, migracje (schemat, RLS, pgvector, RPC), auth z rolami, layout + a11y bazowe |
 | do ~18:00 | Seed przykładowy + import + embeddingi, **Dopasuj** end-to-end |
-| do ~21:00 | **Konsultant** (agent + narzędzia read-only, streaming, karty źródeł), **Wiedza** |
+| do ~21:00 | **Mostek** (agent + narzędzia read-only, streaming, karty źródeł), **Wiedza** |
 | do ~01:00 | **Panel ROPS** (zgłoszenia, edycja, import, trendy), **Rozmowy** + powiadomienia (Realtime) |
 | do ~05:00 | **Kreator** (fiszka, generator wniosku, wizualizacja), **Testuj** |
 | do ~08:00 | **Wdrożeniowiec**, narzędzia ze szkicami w Konsultancie, tryb prosty język, głos |
 | do ~10:30 | Audyt a11y, deploy, dane demo, PDF 10 slajdów, film 3 min, zgłoszenie na hacktribe |
 
 Zasada: każdy moduł najpierw w wersji „działa end-to-end", dopiero potem szlif.
+
+## 12. Dwa mechanizmy AI (stan po migracji 20261003130000)
+
+**A. Knowledge RAG** — `documents` → PDF w Storage → ekstrakcja tekstu per strona (`unpdf`) → chunki ~1400 znaków z zakładką i zakresem stron → embeddingi → `document_chunks` → `match_chunks` (RRF: wektor + FTS) → Mostek odpowiada z cytatem „dokument, s. X–Y”.
+
+**B. Innovation Matchmaker** — przy ingestion Claude normalizuje opis do struktury (problem, potrzeby, kategorie i grupy ze wspólnej taksonomii `lib/ai/taxonomy.ts`, lokalizacja, wymagania wdrożeniowe, zasoby) + `search_text` z potocznymi sformułowaniami → embedding. Zapytanie użytkownika przechodzi tę samą normalizację → `match_innovations` (0.65 wektor + 0.2 FTS + 0.15 zgodność kategorii/grup) → rerank i uzasadnienie przez Claude.
+
+**CMS (Panel ROPS)** — deklaratywny (`lib/cms/resources.ts`): jedna definicja = lista, formularz, zapis przez sesję admina (RLS). Przycisk „Przetwórz AI” uruchamia ingestion A lub B; pliki idą z przeglądarki prosto do Supabase Storage.

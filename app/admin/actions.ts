@@ -1,0 +1,124 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
+import { requireAdmin } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { getResource, type Field } from "@/lib/cms/resources"
+import { ingestInnovation } from "@/lib/ingest/innovation"
+import { ingestDocument } from "@/lib/ingest/document"
+
+function parseField(field: Field, form: FormData): unknown {
+  const raw = form.get(field.name)
+  switch (field.type) {
+    case "boolean":
+      return raw === "on"
+    case "number":
+    case "area":
+      return raw ? Number(raw) : null
+    case "tags":
+      return String(raw ?? "").split(",").map((s) => s.trim()).filter(Boolean)
+    case "multiselect":
+      return form.getAll(field.name).map(String)
+    case "areas":
+      return form.getAll(field.name).map(Number)
+    case "date":
+    case "url":
+    case "file":
+    case "select":
+      return raw ? String(raw) : null
+    case "textarea":
+      if (["media", "indicators", "rules"].includes(field.name)) {
+        const txt = String(raw ?? "").trim()
+        if (!txt) return field.name === "rules" ? {} : []
+        try {
+          return JSON.parse(txt)
+        } catch {
+          throw new Error(`Pole „${field.label}” musi być poprawnym JSON-em`)
+        }
+      }
+      return raw ? String(raw) : null
+    default:
+      return raw ? String(raw).trim() : null
+  }
+}
+
+export async function saveRecord(slug: string, id: string | null, form: FormData) {
+  await requireAdmin()
+  const resource = getResource(slug)
+  if (!resource) throw new Error("Nieznany typ treści")
+
+  const values: Record<string, unknown> = {}
+  try {
+    for (const field of resource.fields) {
+      const v = parseField(field, form)
+      if (field.required && (v === null || v === "")) throw new Error(`Pole „${field.label}” jest wymagane`)
+      values[field.name] = v
+    }
+  } catch (e) {
+    redirect(`/admin/${slug}/${id ?? "nowy"}?blad=${encodeURIComponent((e as Error).message)}`)
+  }
+
+  const supabase = await createClient() // zapis przez sesję admina → egzekwuje RLS
+  // zmiana treści innowacji/dokumentu unieważnia wynik AI
+  if (resource.ingest && id) values.ingest_status = "pending"
+
+  const query = id
+    ? supabase.from(resource.table).update(values).eq("id", id).select("id").single()
+    : supabase.from(resource.table).insert(values).select("id").single()
+  const { data, error } = await query
+  if (error) redirect(`/admin/${slug}/${id ?? "nowy"}?blad=${encodeURIComponent(error.message)}`)
+
+  revalidatePath(`/admin/${slug}`)
+  redirect(`/admin/${slug}/${data.id}?ok=${encodeURIComponent("Zapisano")}`)
+}
+
+export async function deleteRecord(slug: string, id: string) {
+  await requireAdmin()
+  const resource = getResource(slug)
+  if (!resource) throw new Error("Nieznany typ treści")
+  const supabase = await createClient()
+  const { error } = await supabase.from(resource.table).delete().eq("id", id)
+  if (error) redirect(`/admin/${slug}/${id}?blad=${encodeURIComponent(error.message)}`)
+  revalidatePath(`/admin/${slug}`)
+  redirect(`/admin/${slug}?ok=${encodeURIComponent("Usunięto")}`)
+}
+
+export async function runIngest(slug: string, id: string) {
+  await requireAdmin()
+  const resource = getResource(slug)
+  let message: string
+  try {
+    if (resource?.ingest === "innovation") {
+      await ingestInnovation(Number(id))
+      message = "AI uzupełniło strukturę i embedding — innowacja jest w matchmakingu"
+    } else if (resource?.ingest === "document") {
+      const r = await ingestDocument(Number(id))
+      message = `Przetworzono ${r.pages} stron → ${r.chunks} fragmentów w bazie wiedzy`
+    } else {
+      throw new Error("Ten typ treści nie ma przetwarzania AI")
+    }
+  } catch (e) {
+    redirect(`/admin/${slug}/${id}?blad=${encodeURIComponent("Przetwarzanie AI: " + (e as Error).message)}`)
+  }
+  revalidatePath(`/admin/${slug}`)
+  redirect(`/admin/${slug}/${id}?ok=${encodeURIComponent(message)}`)
+}
+
+/** Przetwarza wszystkie oczekujące innowacje (po imporcie seeda / CSV). */
+export async function ingestAllPending() {
+  await requireAdmin()
+  const supabase = await createClient()
+  const { data } = await supabase.from("innovations").select("id").in("ingest_status", ["pending", "error"]).limit(15)
+  let ok = 0
+  let failed = 0
+  // po 3 równolegle — mieścimy się w limicie czasu funkcji na hostingu
+  for (let i = 0; i < (data ?? []).length; i += 3) {
+    const batch = data!.slice(i, i + 3)
+    const res = await Promise.allSettled(batch.map((r) => ingestInnovation(r.id)))
+    ok += res.filter((r) => r.status === "fulfilled").length
+    failed += res.filter((r) => r.status === "rejected").length
+  }
+  revalidatePath("/admin/innowacje")
+  redirect(`/admin/innowacje?ok=${encodeURIComponent(`Przetworzono ${ok}, błędy: ${failed}`)}`)
+}
