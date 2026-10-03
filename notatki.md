@@ -127,16 +127,49 @@ opis problemu
 - **Wydajność:** jeden plan na Opus trwał ~38 s, czyli powyżej limitu Netlify. Generujemy go jako **dwie równoległe części** z tymi samymi danymi wejściowymi (ocena, zmiany, etapy + budżet, partnerzy, ryzyka, wskaźniki, pierwszy tydzień), co daje ~25 s. Docelowo trasy AI idą do Supabase Edge Functions (limit liczony w minutach).
 - **Wyjście:** „Drukuj / zapisz PDF” (style druku ukrywają nawigację), „Skonsultuj plan z ekspertem ROPS” (most do modułu komunikacji). Plan zapisuje się w `adaptation_plans`, więc ROPS widzi, jakie innowacje gminy chcą wdrażać, a to sygnał do upowszechniania.
 
+## 14. Baza wiedzy ROPS (Knowledge RAG) — stan
+
+- **Źródła wskazane przez ROPS:** Mapa Wyzwań Społecznych, Social Innovation Canvas (INNO AGH), raporty z badań, Obserwator Statystyk, publikacje.
+- **W bazie:** 10 dokumentów (Mapa, Kanwa i 8 raportów z lat 2015–2026, w tym diagnoza usług społecznych, piecza zastępcza, DPS, mieszkania wspomagane, sektor opiekuńczy) → **~1600 fragmentów z numerami stron**. Koszt embeddingów ~1 cent.
+- **Decyzja: nie kopiujemy PDF-ów do Storage.** Raporty mają po kilkanaście MB. Trzymamy link do źródła i fragmenty, a cytat prowadzi do oryginału ROPS. Brak duplikacji i zawsze aktualna wersja.
+- **Synchronizacja dokumentów** (`pnpm ingest:docs`): hash SHA-256 pliku → bez zmian: pomiń | zmiana: ponowny chunking. Przebieg zapisuje się w `sync_runs`.
+- **Filtr spisów treści:** fragmenty typu „Rozdział 3 ……… 27” zaśmiecały wyniki, więc pomijamy je przy dzieleniu na fragmenty.
+- **Mapa Wyzwań → dane strukturalne:** 8 obszarów, 51 kluczowych wyzwań, 47 faktów ze źródłami (GUS, NIK…). Wyzwania trafiły do tabeli `challenges` z embeddingami i linkiem do konkretnej strony PDF (`#page=N`), a obszary do słownika `areas`. Ekstrakcja offline (agent w sesji), bez kosztu API. Dane źródłowe są w repo: `data/rops/mapa-wyzwan.json`.
+- Mapa zawiera **dane ogólnopolskie** (zastrzeżenie z dokumentu), a raporty ROPS **małopolskie**. Mostek musi to rozróżniać przy cytowaniu.
+
+## 15. Biblioteka innowacji (przegląd klasyczny)
+
+- `/innowacje`: wszystkie 115 innowacji z filtrami: szukaj, obszar, dla kogo, etap. Filtry działają na tej samej taksonomii co matchmaking.
+- Dlaczego osobno od matchmakingu: wymóg „wszystkie moduły dostępne klasycznie z UI”. Część użytkowników (urzędnicy JST) chce przeglądać katalog, a nie opisywać problem.
+
+## 16. Osobowość Mostka — archetypy marki (tone of voice)
+
+- **ROPS wybiera archetyp jednym kliknięciem** w Panelu → Ustawienia AI. Każda karta pokazuje przykładową wypowiedź.
+  - **Opiekun** (domyślny): ciepły i cierpliwy, dla mieszkańców w trudnej sytuacji.
+  - **Mędrzec:** rzeczowy, z danymi i źródłami, dla urzędników i JST.
+  - **Towarzysz:** swojski i prosty, dla seniorów i osób o niskich kompetencjach cyfrowych.
+  - **Przewodnik:** krok po kroku, dla osób zgłaszających pierwszy raz.
+  - **Twórca:** inspiruje, łączy innowacje w nowe pomysły, dla Kreatora.
+  - **Bohater:** mobilizuje do działania, dla organizacji gotowych wdrażać.
+- **Dlaczego archetypy:** to język znany z brandingu, więc ROPS nie musi pisać promptów. Zmienia się tylko sposób mówienia, **a kaganiec merytoryczny (źródła, tematy, moderacja) jest zawsze nadrzędny**.
+- **Do tego:** forma zwracania się (auto / Pan-Pani / Ty), długość odpowiedzi, prosty język domyślnie (plus preferencja użytkownika z paska dostępności), emoji wł./wył., dodatkowe wytyczne ROPS.
+- **Implementacja:**
+  - `lib/ai/persona.ts` zawiera definicje archetypów.
+  - `tonePrompt()` buduje fragment promptu `<styl>` doklejany obok `<zasady_rops>` w każdej funkcji AI (uzasadnienia dopasowań, plany adaptacji, Mostek).
+  - Zapis idzie przez sesję admina (RLS), a cache polityki jest unieważniany od razu.
+- **Na tej samej stronie:** wszystkie przełączniki kagańca, limity kosztów i podgląd ostatnich zdarzeń moderacji.
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [ ] Mostek — agent z narzędziami (warstwa konwersacyjna nad wszystkimi modułami)
 - [x] Middleman — „Dostosuj z Mostkiem” (sekcja 13)
 - [ ] Knowledge RAG w praktyce (cytowanie stron)
 - [ ] Kreator pomysłów + generator wniosków + wizualizacja
+- [ ] **Wizualizacja pomysłu (obraz z opisu):** osoba z pomysłem, ale bez środków na projekt czy grafika, generuje obraz innowacji (np. przedmiotu, miejsca, usługi) z opisu w Kreatorze i może wysłać fiszkę z wizualizacją do ROPS do wglądu. Obniża próg wejścia dla oddolnych innowatorów. Koszt kontrolowany limitem obrazów na użytkownika i przełącznikiem w ustawieniach AI.
 - [ ] Tester innowacji
 - [ ] Rozmowy z ROPS (Realtime, powiadomienia)
-- [ ] Panel kosztów i ustawień AI
-- [ ] Sterowanie głosem
+- [ ] Panel kosztów i ustawień AI (kaganiec + **tone of voice przez archetypy marki**)
+- [ ] **Sterowanie głosem** (jeśli wystarczy czasu): „Powiedz Mostkowi”, push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności lokalnie bez LLM. Dla seniorów i osób z niepełnosprawnościami ruchowymi lub wzroku.
 - [ ] Deploy i koszt utrzymania
 
 ## Trudne pytania jury — szkic odpowiedzi

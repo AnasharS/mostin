@@ -8,6 +8,9 @@ const OVERLAP_CHARS = 200
 
 type Chunk = { content: string; page_from: number; page_to: number }
 
+// Spisy treści, wykresów i tabel („Rozdział 3 ........ 27”) to szum w wyszukiwaniu — pomijamy je
+const isTocLike = (p: string) => (p.match(/\.{4,}|…{2,}/g) ?? []).length >= 2 || /^(spis (treści|tabel|wykresów|rysunków|map)|table of contents)/i.test(p)
+
 /** Dzieli tekst stron na fragmenty ~1400 znaków z zakładką, pamiętając zakres stron. */
 export function chunkPages(pages: string[]): Chunk[] {
   const chunks: Chunk[] = []
@@ -16,7 +19,7 @@ export function chunkPages(pages: string[]): Chunk[] {
   pages.forEach((raw, i) => {
     const page = i + 1
     const paragraphs = raw.replace(/[ \t]+/g, " ").split(/\n\s*\n|(?<=\.)\s*\n/).map((p) => p.trim()).filter(Boolean)
-    for (const p of paragraphs) {
+    for (const p of paragraphs.filter((x) => !isTocLike(x))) {
       if (!buf) from = page
       if (buf.length + p.length > CHUNK_CHARS && buf) {
         chunks.push({ content: buf.trim(), page_from: from, page_to: page })

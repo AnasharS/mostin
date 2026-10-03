@@ -2,7 +2,7 @@ import "server-only"
 import { z } from "zod"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
-import { policyPrompt, type AiPolicy } from "@/lib/ai/policy"
+import { policyPrompt, tonePrompt, type AiPolicy } from "@/lib/ai/policy"
 
 export const AdaptContext = z.object({
   institution_type: z.string().min(2).max(120),
@@ -74,7 +74,7 @@ const PartB = AdaptationPlan.pick({ budget: true, partners: true, risks: true, i
 export async function generateAdaptationPlan(innovation: InnovationForAdapt, ctx: AdaptContext, policy: AiPolicy) {
   const system = [
     { type: "text" as const, text: SYSTEM, cache_control: { type: "ephemeral" as const } },
-    { type: "text" as const, text: policyPrompt(policy) },
+    { type: "text" as const, text: policyPrompt(policy) + "\n" + tonePrompt(policy) },
   ]
   const content = `<innowacja>\n${JSON.stringify(innovation)}\n</innowacja>\n<instytucja>\n${JSON.stringify(ctx)}\n</instytucja>`
   const call = <T extends typeof PartA | typeof PartB>(schema: T, focus: string) =>

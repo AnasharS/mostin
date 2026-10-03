@@ -1,5 +1,6 @@
 import "server-only"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { ARCHETYPES, LENGTH_PROMPT, ADDRESS_PROMPT, type ArchetypeId } from "./persona"
 
 export type AiPolicy = {
   block_profanity: boolean
@@ -22,6 +23,12 @@ export type AiPolicy = {
   daily_requests_per_user: number
   daily_images_per_user: number
   daily_voice_minutes_per_user: number
+  tone_archetype: ArchetypeId
+  address_form: keyof typeof ADDRESS_PROMPT
+  response_length: keyof typeof LENGTH_PROMPT
+  plain_language_default: boolean
+  allow_emoji: boolean
+  custom_instructions: string
 }
 
 let cache: { at: number; policy: AiPolicy } | null = null
@@ -43,6 +50,20 @@ const SOURCE_LABELS: Record<string, string> = {
   challenges: "Mapa Wyzwań Społecznych",
   materials: "materiały edukacyjne",
   calls: "nabory grantowe",
+}
+
+/** Styl wypowiedzi Mostka z ustawień ROPS (archetyp + forma + długość). `plain` — preferencja użytkownika z paska dostępności. */
+export function tonePrompt(p: AiPolicy, opts: { plain?: boolean } = {}) {
+  const a = ARCHETYPES[p.tone_archetype] ?? ARCHETYPES.opiekun
+  const plain = opts.plain || p.plain_language_default
+  return `<styl>
+Osobowość: ${a.name} — ${a.tagline}. ${a.prompt}
+${ADDRESS_PROMPT[p.address_form]}
+${LENGTH_PROMPT[p.response_length]}
+${plain ? "Pisz prostym językiem (poziom tekstu łatwego do czytania): krótkie zdania, codzienne słowa, bez skrótów i żargonu urzędowego." : ""}
+${p.allow_emoji ? "Możesz oszczędnie używać emoji." : "Nie używaj emoji."}
+${p.custom_instructions.trim() ? `Dodatkowe wytyczne ROPS: ${p.custom_instructions.trim()}` : ""}
+</styl>`
 }
 
 /** Fragment promptu systemowego budowany z przełączników ROPS — wspólny dla Mostka i wszystkich funkcji AI. */

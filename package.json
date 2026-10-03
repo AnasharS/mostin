@@ -11,7 +11,8 @@
     "db:push": "./scripts/db-push.sh",
     "ingest": "tsx --conditions=react-server scripts/ingest.ts",
     "apply-structured": "tsx --conditions=react-server scripts/apply-structured.ts",
-    "ingest:docs": "tsx --conditions=react-server scripts/ingest-docs.ts"
+    "ingest:docs": "tsx --conditions=react-server scripts/ingest-docs.ts",
+    "seed:mapa": "tsx --conditions=react-server scripts/seed-challenge-map.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
