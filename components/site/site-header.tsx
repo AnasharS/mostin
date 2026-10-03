@@ -4,6 +4,9 @@ import { Logo } from "./logo"
 import { A11yToolbar } from "./a11y-toolbar"
 import { Tagline } from "./tagline"
 import { MostekLauncher } from "@/components/mostek/mostek-launcher"
+import { LayoutDashboard } from "lucide-react"
+import { enterAsPersona } from "@/app/logowanie/actions"
+import { isDemoMode } from "@/lib/demo/personas"
 
 const NAV = [
   { href: "/", label: "Znajdź rozwiązanie" },
@@ -33,7 +36,16 @@ export async function SiteHeader() {
                 <Link href="/logowanie" className="ml-2 underline">Zmień</Link>
               </span>
             ) : (
-              <Link href="/logowanie" className="underline">Wejdź jako…</Link>
+              <span className="flex items-center gap-3">
+                <Link href="/logowanie" className="underline">Wejdź jako…</Link>
+                {isDemoMode() && (
+                  <form action={enterAsPersona.bind(null, "rops")}>
+                    <button type="submit" className="inline-flex items-center gap-1 text-muted-foreground underline hover:text-foreground">
+                      <LayoutDashboard aria-hidden="true" className="size-3.5" /> Panel ROPS (demo)
+                    </button>
+                  </form>
+                )}
+              </span>
             )}
           </div>
         </div>
@@ -66,7 +78,14 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t bg-card print:hidden">
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-4 py-6 text-sm text-muted-foreground">
-        <p>MostIn - <Tagline /> · Małopolski Hub Innowacji Społecznych · prototyp HackYeah 2026</p>
+        <div>
+          <p>MostIn - <Tagline /> · Małopolski Hub Innowacji Społecznych · prototyp HackYeah 2026</p>
+          {isDemoMode() && (
+            <form action={enterAsPersona.bind(null, "rops")} className="mt-1">
+              <button type="submit" className="underline hover:text-foreground">Dla pracowników ROPS: panel Hubu (demo, bez logowania)</button>
+            </form>
+          )}
+        </div>
         <p>
           Dane innowacji: <a className="underline" href="https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie">Biblioteka Innowacji Społecznych ROPS Kraków</a> (CC BY 4.0)
         </p>

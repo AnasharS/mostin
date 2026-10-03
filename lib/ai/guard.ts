@@ -39,7 +39,8 @@ async function logEvent(e: { route: string; stage: "input" | "output"; reason: s
     stage: e.stage,
     reason: e.reason,
     action: e.action,
-    excerpt: e.excerpt ? maskPersonalData(e.excerpt).slice(0, 160) : null,
+    // fragment do dziennika ROPS: bez danych osobowych i z zamaskowanymi wulgaryzmami/obelgami
+    excerpt: e.excerpt ? maskPersonalData(e.excerpt).replace(PROFANITY, "***").replace(INSULTS, "***").slice(0, 160) : null,
     user_id: e.userId ?? null,
   })
 }
