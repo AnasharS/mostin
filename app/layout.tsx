@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   title: "MostIn - Twój Most do Innowacji Społecznych",
   description:
     "Małopolski Hub Innowacji Społecznych: opisz problem, a MostIn znajdzie sprawdzone innowacje, wiedzę ROPS i ludzi, którzy pomogą.",
+  // prototyp konkursowy - poza wyszukiwarkami (nagłówek X-Robots-Tag w next.config.ts obejmuje też pliki i API)
+  robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
 }
 
 // Ustawienia dostępności przed pierwszym renderem - bez „mignięcia” przy powiększonym tekście / kontraście
