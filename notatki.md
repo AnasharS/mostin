@@ -389,3 +389,7 @@ opis problemu
 
 ### 28b. Podpis autora w stopce
 - Jedna linia w stopce: „Projekt i realizacja: Maciej Senderowski · HackYeah 2026”. Dyskretnie, bez logo i linków sprzedażowych - serwis ma wyglądać jak usługa ROPS. Do sprawdzenia: regulamin HackYeah (anonimowość zgłoszeń).
+
+### 28c. Favicon i nagłówek hero
+- Favicon: sygnet z logo (sam łuk mostu) jako `app/icon.svg`; ikona iOS generowana z tego samego wektora (`app/apple-icon.tsx`, next/og).
+- Hero: wróciliśmy do dwóch wierszy z pierwszej wersji - pierwszy pomarańczowy (pytanie), drugi z odręczną, nieregularną kreską (odpowiedź). Jeden ludzki akcent przełamuje urzędową siatkę linii. Kreska jest tłem z `box-decoration-break: clone`, więc przy zawijaniu podkreśla każdą linijkę; w trybie wymuszonych kolorów zamienia się na zwykłe podkreślenie.

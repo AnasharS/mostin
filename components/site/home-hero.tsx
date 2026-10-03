@@ -5,14 +5,14 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 
 type Entry = { href: string; title: string; text: string }
-type Panel = { id: string; tab: string; eyebrow: string; title: string; lead: string; cta: { href: string; label: string }; note: string; entries: Entry[] }
+type Panel = { id: string; tab: string; eyebrow: string; title: [string, string]; lead: string; cta: { href: string; label: string }; note: string; entries: Entry[] }
 
 /** Hero z zakładkami odbiorców (wzorzec ARIA tabs: strzałki zmieniają zakładkę). */
 export function HomeHero({ qualifyHref }: { qualifyHref: string | null }) {
   const panels: Panel[] = [
     {
       id: "jst", tab: "Dla gmin i instytucji", eyebrow: "Ścieżka dla samorządów",
-      title: "Znajdź innowację, którą Twoja gmina może wdrożyć.",
+      title: ["Szukasz rozwiązania dla gminy?", "Znajdźmy innowację do wdrożenia."],
       lead: "Odpowiedz na kilka pytań. Sprawdzimy wymagania, zasoby zespołu i dokumenty naboru. Na końcu dostaniesz konkretny następny krok.",
       cta: { href: "/dla-gmin#asystent", label: "Zacznij od potrzeby mieszkańców" },
       note: "Nie musisz wcześniej czytać regulaminu ani pobierać załączników.",
@@ -24,7 +24,7 @@ export function HomeHero({ qualifyHref }: { qualifyHref: string | null }) {
     },
     {
       id: "org", tab: "Dla organizacji i innowatorów", eyebrow: "Ścieżka dla organizacji",
-      title: "Masz pomysł na innowację? Doprowadzimy go do wniosku.",
+      title: ["Masz pomysł na innowację?", "Doprowadzimy go do wniosku."],
       lead: "Kanwa innowacji krok po kroku, sprawdzenie, czy pomysł nie powiela istniejących rozwiązań, wizualizacja i szkic wniosku według wzoru ROPS.",
       cta: { href: "/kreator", label: "Otwórz Kreator pomysłów" },
       note: "Pomysł możesz od razu wysłać do zespołu Hubu.",
@@ -36,7 +36,7 @@ export function HomeHero({ qualifyHref }: { qualifyHref: string | null }) {
     },
     {
       id: "res", tab: "Dla mieszkańców", eyebrow: "Ścieżka dla mieszkańców",
-      title: "Masz problem społeczny? Znajdźmy rozwiązanie.",
+      title: ["Masz problem społeczny?", "Znajdźmy rozwiązanie."],
       lead: "Opisz sytuację własnymi słowami - na piśmie albo głosem. Wskażemy sprawdzone rozwiązania, ludzi w podobnej sytuacji i pierwszy krok.",
       cta: { href: "/dla-mieszkancow", label: "Opisz swoją sytuację" },
       note: "Bez zakładania konta. Nie podawaj danych osobowych.",
@@ -76,7 +76,12 @@ export function HomeHero({ qualifyHref }: { qualifyHref: string | null }) {
           <p className="flex items-center gap-3 text-sm font-bold uppercase tracking-[0.12em] text-muted-foreground">
             <span aria-hidden="true" className="inline-block h-1 w-8 bg-brand" /> {p.eyebrow}
           </p>
-          <h1 className="mt-4 text-4xl font-bold leading-[1.08] tracking-tight md:text-[3.4rem]">{p.title}</h1>
+          <h1 className="mt-4 text-4xl font-bold leading-[1.12] tracking-tight md:text-5xl">
+            {/* duży tekst (≥ 24 px) - próg AA 3:1; brand/bg = 3.17:1 */}
+            <span className="font-extrabold text-brand">{p.title[0]}</span>{" "}
+            <br className="hidden sm:block" />
+            <span className="hand-underline">{p.title[1]}</span>
+          </h1>
           <p className="mt-5 max-w-xl text-lg text-muted-foreground">{p.lead}</p>
           <Link href={p.cta.href} className="mt-8 inline-flex h-14 items-center bg-primary px-7 text-lg font-bold text-primary-foreground hover:bg-primary/85">
             {p.cta.label}

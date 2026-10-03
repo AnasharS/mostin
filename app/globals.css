@@ -149,3 +149,13 @@ html { font-size: calc(100% * var(--font-scale)); }
    Wyjątek: kropki (np. znak Mostka) pozostają okrągłe. */
 .rounded-full:not([class*="size-"]) { border-radius: 0; }
 [class*="shadow"] { box-shadow: none !important; }
+
+/* Odręczne podkreślenie w hero - celowo nieregularne, przełamuje urzędową siatkę.
+   Tło zamiast SVG w treści: przy zawijaniu tekstu podkreślona jest każda linijka (box-decoration-break). */
+.hand-underline {
+  padding-bottom: 0.16em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 16' preserveAspectRatio='none'%3E%3Cpath d='M3 10.5 C 48 6, 92 12.5, 141 8.2 S 236 4.6, 282 9.4 S 362 11.8, 397 6.3' fill='none' stroke='%23e85d2a' stroke-width='3.4' stroke-linecap='round'/%3E%3Cpath d='M30 13.2 C 96 10.4, 170 13.6, 248 11.1 S 340 12.4, 372 10.6' fill='none' stroke='%23e85d2a' stroke-width='1.6' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E") left bottom / 100% 0.3em no-repeat;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+@media (forced-colors: active) { .hand-underline { background: none; text-decoration: underline; } }
