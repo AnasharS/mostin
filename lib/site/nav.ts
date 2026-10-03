@@ -42,6 +42,7 @@ export const SECTIONS: NavSection[] = [
     items: [
       { href: "/innowacje", label: "Biblioteka innowacji" },
       { href: "/wiedza", label: "Mapa wyzwań i raporty" },
+      { href: "/wiedza#materialy", label: "Materiały edukacyjne" },
       { href: "/aktualnosci", label: "Aktualności" },
     ],
   },

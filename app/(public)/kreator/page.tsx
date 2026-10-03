@@ -54,6 +54,13 @@ export default async function KreatorPage({ searchParams }: { searchParams: Prom
         ))}
       </ol>
 
+      <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <span className="font-semibold">Materiały do prototypowania:</span>
+        <a href="https://rops.krakow.pl/mpliki/IS/Moj_folder/INNO_AGH_-_SOCIAL_CANVAS.pdf" target="_blank" rel="noreferrer">Plansza Social Innovation Canvas (PDF)</a>
+        <a href="/materialy/formularz-aplikacyjny-wzor-iws.pdf" target="_blank" rel="noreferrer">Wzór formularza aplikacyjnego (PDF)</a>
+        <Link href="/wiedza#materialy">Więcej materiałów</Link>
+      </p>
+
       <div id="kreator" className="mt-10 scroll-mt-48">
         <h2 className="text-2xl font-bold">Krok 1 · Fiszka pomysłu</h2>
         <p className="mt-1 text-muted-foreground">Na start wystarczą dwa pola: problem i pomysł. Pełną kanwę uzupełnisz, kiedy zechcesz.</p>

@@ -13,6 +13,7 @@ export const PAGES: Page[] = [
   { path: "/testuj", title: "Testy innowacji", hint: "Nabory testów i lista oczekujących", keywords: ["test", "testowanie", "wypróbuj", "lista oczekujących", "tester"] },
   { path: "/przesla", title: "Przęsła - kręgi wsparcia", hint: "Rozmowa z osobami w podobnej sytuacji", keywords: ["przęsła", "krąg", "wsparcie", "rodzic", "opiekun", "samotność", "rozmowa z kimś"] },
   { path: "/wiedza", title: "Mapa wyzwań i raporty", hint: "Diagnozy, raporty ROPS, dane", keywords: ["wiedza", "raport", "diagnoza", "dane", "wyzwanie", "statystyka", "mapa"] },
+  { path: "/wiedza#materialy", title: "Materiały edukacyjne", hint: "Kanwa innowacji, przewodniki i publikacje ROPS, filmy", keywords: ["materiały", "kanwa", "canvas", "przewodnik", "poradnik", "publikacje", "film", "szkolenie", "edukacja"] },
   { path: "/aktualnosci", title: "Aktualności", hint: "Nowe nabory, wydarzenia, komunikaty ROPS", keywords: ["aktualność", "news", "wydarzenie", "komunikat", "nowości"] },
   { path: "/rozmowy/nowa", title: "Napisz do ROPS", hint: "Pytanie, partnerstwo, mentoring", keywords: ["kontakt", "rops", "napisz", "pytanie", "partnerstwo", "mentoring", "ekspert", "człowiek"] },
   { path: "/rozmowy", title: "Moje rozmowy z ROPS", hint: "Wątki i odpowiedzi zespołu", keywords: ["rozmowy", "wątek", "odpowiedź"] },

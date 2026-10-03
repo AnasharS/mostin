@@ -23,3 +23,11 @@ export async function requireAdmin() {
   if (profile.role !== "admin") redirect("/?brak-uprawnien=1")
   return profile
 }
+
+/** Mentor / ekspert ROPS (rola expert) - także administrator może wejść w widok mentora. */
+export async function requireMentor() {
+  const profile = await getCurrentProfile()
+  if (!profile) redirect("/logowanie?next=/mentor")
+  if (profile.role !== "expert" && profile.role !== "admin") redirect("/?brak-uprawnien=1")
+  return profile
+}

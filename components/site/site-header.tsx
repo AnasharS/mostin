@@ -28,6 +28,7 @@ export async function SiteHeader() {
               <span>
                 <span className="text-muted-foreground">Jesteś jako:</span> <strong>{profile.display_name}</strong>{" "}
                 {profile.role === "admin" && <Link href="/admin" className="ml-2 underline">Panel ROPS</Link>}{" "}
+                {profile.role === "expert" && <Link href="/mentor" className="ml-2 underline">Panel mentora</Link>}{" "}
                 <Link href="/logowanie" className="ml-2 underline">Zmień</Link>
               </span>
             ) : (

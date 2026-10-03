@@ -90,7 +90,7 @@ export default async function InnovationPage({ params, searchParams }: { params:
           )}
           {vid && (
             <section aria-labelledby="film">
-              <h2 id="film" className="text-xl font-semibold">Film o innowacji</h2>
+              <h2 id="film" className="scroll-mt-48 text-xl font-semibold">Film o innowacji</h2>
               <div className="mt-3 aspect-video overflow-hidden rounded-lg border">
                 <iframe
                   src={`https://www.youtube-nocookie.com/embed/${vid}`}

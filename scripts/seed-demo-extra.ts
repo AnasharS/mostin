@@ -52,6 +52,17 @@ const THREADS = [
     body: "Szukamy rozwiązania dla młodzieży w kryzysie psychicznym, czekającej na wizytę u psychiatry. Co z Biblioteki ROPS by pasowało?", reply: null },
 ]
 
+// prośby o mentora i partnerstwo - widok Panelu mentora
+const MENTORING = [
+  { kind: "mentoring", label: "Stowarzyszenie Razem Nowa Huta (demo)", subject: "Jak przetestować wypożyczalnię pomocy terapeutycznych w mikroskali?", priority: "normal",
+    body: "Mamy pomysł na sąsiedzką wypożyczalnię kredek terapeutycznych i pomocy sensorycznych w bibliotece osiedlowej. Chcemy najpierw sprawdzić go na małej grupie rodzin. Od czego zacząć i jak mierzyć efekty?", reply: null },
+  { kind: "mentoring", label: "KGW Tuchów (demo)", subject: "Czy „Telefon do sąsiada” może działać jako usługa gminy?", priority: "pilne",
+    body: "Wolontariuszki z KGW dzwonią codziennie do samotnych seniorów. Gmina chce to przejąć jako stałą usługę. Jak to zorganizować, żeby nie stracić oddolnego charakteru?", reply: null },
+  { kind: "partnership", label: "Fundacja Bez Barier (demo)", subject: "Szukamy gminy partnerskiej do audytu dostępności urzędu", priority: "normal",
+    body: "Przeprowadzamy audyty dostępności z udziałem osób z niepełnosprawnościami. Szukamy 2-3 gmin z Małopolski, które chcą być pilotem. Czy ROPS może nas skontaktować?",
+    reply: "Dzień dobry, to bardzo dobry pomysł. Proponuję zacząć od gmin, które w tym roku pytały o dostępność w Hubie - przekażę kontakt do dwóch z nich. Warto przygotować krótką ofertę na jedną stronę." },
+]
+
 const NEWS = [
   { title: "Ruszył III nabór „Usługa Wrażliwa” - do 600 000 zł na wdrożenie innowacji", lead: "Gminy, powiaty i organizacje mogą wdrożyć sprawdzoną innowację jako usługę dla mieszkańców. Bez wkładu własnego. Sprawdź w 60 sekund, czy się kwalifikujesz.", kind: "nabor", audience: ["jst", "organizacje"], source_url: "/dla-gmin", pinned: true, h: 2, callLike: "[DEMO] Usługa Wrażliwa%" },
   { title: "Konsultacje online dla gmin przed III naborem", lead: "Zespół Hubu zaprasza pracowników OPS i CUS na krótkie konsultacje: jak wybrać innowację i przygotować wniosek. Zapisy przez Rozmowy z ROPS.", kind: "wydarzenie", audience: ["jst"], source_url: "/rozmowy/nowa?rodzaj=question", h: 30 },
@@ -157,6 +168,15 @@ async function main() {
     if (t.reply) await db.from("messages").insert({ thread_id: thread!.id, author_role: "rops", author_label: "Zespół Hubu ROPS", body: t.reply, created_at: ago(i * 3 + 1) })
   }
 
+  for (const [i, t] of MENTORING.entries()) {
+    const { data: thread } = await db.from("threads").insert({
+      kind: t.kind, subject: t.subject, session_key: KEY, requester_label: t.label, status: t.reply ? "answered" : "open",
+      category: t.kind === "partnership" ? "partnerstwo" : "nowy_pomysl", priority: t.priority, ai_summary: t.body, last_message_at: ago(i * 4 + 2),
+    }).select("id").single()
+    await db.from("messages").insert({ thread_id: thread!.id, author_role: "user", author_label: t.label, body: t.body, created_at: ago(i * 4 + 3) })
+    if (t.reply) await db.from("messages").insert({ thread_id: thread!.id, author_role: "expert", author_label: "dr Marek, ekspert ds. ekonomii społecznej", body: t.reply, created_at: ago(i * 4 + 2) })
+  }
+
   // Przęsła: wiadomość reklamowa i zgłoszenie (oraz jedno zgłoszenie z nieporozumienia)
   const { data: seniors } = await db.from("circles").select("id").like("title", "Seniorzy Tarnowa%").limit(1).maybeSingle()
   const { data: ukr } = await db.from("circles").select("id").like("title", "Rodziny z Ukrainy%").limit(1).maybeSingle()
@@ -213,6 +233,6 @@ async function main() {
     { route: "demo", stage: "input", reason: "insult", action: "blocked", excerpt: "*** z urzędu nic nie rozumieją", created_at: ago(40) },
   ])
 
-  console.log(`Dodano: ${LEADS.length} leadów z pytaniami, ${PRE.length} przedwstępne wnioski, ${THREADS.length} pytania w Rozmowach, zgłoszenia z Przęseł, ${NEWS.length} aktualności, 3 zdarzenia moderacji, ${NEEDS.length} zgłoszeń potrzeb, ${REVIEWS.length} opinii.`)
+  console.log(`Dodano: ${LEADS.length} leadów z pytaniami, ${PRE.length} przedwstępne wnioski, ${THREADS.length} pytania w Rozmowach, ${MENTORING.length} prośby do mentora, zgłoszenia z Przęseł, ${NEWS.length} aktualności, 3 zdarzenia moderacji, ${NEEDS.length} zgłoszeń potrzeb, ${REVIEWS.length} opinii.`)
 }
 main().catch((e) => { console.error(e); process.exit(1) })

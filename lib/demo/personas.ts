@@ -31,8 +31,8 @@ export const PERSONAS = [
     role: "expert" as Role,
     name: "dr Marek, ekspert ds. ekonomii społecznej",
     organization: "Ekspert ROPS",
-    description: "Doradza innowatorom i odpowiada na pytania gmin.",
-    home: "/",
+    description: "Doradza innowatorom i odpowiada na pytania gmin w Panelu mentora.",
+    home: "/mentor",
   },
   {
     id: "rops",
