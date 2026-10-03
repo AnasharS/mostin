@@ -15,7 +15,7 @@ export function MainNav({ qualifyHref }: { qualifyHref: string | null }) {
   return (
     <>
       <nav aria-label="Dla kogo" className="border-t">
-        <ul className="mx-auto flex max-w-6xl overflow-x-auto px-4">
+        <ul className="scroll-row mx-auto flex max-w-6xl overflow-x-auto px-4">
           {SECTIONS.map((s) => {
             const on = active?.id === s.id
             return (
@@ -36,7 +36,7 @@ export function MainNav({ qualifyHref }: { qualifyHref: string | null }) {
       </nav>
       {active && items.length > 0 && (
         <nav aria-label={`${active.label} - moduły`} className="border-t bg-background">
-          <ul className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-1 px-4 py-2.5 text-sm">
+          <ul className="scroll-row mx-auto flex max-w-6xl gap-x-6 overflow-x-auto whitespace-nowrap px-4 py-2.5 text-sm">
             {items.map((i) => {
               const on = path === i.href.split("?")[0].split("#")[0] && !i.href.includes("#")
               return (

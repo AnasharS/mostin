@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Atkinson_Hyperlegible_Next } from "next/font/google"
 import "./globals.css"
 
@@ -7,6 +7,9 @@ const atkinson = Atkinson_Hyperlegible_Next({
   variable: "--font-atkinson",
   subsets: ["latin", "latin-ext"],
 })
+
+// Android: klawiatura ekranowa zmniejsza układ (pole czatu Mostka zostaje widoczne); iOS obsługuje visualViewport w czacie
+export const viewport: Viewport = { width: "device-width", initialScale: 1, interactiveWidget: "resizes-content" }
 
 export const metadata: Metadata = {
   title: "MostIn - Twój Most do Innowacji Społecznych",

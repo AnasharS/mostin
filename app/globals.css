@@ -159,3 +159,11 @@ html { font-size: calc(100% * var(--font-scale)); }
   box-decoration-break: clone;
 }
 @media (forced-colors: active) { .hand-underline { background: none; text-decoration: underline; } }
+
+/* przyklejony nagłówek: kotwice (#asystent, #lista) nie chowają się pod menu */
+html { scroll-padding-top: 11rem; }
+@media (min-width: 768px) { html { scroll-padding-top: 13rem; } }
+
+/* poziomo przewijane paski menu na telefonie - bez szarego paska przewijania */
+.scroll-row { scrollbar-width: none; }
+.scroll-row::-webkit-scrollbar { display: none; }

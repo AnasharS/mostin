@@ -4,9 +4,8 @@ import { getCurrentProfile } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { enterAsPersona } from "@/app/logowanie/actions"
 import { isDemoMode } from "@/lib/demo/personas"
-import { MostekLauncher } from "@/components/mostek/mostek-launcher"
 import { Logo } from "./logo"
-import { A11yToolbar } from "./a11y-toolbar"
+import { A11yMobile, A11yToolbar } from "./a11y-toolbar"
 import { Tagline } from "./tagline"
 import { MainNav } from "./main-nav"
 
@@ -16,15 +15,15 @@ export async function SiteHeader() {
     createAdminClient().from("calls").select("id").eq("active", true).not("eligibility_check", "is", null).limit(1).maybeSingle(),
   ])
   return (
-    <header className="border-b bg-card print:hidden">
+    <header className="sticky top-0 z-40 border-b bg-card print:static print:hidden">
       <a href="#tresc" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
         Przejdź do treści
       </a>
       {/* pasek narzędzi: dostępność + wejście / panel ROPS */}
-      <div className="border-b bg-background">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-sm">
+      <div className="hidden border-b bg-background md:block">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-1.5 text-sm">
           <A11yToolbar />
-          <div className="flex items-center gap-4">
+          <div className="hidden shrink-0 items-center gap-4 md:flex">
             {profile ? (
               <span>
                 <span className="text-muted-foreground">Jesteś jako:</span> <strong>{profile.display_name}</strong>{" "}
@@ -37,13 +36,13 @@ export async function SiteHeader() {
           </div>
         </div>
       </div>
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
+      <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5 md:py-4">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-[2rem] leading-none" aria-label="MostIn - strona główna"><Logo /></Link>
+          <Link href="/" className="text-[1.6rem] leading-none md:text-[2rem]" aria-label="MostIn - strona główna"><Logo /></Link>
           <Tagline className="hidden border-l pl-4 text-sm leading-tight text-muted-foreground lg:inline" />
         </div>
-        <div className="flex items-center gap-3">
-          <MostekLauncher />
+        <A11yMobile />
+        <div className="hidden items-center gap-3 md:flex">
           {!profile && isDemoMode() && (
             <form action={enterAsPersona.bind(null, "rops")}>
               <button type="submit" className="inline-flex h-10 items-center gap-1.5 border border-foreground px-3 text-sm font-semibold hover:bg-muted">

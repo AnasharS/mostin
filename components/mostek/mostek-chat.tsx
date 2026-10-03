@@ -165,6 +165,13 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
 
   return (
     <div className={`flex min-h-0 flex-col ${compact ? "h-full" : "h-[min(75dvh,820px)] rounded-xl border bg-card"}`}>
+      {compact ? (
+        msgs.length > 0 && (
+          <div className="flex justify-end border-b px-2 py-1">
+            <Button type="button" variant="ghost" size="sm" onClick={reset}>Nowa rozmowa</Button>
+          </div>
+        )
+      ) : (
       <div className="flex items-center justify-between border-b px-4 py-2.5">
         <p className="flex items-center gap-2 font-semibold">
           <span aria-hidden="true" className={`inline-block size-2.5 rounded-full bg-brand ${busy ? "animate-pulse" : ""}`} /> Mostek
@@ -172,6 +179,7 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
         </p>
         {msgs.length > 0 && <Button type="button" variant="ghost" size="sm" onClick={reset}>Nowa rozmowa</Button>}
       </div>
+      )}
 
       <div ref={listRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4" role="log" aria-label="Rozmowa z Mostkiem">
         {msgs.length === 0 && (
@@ -261,7 +269,8 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input) } }}
             rows={2}
             maxLength={4000}
-            placeholder="Napisz, z czym przychodzisz… (Enter - wyślij, Shift+Enter - nowa linia)"
+            placeholder="Napisz pytanie…"
+            aria-describedby={`${inputId}-h`}
             className="min-h-11 flex-1 resize-none rounded-lg border border-input bg-background p-2.5 text-base"
           />
           {voice.enabled && <MicButton page={pathname} onText={(t) => { setInput((x) => (x ? x + " " : "") + t); inputRef.current?.focus() }} onStatus={setStatus} />}
@@ -269,6 +278,7 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
             {busy ? "…" : "Wyślij"}
           </Button>
         </div>
+        <p id={`${inputId}-h`} className="sr-only">Enter wysyła, Shift+Enter dodaje nową linię.</p>
         {status && <p className="mt-1.5 text-xs text-muted-foreground" aria-hidden="true">{status}</p>}
       </form>
     </div>

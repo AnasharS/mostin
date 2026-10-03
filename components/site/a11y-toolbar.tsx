@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useSyncExternalStore } from "react"
+import { Accessibility } from "lucide-react"
+import { useId, useMemo, useState, useSyncExternalStore } from "react"
 
 type Prefs = { font?: "lg" | "xl"; contrast?: "high"; motion?: "reduced"; plain?: boolean }
 const KEY = "mostin-a11y"
@@ -51,14 +52,15 @@ export function applyPrefs(p: Prefs) {
 /** Pasek dostępności: wielkość tekstu, wysoki kontrast, prosty język, mniej animacji. */
 export function A11yToolbar() {
   const p = usePrefs()
+  const fontId = useId()
   const update = (patch: Partial<Prefs>) => applyPrefs({ ...p, ...patch })
 
   const btn = "rounded-md border px-2.5 py-1 text-sm hover:bg-muted aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:border-primary"
   return (
     <div role="group" aria-label="Ustawienia dostępności" className="flex flex-wrap items-center gap-1.5">
-      <span className="mr-1 text-sm text-muted-foreground" id="a11y-font">Tekst:</span>
+      <span className="mr-1 text-sm text-muted-foreground" id={fontId}>Tekst:</span>
       {([undefined, "lg", "xl"] as const).map((f, i) => (
-        <button key={i} type="button" className={btn} aria-pressed={p.font === f} aria-describedby="a11y-font" onClick={() => update({ font: f })}>
+        <button key={i} type="button" className={btn} aria-pressed={p.font === f} aria-describedby={fontId} onClick={() => update({ font: f })}>
           <span aria-hidden="true" style={{ fontSize: `${0.85 + i * 0.2}rem` }}>A</span>
           <span className="sr-only">{["Standardowy", "Większy", "Największy"][i]} tekst</span>
         </button>
@@ -79,4 +81,23 @@ export function A11yToolbar() {
 /** Odczyt preferencji „prosty język” - przekazywany do AI. */
 export function usePlainLanguage() {
   return Boolean(usePrefs().plain)
+}
+
+/** Telefon: wyraźny przycisk „Dostępność” przy logo rozwija pełny panel (nagłówek jest przyklejony, więc musi być niski). */
+export function A11yMobile() {
+  const [open, setOpen] = useState(false)
+  const panelId = useId()
+  return (
+    <div className="md:hidden">
+      <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}
+        className="inline-flex h-11 items-center gap-1.5 border-2 border-foreground px-3 text-sm font-semibold aria-expanded:bg-foreground aria-expanded:text-background">
+        <Accessibility aria-hidden="true" className="size-5" /> Dostępność
+      </button>
+      {open && (
+        <div id={panelId} className="absolute inset-x-0 top-full z-50 border-b-2 border-foreground bg-card px-4 py-3">
+          <A11yToolbar />
+        </div>
+      )}
+    </div>
+  )
 }
