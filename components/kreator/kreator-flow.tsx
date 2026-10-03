@@ -67,7 +67,9 @@ function More({ label, children }: { label: string; children: React.ReactNode })
   )
 }
 
-export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
+export type OpenCall = { id: number; title: string; closes_at: string | null }
+
+export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: string; openCall: OpenCall | null }) {
   const [step, setStep] = useState(0)
   const [c, setC] = useState<Canvas>({ ...empty, problem: initialProblem ?? "" })
   const [assessment, setAssessment] = useState<Assessment | null>(null)
@@ -335,14 +337,28 @@ export function KreatorFlow({ initialProblem }: { initialProblem?: string }) {
                 </div>
 
                 <div className="border-t pt-5">
-                  <h3 className="font-semibold">A wniosek?</h3>
-                  <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                    Na tym etapie najważniejsza jest rozmowa z zespołem Hubu - pomysł zwykle dojrzewa w inkubatorze, zanim trafi do wniosku.
-                    Zapisz pomysł, a damy znać, gdy ruszy nabór w jego obszarze. Wtedy Mostek przygotuje szkic wniosku z tej kanwy.
-                  </p>
-                  <button type="button" className="mt-2 text-sm font-semibold underline underline-offset-2 disabled:opacity-50" disabled={busy !== ""} onClick={generateApp}>
-                    {busy === "app" ? "Mostek pisze szkic…" : "Zobacz, jak wyglądałby szkic wniosku"}
-                  </button>
+                  {openCall ? (
+                    <div id="wniosek-start" className="border-l-4 border-brand py-1 pl-4">
+                      <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Krok 2 · trwa nabór</p>
+                      <h3 className="mt-1 text-lg font-semibold">Wniosek do naboru „{openCall.title}”</h3>
+                      <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                        Fiszka to krótki opis pomysłu. Wniosek to pełny dokument według formularza aplikacyjnego ROPS (10 sekcji).
+                        Mostek wypełni go na podstawie tej fiszki i raportów ROPS, a Ty uzupełnisz fragmenty oznaczone [DO UZUPEŁNIENIA].
+                        {openCall.closes_at ? ` Termin naboru: ${new Date(openCall.closes_at).toLocaleDateString("pl-PL")}.` : " Termin naboru podaje ogłoszenie ROPS."}
+                      </p>
+                      <Button type="button" size="lg" className="mt-3 h-11 px-5" disabled={busy !== ""} onClick={generateApp}>
+                        {busy === "app" ? "Mostek pisze wniosek…" : "Przygotuj szkic wniosku z fiszki"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="font-semibold">Wniosek do naboru</h3>
+                      <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                        Teraz nie trwa nabór pomysłów. Zapisz fiszkę - gdy ROPS ogłosi nabór w jej obszarze, dostaniesz powiadomienie,
+                        a Mostek przygotuje z niej szkic wniosku.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             )}

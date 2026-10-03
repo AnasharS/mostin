@@ -406,3 +406,16 @@ opis problemu
 - Przyciski: ciemniejszy pomarańcz #c2410c z białym tekstem (5.18:1, AA). Czarny tekst na jasnym pomarańczu był słabo czytelny w praktyce, mimo spełnionego progu. Hover przyciemnia (#a83b18), zamiast rozjaśniać.
 - Kreator: na start widać tylko „problem” i „gdzie”, potem „pomysł” i nazwę. Skala, częstotliwość, odbiorcy, rodzaj i gotowość są zwinięte jako opcjonalne. Po kroku 2 od razu „Poproś Mostka o ocenę” - kroki „Ludzie i wartość” i „Koszty” dla chętnych.
 - Wniosek przestał być celem ścieżki organizacji. Hasło: „Masz pomysł na innowację? Sprawdźmy go i rozwińmy razem.” Główne działanie po ocenie: fiszka do ROPS (pomysł dojrzewa w inkubatorze, zanim trafi do wniosku). Szkic wniosku zostaje jako podgląd („Zobacz, jak wyglądałby szkic wniosku”) i jako krok po ogłoszeniu naboru - zapisane pomysły dostają powiadomienie.
+
+### 31. Mostek jako czat w rogu, przyklejone menu, Dostępność na telefonie
+- Nowa osoba nie wie, kim jest Mostek, więc nie ma go w nagłówku. Na każdej stronie w prawym dolnym rogu jest okrągła ikona czatu (dymek) z podpisem „Masz pytanie? Zapytaj asystenta Mostka”. Po kliknięciu rozwija się okno: na komputerze w rogu, na telefonie na cały ekran. Mostek dalej pojawia się jako pomocnik w treści (asystent grantowy, dopasowanie).
+- Telefon: okno czatu dopasowuje się do klawiatury ekranowej (visualViewport na iOS, `interactive-widget=resizes-content` na Androidzie), więc pole wpisywania nie chowa się pod klawiaturą.
+- Nagłówek z menu jest przyklejony na komputerze i telefonie; na telefonie niższy (mniejsze logo, moduły w jednym przewijanym wierszu), kotwice mają `scroll-padding-top`.
+- Telefon: wyraźny przycisk „Dostępność” przy logu rozwija pełny panel (wielkość tekstu, kontrast, prosty język, bez animacji). Na komputerze panel jest zawsze widoczny nad logo.
+
+### 32. Fiszka pomysłu a wniosek - rozdzielone zgodnie z zadaniem ROPS
+- Slajd „Kreator pomysłów” w prezentacji ROPS ma trzy punkty: zgłaszanie pomysłów i prowadzenie przez kreowanie innowacji, prezentacja dobrych praktyk, **„funkcja generatora wniosków w trakcie naborów”**.
+- Na stronie Kreatora trzy jasno nazwane ścieżki:
+  1. **Fiszka pomysłu** - zawsze otwarta: problem + pomysł, ocena Mostka (czy podobne już istnieje = dobre praktyki z Biblioteki), wysyłka do ROPS.
+  2. **Wniosek do naboru pomysłów** - tylko gdy trwa nabór z formularzem (dziś: IWS 2.0, 10 sekcji wg wzoru formularza aplikacyjnego). Szkic powstaje z fiszki, z oznaczeniem „trwa nabór”. Bez naboru: zapis fiszki i powiadomienie, gdy nabór ruszy.
+  3. **Grant na wdrożenie gotowej innowacji** - osobny nabór (Usługa Wrażliwa) dla gmin i organizacji, w Strefie JST z testem kwalifikacji i przedwstępnym wnioskiem.
