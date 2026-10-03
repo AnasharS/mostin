@@ -437,3 +437,7 @@ opis problemu
 - **Rozpoznawanie mowy nie działało na iPhonie/Safari:** przeglądarka nagrywa w mp4, a plik był wysyłany jako „nagranie.webm” - API odrzucało go po rozszerzeniu (odtworzone testem: ten sam plik jako .m4a rozpoznany poprawnie, jako .webm błąd). Teraz format nagrania jest wybierany z obsługiwanych przez przeglądarkę, a nazwa pliku pasuje do formatu. Zbyt krótkie nagranie dostaje czytelny komunikat.
 - **Rozpoznany tekst od razu trafia do Mostka** (widać go w rozmowie jako pytanie) - wcześniej lądował w polu i czekał na Enter, co wyglądało, jakby Mostek nie usłyszał.
 - **Odtwarzanie:** jeden odtwarzacz na stronę. Nowa odpowiedź zatrzymuje poprzednią, kliknięcie w trakcie przygotowywania przerywa pobieranie, nowe pytanie, mikrofon, „Nowa rozmowa” i zamknięcie czatu zatrzymują czytanie. Odpowiedzi nie nakładają się na siebie.
+
+### 36. Przęsła w demo: persona w kręgu i szybkie dołączanie
+- Persona „Anna, mieszkanka Nowego Targu” (opiekuje się mamą po udarze) przy wejściu dostaje profil z pseudonimem Anna_NowyTarg i miejsce w nowym kręgu „Opiekunowie bliskich po udarze - Małopolska” (syntetyczne osoby i rozmowa, `lib/demo/circles.ts`, także w `pnpm seed:demo`). Jury od razu widzi rozmowę, „Zgłoś” i „Poproś o kontakt”.
+- „Dołącz do kręgu” bez profilu nie odsyła już do Testuj z błędem. Prowadzi do krótkiego kroku `/przesla/dolacz`: pseudonim + zgoda i od razu wejście do kręgu. Obok ramka DEMO „Dołącz jako przykładowa osoba” - wylosowany pseudonim i jedno kliknięcie.

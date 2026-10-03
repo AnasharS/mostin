@@ -1,6 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { ensurePersonaCircle } from "@/lib/demo/persona-circle"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -72,5 +73,6 @@ export async function enterAsPersona(personaId: string) {
     .update({ role: persona.role, display_name: persona.name, organization: persona.organization, demo_persona: persona.id })
     .eq("id", userId)
   if (error) redirect("/logowanie?blad=" + encodeURIComponent(error.message))
+  await ensurePersonaCircle(userId, persona.id).catch(() => {})
   redirect(persona.home)
 }

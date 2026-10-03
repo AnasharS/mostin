@@ -20,6 +20,8 @@ async function main() {
   const { createAdminClient } = await import("@/lib/supabase/admin")
   const { embed, toPgVector } = await import("@/lib/ai/embeddings")
   const { profileText, matchTestToWaitlist } = await import("@/lib/profiles")
+  const { CAREGIVER_CIRCLE, CAREGIVER_PROFILES } = await import("@/lib/demo/circles")
+  PROFILES.push(...CAREGIVER_PROFILES)
   const db = createAdminClient()
 
   // czyszczenie poprzedniego seeda demo
@@ -77,6 +79,7 @@ async function main() {
       members: ["Olena_Krk", "Iryna_M"], meeting_note: null,
       messages: [["Olena_Krk", "Привіт! Szukam innych mam, których dzieci zaczęły szkołę w tym roku."]] },
   ]
+  circles.push({ ...CAREGIVER_CIRCLE, meeting_note: null })
   for (const c of circles) {
     const { data: circle } = await db.from("circles").insert({
       title: c.title, topic: c.topic, categories: c.categories, district: c.district, region_label: c.district, created_by: byNick.get(c.by), meeting_note: c.meeting_note,

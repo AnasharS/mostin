@@ -7,7 +7,7 @@ export const PERSONAS = [
     role: "resident" as Role,
     name: "Anna, mieszkanka Nowego Targu",
     organization: null,
-    description: "Opiekuje się mamą po udarze. Szuka wsparcia i chce zgłosić problem.",
+    description: "Opiekuje się mamą po udarze. Szuka wsparcia, należy do kręgu opiekunów w Przęsłach.",
     home: "/",
   },
   {
