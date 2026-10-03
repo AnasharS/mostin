@@ -14,7 +14,8 @@ export default async function Home() {
         MostIn <span aria-hidden="true" className="text-brand">/</span> Hub Innowacji Społecznych Małopolski
       </p>
       <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight md:text-5xl">
-        Masz problem społeczny?
+        {/* duży tekst (≥ 24 px) — próg AA 3:1; brand/bg = 3.17:1 */}
+        <span className="font-extrabold text-brand">Masz problem społeczny?</span>
         <br />
         <span className="relative inline-block">
           Znajdźmy rozwiązanie.
