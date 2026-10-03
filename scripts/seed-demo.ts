@@ -33,6 +33,7 @@ async function main() {
   await db.from("ideas").delete().eq("session_key", "demo-seed")
   await db.from("jst_leads").delete().eq("session_key", "demo-seed")
   await db.from("calls").delete().like("title", "[DEMO]%")
+  await db.from("news").delete().neq("id", 0)
 
   const vectors = await embed(PROFILES.map((p) => profileText(p)))
   const { data: profiles, error } = await db.from("needs_profiles").insert(PROFILES.map((p, i) => ({
@@ -124,6 +125,31 @@ async function main() {
     title: "[DEMO] Nabór 2027: przeciwdziałanie samotności seniorów", description: "Granty na innowacje zmniejszające samotność i izolację osób starszych.",
     categories: ["starzenie_sie_i_seniorzy", "samotnosc_i_izolacja"], opens_at: "2027-01-15", closes_at: "2027-03-31", active: false, is_sample: true, rules: {},
   })
+  // Radar naborów: przykładowy III nabór (TERMIN DEMO - prawdziwy podaje ogłoszenie ROPS); kwota i brak wkładu z regulaminu
+  const closes = new Date(Date.now() + 12 * 86_400_000).toISOString().slice(0, 10)
+  const { data: uw3 } = await db.from("calls").insert({
+    title: "[DEMO] Usługa Wrażliwa - III nabór grantowy na wdrożenie innowacji",
+    description: "Granty dla samorządów i organizacji na wdrożenie sprawdzonych innowacji społecznych z inkubatorów ROPS jako usług dla mieszkańców Małopolski.",
+    audience: ["jst", "organizacje"], amount_label: "do 600 000 zł na jedną innowację",
+    amount_source: "Regulamin udzielania grantów - projekt „Usługa Wrażliwa”, s. 6 (brak wkładu własnego: s. 25)",
+    eligibility_check: "usluga_wrazliwa", closes_at: closes, opens_at: new Date().toISOString().slice(0, 10), active: true, is_sample: true,
+    categories: [], rules: {},
+  }).select("id").single()
+
+  const UW = "https://rops.krakow.pl/realizowane-projekty-i-zadania/usluga-wrazliwa-upowszechnianie-innowacji-spolecznych-w-srodowiskach-lokalnych"
+  const day = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString()
+  await db.from("news").insert([
+    { title: "Ruszył III nabór „Usługa Wrażliwa” - do 600 000 zł na wdrożenie innowacji", lead: "Gminy, powiaty i organizacje mogą wdrożyć sprawdzoną innowację jako usługę dla mieszkańców. Bez wkładu własnego. Sprawdź w 60 sekund, czy się kwalifikujesz.",
+      kind: "nabor", audience: ["jst", "organizacje"], call_id: uw3?.id, source_url: "/dla-gmin", pinned: true, is_sample: true, published_at: day(0) },
+    { title: "Rozstrzygnięto II nabór grantowy w projekcie „Usługa Wrażliwa”", lead: "ROPS opublikował listę rankingową i rezerwową wniosków rekomendowanych do otrzymania grantu w drugiej turze naboru.",
+      kind: "wyniki", audience: ["jst", "organizacje", "wszyscy"], source_url: `${UW},wdrazanie-innowacji-w-oparciu-o-mechanizm-grantowy-tura-ii-rozstrzygniecie-naboru`, published_at: day(9) },
+    { title: "Pięć innowacji z I naboru trafi do mieszkańców jako usługi", lead: "W pierwszej turze „Usługi Wrażliwej” wybrano m.in. aplikację Strażnik (Alarm Ally) i model Himalaje Autyzmu - ich dokumentację przeszukasz teraz z Mostkiem.",
+      kind: "wyniki", audience: ["jst", "wszyscy"], source_url: `${UW},wdrazanie-innowacji-w-oparciu-o-mechanizm-grantowy-tura-i-rozstrzygniecie-naboru`, published_at: day(30) },
+    { title: "Test kredek terapeutycznych Edki w domach - zapisz się na listę", lead: "Szukamy rodzin dzieci ze spastycznością ręki do testów w domu. Zapis przez profil potrzeb w zakładce Testuj.",
+      kind: "innowacja", audience: ["mieszkancy", "wszyscy"], source_url: "/testuj", is_sample: true, published_at: day(2) },
+    { title: "Masz pomysł na innowację? Kreator przygotuje szkic wniosku", lead: "Kanwa innowacji społecznej krok po kroku, sprawdzenie, czy pomysł nie powiela istniejących rozwiązań, i szkic wniosku według wzoru formularza ROPS.",
+      kind: "informacja", audience: ["organizacje", "mieszkancy", "wszyscy"], source_url: "/kreator", published_at: day(4) },
+  ])
   console.log(`Seed demo: ${profiles!.length} profili, ${tests.length} testy, ${circles.length} kręgi, ${IDEAS.length} pomysłów, 2 leady, 1 nabór do ogłoszenia`)
 }
 main().catch((e) => { console.error(e); process.exit(1) })

@@ -6,6 +6,8 @@ import { MostekChat } from "@/components/mostek/mostek-chat"
 import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { startGrantSession, resetGrantSession } from "./actions"
+import { GrantRadar } from "@/components/jst/grant-radar"
+import { NewsList } from "@/components/site/news-list"
 
 export const metadata = { title: "Dla gmin - granty na wdrożenie innowacji · MostIn" }
 
@@ -32,7 +34,9 @@ export default async function DlaGmin({ searchParams }: { searchParams: Promise<
         z inkubatorów ROPS jako usług społecznych. Mostek przeczytał regulamin i dokumenty naboru - zapytaj go o wszystko, a on sprawdzi, czy Twoja gmina ma zasoby, i podpowie, jak uzupełnić braki.
       </p>
 
-      <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <GrantRadar />
+
+      <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           [FileSearch, "Odpowiedzi z regulaminu", `Każdy wymóg z cytatem i numerem strony (${docs ?? 0} dokumentów naboru).`],
           [ListChecks, "Wymagania vs Wasze zasoby", "Np. wymóg 6 osób, a macie 4 - Mostek podpowie partnerstwo lub inne rozwiązanie."],
@@ -109,6 +113,8 @@ export default async function DlaGmin({ searchParams }: { searchParams: Promise<
           </p>
         </section>
       )}
+
+      <NewsList audience="jst" title="Najnowsze dla samorządów: projekty i granty" />
     </div>
   )
 }

@@ -326,6 +326,20 @@ opis problemu
 - **Kolejność:** najpierw **10 innowacji z dwóch tur naboru „Usługa Wrażliwa”** (wykrywane automatycznie z treści stron tur). Ich dokumenty mają prefiks `uw:zip:`, więc **asystent grantowy widzi je razem z regulaminem** („ile osób potrzeba do Terapeuty przestrzeni?”). Reszta biblioteki to `--all` w tle.
 - **Koszt:** embeddingi grosze. Pobieranie jest jednorazowe (1-2 GB dla całej biblioteki). Plików nie przechowujemy, link prowadzi do paczki ROPS (CC BY 4.0).
 
+## 27. Radar naborów, test kwalifikacji, przedwstępny wniosek, aktualności
+
+- **Cel:** zaskoczyć pomysłowością, która jest użyteczna. Zamiast „pogody na portalu”: **„Do 600 000 zł, bez wkładu własnego, zostało 12 dni. Sprawdź w 60 sekund, czy się kwalifikujecie”**.
+- **Radar naborów** (Strefa JST, Aktualności):
+  - aktywne nabory dla gmin z **odliczaniem dni**, kwotą i informacją o braku wkładu, **każda liczba ze źródłem** (regulamin, s. 6 i s. 25);
+  - przycisk **„Dodaj termin do kalendarza”**: plik .ics z przypomnieniem 7 dni i 1 dzień przed końcem naboru. Drobiazg, który urzędnik naprawdę doceni.
+- **Test kwalifikacji (4 pytania tak / nie):** każde pytanie zbudowane **wyłącznie ze zweryfikowanych faktów regulaminu** (`lib/jst/eligibility.ts` → `lib/jst/facts.ts`, sprawdzane przez `pnpm verify:facts`) i podpisane cytatem strony. Przy „nie” zamiast odmowy jest konkretna podpowiedź (np. partnerstwo z organizacją przy wymogu 12 miesięcy usługi). Na końcu zastrzeżenie: „wstępna orientacja, nie decyzja - ocenia ROPS”.
+- **Przedwstępny wniosek:** instytucja, innowacja z listy naboru (10 z tur I i II), odbiorcy, zespół, partnerzy, potrzeba i wyniki testu. **Trafia do ROPS (Panel → Leady gmin → Przedwstępne wnioski)** z oznaczeniem, które warunki są do wyjaśnienia. Kontakt jest zbierany, nawet jeśli gmina nie przejdzie dalej.
+- **Aktualności:** moduł CMS (rodzaj: nabór / wyniki / wydarzenie / innowacja / informacja; odbiorcy: wszyscy / JST / organizacje / mieszkańcy; przypinanie). Strona `/aktualnosci`, widżet na stronie głównej i sekcja „Najnowsze dla samorządów” w Strefie JST.
+- **Uczciwość danych:**
+  - prawdziwego terminu kolejnego naboru nie ma w dokumentach ROPS (tura II jest rozstrzygnięta), więc **termin w demo jest wyraźnie oznaczony jako przykładowy**;
+  - aktualności o wynikach tur I i II mają **prawdziwe źródła** (strony ROPS), a wpisy demonstracyjne mają etykietę „dane przykładowe”;
+  - przy okazji wykryłem i usunąłem własne niepotwierdzone daty naboru IWS 2.0 (wcześniej wpisane bez źródła).
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [x] Mostek - agent z narzędziami (sekcja 17)

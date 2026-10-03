@@ -81,6 +81,8 @@ const LABELS: Record<string, string> = {
   wdrozona: "Wdrożona",
   upowszechniana: "Upowszechniana",
   planned: "Planowany",
+  nabor: "Nabór", wyniki: "Wyniki", wydarzenie: "Wydarzenie", innowacja: "Innowacja", informacja: "Informacja",
+  wszyscy: "Wszyscy", jst: "Samorządy (JST)", organizacje: "Organizacje", mieszkancy: "Mieszkańcy", usluga_wrazliwa: "Usługa Wrażliwa",
   open: "Nabór otwarty",
   closed: "Zakończony",
 }

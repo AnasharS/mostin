@@ -21,6 +21,7 @@ function lastQuestions(messages: Anthropic.Beta.BetaMessageParam[] | null) {
 export default async function Leady() {
   const supabase = await createClient()
   const { data: leads } = await supabase.from("jst_leads").select("*").order("last_activity_at", { ascending: false }).limit(100)
+  const { data: pre } = await supabase.from("pre_applications").select("id, institution, beneficiaries, team, partners, need, eligibility, status, created_at, innovations(title), calls(title)").order("created_at", { ascending: false }).limit(50)
   const sessionIds = (leads ?? []).map((l) => l.consultant_session_id).filter(Boolean)
   const { data: sessions } = sessionIds.length
     ? await createAdminClient().from("consultant_sessions").select("id, messages").in("id", sessionIds)
@@ -34,7 +35,35 @@ export default async function Leady() {
         Gminy i instytucje, które rozpoczęły rozmowę z asystentem grantowym. Kontakt podają na starcie - nawet jeśli przerwą, możecie oddzwonić.
         Podsumowanie, gotowość i bariery aktualizuje AI po każdej odpowiedzi Mostka.
       </p>
-      <ul className="mt-6 space-y-4">
+      <section className="mt-6" aria-labelledby="pre">
+        <h2 id="pre" className="text-lg font-semibold">Przedwstępne wnioski ({pre?.length ?? 0})</h2>
+        <ul className="mt-3 grid gap-3 lg:grid-cols-2">
+          {(pre ?? []).map((p) => {
+            const el = p.eligibility as Record<string, boolean>
+            const noes = Object.entries(el).filter(([, v]) => v === false).map(([k]) => k)
+            return (
+              <li key={p.id} className="rounded-xl border-2 border-brand bg-card p-4 text-sm">
+                <p className="font-semibold">{p.institution}</p>
+                <p className="text-muted-foreground">{(p.calls as unknown as { title: string } | null)?.title?.replace(/^\[DEMO\]\s*/, "")} · {new Date(p.created_at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}</p>
+                <dl className="mt-2 space-y-0.5">
+                  <div><dt className="inline text-muted-foreground">Innowacja: </dt><dd className="inline">{(p.innovations as unknown as { title: string } | null)?.title ?? "prosi o podpowiedź"}</dd></div>
+                  {p.beneficiaries && <div><dt className="inline text-muted-foreground">Odbiorcy: </dt><dd className="inline">{p.beneficiaries}</dd></div>}
+                  {p.team && <div><dt className="inline text-muted-foreground">Zespół: </dt><dd className="inline">{p.team}</dd></div>}
+                  {p.partners && <div><dt className="inline text-muted-foreground">Partnerzy: </dt><dd className="inline">{p.partners}</dd></div>}
+                  {p.need && <div><dt className="inline text-muted-foreground">Potrzeba: </dt><dd className="inline">{p.need}</dd></div>}
+                </dl>
+                <p className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${noes.length ? "bg-accent" : "bg-success text-white"}`}>
+                  {Object.keys(el).length === 0 ? "test kwalifikacji pominięty" : noes.length ? `do wyjaśnienia: ${noes.join(", ")}` : "test kwalifikacji: wszystkie warunki spełnione"}
+                </p>
+              </li>
+            )
+          })}
+          {!pre?.length && <li className="text-muted-foreground">Brak - pojawią się po teście kwalifikacji w Radarze naborów.</li>}
+        </ul>
+      </section>
+
+      <h2 className="mt-10 text-lg font-semibold">Rozmowy gmin z asystentem grantowym</h2>
+      <ul className="mt-3 space-y-4">
         {(leads ?? []).map((l) => (
           <li key={l.id} className="rounded-xl border bg-card p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">

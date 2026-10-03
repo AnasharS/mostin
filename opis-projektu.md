@@ -1,6 +1,6 @@
 # MostIn - Twój Most do Innowacji Społecznych
 
-> Szkic opisu projektu na HackYeah 2026 (wyzwanie UMWM / ROPS Kraków: Małopolski Hub Innowacji Społecznych). Stan na sobotę ok. 16:30. Do redakcji.
+> Szkic opisu projektu na HackYeah 2026 (wyzwanie UMWM / ROPS Kraków: Małopolski Hub Innowacji Społecznych). Stan na sobotę ok. 19:00. Do redakcji.
 
 **Nazwa projektu:** MostIn (mostin.pl)
 **Asystent AI:** Mostek
@@ -21,14 +21,21 @@ ROPS ma ogromny zasób wiedzy: ponad 200 opracowanych innowacji, raporty, diagno
 ## Rozwiązanie: 7 modułów + Mostek
 
 1. **Matchmaking społeczny** (moduł obowiązkowy). Opis problemu naturalnym językiem → analiza AI → wyszukiwanie hybrydowe (znaczenie + słowa kluczowe + kategorie) w 115 innowacjach → ranking z oceną 0-100, **uzasadnieniem „dlaczego pasuje”, „co dostosować” i „pierwszym krokiem”**. Uczciwa ocena pokrycia: gdy dobrego rozwiązania brak, MostIn mówi to wprost i prowadzi do Kreatora.
-2. **Zasobnik wiedzy.** Biblioteka 115 innowacji z filtrami, 10 dokumentów ROPS (~1600 fragmentów z numerami stron), Mapa Wyzwań Społecznych (8 obszarów, 51 wyzwań). Odpowiedzi z cytatem „Raport X, s. 27”. Trendy potrzeb widoczne dla administratora.
+2. **Zasobnik wiedzy.** Biblioteka 115 innowacji z filtrami, dokumenty ROPS (raporty, Mapa Wyzwań, regulamin i opisy naboru „Usługa Wrażliwa”, dokumentacja modeli innowacji z paczek ZIP: ponad 2500 fragmentów z numerami stron), Mapa Wyzwań Społecznych (8 obszarów, 51 wyzwań), aktualności. Odpowiedzi z cytatem „Raport X, s. 27”. Trendy potrzeb widoczne dla administratora.
 3. **Kreator pomysłów.** Prowadzenie krok po kroku po **kanwie innowacji społecznej ROPS / INNO AGH**. Mostek sprawdza, czy pomysł **nie powiela innowacji już inkubowanych** (wymóg naboru), wskazuje mocne strony i luki oraz generuje **wizualizację pomysłu**. Fiszkę wysyła się do ROPS jednym kliknięciem. **Generator wniosku do naboru „Inkubator Włączenia Społecznego 2.0”** według prawdziwego wzoru formularza, z diagnozą opartą na raportach ROPS.
 4. **Tester innowacji + lista oczekujących.** Nabory testów. Profil potrzeb (za zgodą) sprawia, że gdy ROPS otwiera test pasującej innowacji, osoby z listy dostają zaproszenie.
 5. **Middleman Innowacji: „Dostosuj z Mostkiem”.** Typ instytucji, odbiorcy, ludzie, budżet, czas i ograniczenia → plan wdrożenia: ocena wykonalności, tabela „w oryginale / u Ciebie”, etapy, budżet, partnerzy, ryzyka, wskaźniki, **pierwszy tydzień**, założenia do sprawdzenia.
 6. **Platforma aktywnej komunikacji: Rozmowy z ROPS.** Pytanie, prośba o eksperta lub partnerstwo, także przekazanie sprawy przez Mostka z gotowym podsumowaniem. ROPS dostaje sprawę z **triażem AI** (kategoria, priorytet, streszczenie i szkic odpowiedzi do zatwierdzenia przez człowieka). Mierzony jest czas pierwszej odpowiedzi.
 7. **Panel administratora (ROPS).** CMS treści z przetwarzaniem AI jednym kliknięciem, **synchronizacja z Biblioteką ROPS** (tylko zmienione treści), skrzynka rozmów, otwieranie testów, **ustawienia AI** (osobowość, ograniczenia, budżet), dziennik moderacji, koszty.
 
-**Mostek, asystent AI nad całą platformą.** Użytkownik nie musi wiedzieć, którego modułu potrzebuje. Mostek wyszukuje innowacje, odpowiada z dokumentów ze źródłami, sprawdza Mapę Wyzwań i proponuje następny krok przyciskiem: dostosuj, kreator, testy, Przęsła, rozmowa z ROPS. Jest dostępny na każdej stronie (Alt+M) i zna kontekst bieżącej strony.
+**Strefa JST: główna ścieżka dla samorządów (wskazanie ROPS).**
+- **Radar naborów** z odliczaniem dni („do 600 000 zł, bez wkładu własnego, zostało 12 dni”) i dodaniem terminu do kalendarza.
+- **Test kwalifikacji w 60 sekund:** 4 pytania zbudowane wyłącznie z faktów regulaminu, każde z cytatem strony.
+- **Przedwstępny wniosek**, który od razu trafia do ROPS.
+- **Asystent grantowy**: Mostek przeprowadza pracownika gminy przez regulamin naboru „Usługa Wrażliwa” i dokumentację modeli innowacji (np. „ile osób potrzeba do Terapeuty przestrzeni?” z cytatem ze strony modelu), porównuje wymagania z zasobami gminy i proponuje, jak uzupełnić braki.
+- Kontakt zbierany na starcie, więc **ROPS widzi leady gmin z podsumowaniem AI** (gotowość, bariery, następny krok), nawet gdy ktoś przerwie.
+
+**Mostek, asystent AI nad całą platformą.** Użytkownik nie musi wiedzieć, którego modułu potrzebuje. Mostek wyszukuje innowacje, odpowiada z dokumentów ze źródłami, sprawdza Mapę Wyzwań i proponuje następny krok przyciskiem: dostosuj, kreator, testy, Przęsła, rozmowa z ROPS. Jest dostępny na każdej stronie (Alt+M) i zna kontekst bieżącej strony. Przy pierwszej wizycie pyta „Powiedz mi, kim jesteś” i kieruje na właściwą ścieżkę. **Tryb głosowy** (mów i słuchaj) jest dla mieszkańców, w tym osób niewidomych i słabowidzących. ROPS włącza go dla wybranych podstron, wybiera głos i widzi koszty.
 
 ## Co tworzy nową jakość (wyróżniki)
 
@@ -36,6 +43,9 @@ ROPS ma ogromny zasób wiedzy: ponad 200 opracowanych innowacji, raporty, diagno
 - **„Kaganiec” AI, o którym decyduje ROPS.** Przełączniki: tylko dozwolone źródła, bez porad medycznych, prawnych i politycznych, własne tematy wyłączone, blokada wulgaryzmów i obelg, maskowanie danych osobowych, budżet i limity. **Osobowość Mostka wybierana z 6 archetypów marki** (Opiekun, Mędrzec, Towarzysz, Przewodnik, Twórca, Bohater).
 - **AI, które nie zmyśla:** wybiera wyłącznie z bazy (walidacja identyfikatorów), cytuje strony dokumentów, oznacza braki [DO UZUPEŁNIENIA], a w razie braku danych mówi „nie wiem” i przekazuje sprawę człowiekowi.
 - **Synchronizacja zamiast ręcznego wpisywania:** importer Biblioteki ROPS z porównaniem skrótu treści. Przy aktualizacji AI przetwarza tylko to, co się zmieniło.
+- **Liczby tylko ze źródła ROPS:** kluczowe fakty naboru mają dosłowny cytat i automatyczną weryfikację w dokumencie (`pnpm verify:facts`). Test na liczbach wykrył i pozwolił naprawić przeoczenie „brak wkładu własnego”.
+- **Pomysły według kategorii:** ROPS widzi, w jakich obszarach mieszkańcy i organizacje zgłaszają pomysły. **Ogłoszenie naboru automatycznie powiadamia autorów pomysłów z pasujących obszarów.**
+- **Dokumentacja modeli innowacji z paczek ZIP ROPS** jest przeszukiwalna (instrukcje, specyfikacje, modele pracy), z cytatem strony.
 - **Trafność sprawdzona na realnych scenariuszach** (np. „syn ma spastyczność rąk, nie stać mnie na rehabilitację” → Edki: kredki terapeutyczne jako pierwsza propozycja).
 
 ## Dostępność (WCAG 2.1 AA)
@@ -62,16 +72,17 @@ Next.js 16 (TypeScript), Supabase (PostgreSQL + pgvector, RLS, Storage), Claude 
 ## Wdrożenie i koszty utrzymania
 
 - **Infrastruktura:** Supabase Pro ~25 USD/mies., Netlify Pro ~19 USD/mies.
+- **Tryb głosowy:** rozpoznawanie mowy ~0,003 USD/min, czytanie odpowiedzi ~0,015 USD/min. 1000 rozmów głosowych miesięcznie to ok. 50 USD. ROPS włącza głos per podstrona (domyślnie tylko dla mieszkańców).
 - **AI, zmierzone na prototypie:** dopasowanie ~0,07 USD, odpowiedź Mostka ~0,05-0,10 USD, plan wdrożenia ~0,10 USD, ocena pomysłu ~0,04 USD, wizualizacja ~0,01 USD, triaż sprawy ~0,01 USD, pełny szkic wniosku ~0,5-0,8 USD. **Import całej Biblioteki ROPS jednorazowo ~3 USD**, synchronizacja tylko zmian to centy.
 - **Przykład skali regionalnej:** 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie daje **ok. 150-200 USD/mies. za AI**. Budżet, limity dzienne i tryb oszczędny ustawia ROPS w panelu.
 - **Utrzymanie treści:** synchronizacja z Biblioteką ROPS (docelowo automatycznie raz dziennie), CMS dla pracowników ROPS i import dokumentów PDF jednym kliknięciem.
 
 ## Użycie AI w projekcie (ujawnienie)
 
-- **W produkcie:** Claude Opus 5.5 i Sonnet 5.5 (Anthropic), OpenAI `text-embedding-3-small`, `gpt-image-1`, `omni-moderation-latest`.
+- **W produkcie:** Claude Opus 5.5 i Sonnet 5.5 (Anthropic), OpenAI `text-embedding-3-small`, `gpt-image-1`, `omni-moderation-latest`, `gpt-4o-mini-transcribe`, `gpt-4o-mini-tts`.
 - **W trakcie budowy:** asystent kodowania Claude Code (Anthropic). Część danych (normalizacja 46 innowacji, struktura Mapy Wyzwań) przygotowano przez ekstrakcję w sesji asystenta, z tym samym schematem walidacji co produkcyjny pipeline.
 - Wszystkie decyzje techniczne są opisane w repozytorium (`notatki.md`, `ARCHITECTURE.md`).
 
 ## Co dalej
 
-Sterowanie głosem; zweryfikowane organizacje i wydarzenia (np. kawiarnia aktywizująca osoby z niepełnosprawnością dodaje zajęcia, a ROPS je weryfikuje); automatyczna synchronizacja przez cron; powiadomienia e-mail i SMS; pełny audyt WCAG; integracja z bazą grantową ROPS.
+Komendy głosowe nawigacji; zweryfikowane organizacje i wydarzenia (np. kawiarnia aktywizująca osoby z niepełnosprawnością dodaje zajęcia, a ROPS je weryfikuje); automatyczna synchronizacja przez cron; powiadomienia e-mail i SMS; pełny audyt WCAG; integracja z bazą grantową ROPS.

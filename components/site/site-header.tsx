@@ -9,6 +9,7 @@ import { enterAsPersona } from "@/app/logowanie/actions"
 import { isDemoMode } from "@/lib/demo/personas"
 
 const NAV = [
+  { href: "/dla-gmin", label: "Dla gmin" },
   { href: "/", label: "Znajdź rozwiązanie" },
   { href: "/innowacje", label: "Biblioteka innowacji" },
   { href: "/wiedza", label: "Wiedza" },
@@ -16,6 +17,7 @@ const NAV = [
   { href: "/testuj", label: "Testuj" },
   { href: "/przesla", label: "Przęsła" },
   { href: "/rozmowy", label: "Rozmowy z ROPS" },
+  { href: "/aktualnosci", label: "Aktualności" },
 ]
 
 export async function SiteHeader() {

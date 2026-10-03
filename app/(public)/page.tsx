@@ -2,6 +2,7 @@ import { MatchFlow } from "@/components/match/match-flow"
 import { MostekMark } from "@/components/site/logo"
 import { Tagline } from "@/components/site/tagline"
 import { AudienceSplit } from "@/components/site/audience-split"
+import { NewsList } from "@/components/site/news-list"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ problem?: string }> }) {
@@ -40,6 +41,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
         <h2 className="mt-12 text-2xl font-bold">Opisz problem - znajdziemy rozwiązania</h2>
         <MatchFlow initialText={problem} />
       </div>
+      <NewsList limit={4} />
       <p className="mt-6 text-center text-muted-foreground">
         Wolisz rozmowę? <a href="/mostek" className="font-semibold">Porozmawiaj z Mostkiem</a> - zapyta o szczegóły, odpowie na podstawie raportów ROPS
         i poprowadzi do następnego kroku. <span className="whitespace-nowrap">(Skrót: Alt + M)</span>

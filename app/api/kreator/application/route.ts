@@ -10,7 +10,8 @@ export async function POST(req: Request) {
   const p = await prepare(req, "kreator.application")
   if ("error" in p) return p.error
   const db = createAdminClient()
-  const { data: call } = await db.from("calls").select("id, title, rules").eq("active", true).order("closes_at").limit(1).single()
+  // generator wniosków działa dla naborów ze zdefiniowaną strukturą formularza (rules.sekcje_wniosku)
+  const { data: call } = await db.from("calls").select("id, title, rules").eq("active", true).not("rules->sekcje_wniosku", "is", null).limit(1).single()
   if (!call) return Response.json({ ok: false, message: "Obecnie nie ma aktywnego naboru." }, { status: 404 })
   const rules = call.rules as { sekcje_wniosku: { nr: number; tytul: string; pomoc: string }[] } & Record<string, unknown>
   const nrs: number[] = Array.isArray(p.body?.nrs) ? p.body.nrs.filter((n: unknown) => typeof n === "number") : []

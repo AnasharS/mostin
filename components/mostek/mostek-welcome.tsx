@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Landmark, Users, HandHeart, MessageCircle, X } from "lucide-react"
 
 const KEY = "mostin-welcome-v1"
@@ -13,14 +13,17 @@ const KEY = "mostin-welcome-v1"
 export function MostekWelcome() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
+    // tylko na stronie głównej - na podstronach użytkownik już wie, gdzie jest
+    if (pathname !== "/") return
     let seen = true
     try { seen = Boolean(localStorage.getItem(KEY)) } catch {}
     if (seen) return
     const t = setTimeout(() => setOpen(true), 1200)
     return () => clearTimeout(t)
-  }, [])
+  }, [pathname])
 
   const close = () => {
     setOpen(false)
@@ -28,7 +31,7 @@ export function MostekWelcome() {
   }
   const go = (href: string) => { close(); router.push(href) }
 
-  if (!open) return null
+  if (!open || pathname !== "/") return null
   const btn = "flex w-full items-center gap-3 rounded-lg border bg-background p-3 text-left hover:border-brand hover:bg-accent"
   return (
     <section
