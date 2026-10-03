@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getSessionKey } from "@/lib/session"
 import { getPolicy } from "@/lib/ai/policy"
+import { toFile } from "openai"
 import { openai } from "@/lib/ai/clients"
 import { voiceAllowed, VOICE_PRICES } from "@/lib/voice"
 
@@ -23,14 +24,17 @@ export async function POST(req: Request) {
   const sessionKey = await getSessionKey()
   const db = createAdminClient()
   // dzienny limit minut głosu na osobę/sesję (panel ROPS)
-  const { data: used } = await db.from("ai_usage").select("units").in("route", ["voice.stt", "voice.tts"]).eq("session_key", sessionKey!).gte("created_at", new Date(Date.now() - 86_400_000).toISOString())
+  const usage = db.from("ai_usage").select("units").in("route", ["voice.stt", "voice.tts"])
+  const { data: used } = await (sessionKey ? usage.eq("session_key", sessionKey) : user ? usage.eq("user_id", user.id) : usage.eq("session_key", "-")).gte("created_at", new Date(Date.now() - 86_400_000).toISOString())
   const minutes = (used ?? []).reduce((s, r) => s + Number(r.units), 0)
   if (minutes >= policy.daily_voice_minutes_per_user) {
     return Response.json({ ok: false, message: "Wykorzystano dzienny limit rozmów głosowych. Możesz dalej pisać." }, { status: 429 })
   }
   try {
     const model = process.env.OPENAI_STT_MODEL ?? "gpt-4o-mini-transcribe"
-    const r = await openai.audio.transcriptions.create({ file: audio, model, language: "pl" })
+    // plik przekazujemy z nazwą i typem z przeglądarki (webm/m4a/ogg) - po nich API rozpoznaje format nagrania
+    const file = await toFile(Buffer.from(await audio.arrayBuffer()), audio.name || "nagranie.webm", { type: audio.type || "audio/webm" })
+    const r = await openai.audio.transcriptions.create({ file, model, language: "pl" })
     await db.from("ai_usage").insert({ route: "voice.stt", model, units: seconds / 60, cost_usd: (seconds / 60) * VOICE_PRICES.stt_per_min, user_id: user?.id ?? null, session_key: sessionKey })
     return Response.json({ ok: true, text: r.text })
   } catch (e) {

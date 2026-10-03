@@ -432,3 +432,8 @@ opis problemu
   3. **Kontakt prywatny po obopólnej zgodzie:** „Poproś o kontakt” przy pseudonimie, prośba z własnym kontaktem; adresat widzi go dopiero, gdy się zgodzi i poda swój. Kontakty widzą tylko te dwie osoby (`circle_contact_requests`).
   4. **ROPS nie czyta rozmów.** Wiadomości widzą tylko członkowie kręgu. ROPS widzi wyłącznie wiadomości zgłoszone przyciskiem „Zgłoś” (Panel → Zgłoszenia z Przęseł) i może je ukryć albo uznać zgłoszenie za bezzasadne.
 - **Kryzys:** treść o myślach samobójczych (słowa kluczowe + kategoria self-harm) nie jest blokowana - pod wiadomością pojawia się ramka z telefonami 116 123, 800 70 2222, 116 111 i 112. Numery zweryfikowane na gov.pl (Ministerstwo Zdrowia).
+
+### 35. Głos w czacie Mostka: naprawy
+- **Rozpoznawanie mowy nie działało na iPhonie/Safari:** przeglądarka nagrywa w mp4, a plik był wysyłany jako „nagranie.webm” - API odrzucało go po rozszerzeniu (odtworzone testem: ten sam plik jako .m4a rozpoznany poprawnie, jako .webm błąd). Teraz format nagrania jest wybierany z obsługiwanych przez przeglądarkę, a nazwa pliku pasuje do formatu. Zbyt krótkie nagranie dostaje czytelny komunikat.
+- **Rozpoznany tekst od razu trafia do Mostka** (widać go w rozmowie jako pytanie) - wcześniej lądował w polu i czekał na Enter, co wyglądało, jakby Mostek nie usłyszał.
+- **Odtwarzanie:** jeden odtwarzacz na stronę. Nowa odpowiedź zatrzymuje poprzednią, kliknięcie w trakcie przygotowywania przerywa pobieranie, nowe pytanie, mikrofon, „Nowa rozmowa” i zamknięcie czatu zatrzymują czytanie. Odpowiedzi nie nakładają się na siebie.

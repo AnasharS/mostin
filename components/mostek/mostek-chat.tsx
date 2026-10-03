@@ -9,7 +9,7 @@ import { usePlainLanguage } from "@/components/site/a11y-toolbar"
 import type { Source, ActionCard } from "@/lib/mostek/tools"
 import { quickLinks, type Page } from "@/lib/site/sitemap"
 import { DemoExamples } from "@/components/site/demo-examples"
-import { MicButton, SpeakButton, useVoiceConfig } from "./voice"
+import { MicButton, SpeakButton, stopSpeaking, useVoiceConfig } from "./voice"
 
 type Msg = { role: "user" | "assistant"; text: string; sources?: Source[]; actions?: ActionCard[]; tools?: string[]; quick?: Pick<Page, "path" | "title">[] }
 
@@ -97,6 +97,7 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
   async function send(text: string) {
     const q = text.trim()
     if (!q || busy) return
+    stopSpeaking() // nowe pytanie przerywa czytanie poprzedniej odpowiedzi
     setInput("")
     setBusy(true)
     setStatus("Mostek myśli…")
@@ -158,6 +159,7 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
   }, [initial])
 
   function reset() {
+    stopSpeaking()
     sessionRef.current = null
     setMsgs([])
     try { sessionStorage.removeItem(storeKey) } catch {}
@@ -270,7 +272,7 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
             aria-describedby={`${inputId}-h`}
             className="min-h-11 flex-1 resize-none rounded-lg border border-input bg-background p-2.5 text-base"
           />
-          {voice.enabled && <MicButton page={pathname} onText={(t) => { setInput((x) => (x ? x + " " : "") + t); inputRef.current?.focus() }} onStatus={setStatus} />}
+          {voice.enabled && <MicButton page={pathname} onText={(t) => void send(input.trim() ? `${input.trim()} ${t}` : t)} onStatus={setStatus} />}
           <Button type="submit" size="lg" className="h-11 px-4" disabled={busy || !input.trim()}>
             {busy ? "…" : "Wyślij"}
           </Button>
