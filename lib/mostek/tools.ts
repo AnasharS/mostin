@@ -9,7 +9,7 @@ import { CATEGORIES, TARGET_GROUPS } from "@/lib/ai/taxonomy"
 // które zwraca kartę z przyciskiem — wykonanie zawsze zatwierdza człowiek kliknięciem.
 
 export type Source = { id: string; kind: "innowacja" | "dokument" | "wyzwanie"; title: string; detail?: string; url: string }
-export type ActionCard = { kind: "dostosuj" | "kreator" | "rozmowa_rops" | "dopasuj" | "otworz"; label: string; href: string; description?: string }
+export type ActionCard = { kind: "dostosuj" | "kreator" | "rozmowa_rops" | "dopasuj" | "otworz" | "lista_testow" | "przesla"; label: string; href: string; description?: string }
 
 export type ToolContext = {
   /** ostatnia wypowiedź użytkownika — dołączana do wyszukiwania, żeby nie zgubić jego kluczowych słów (np. „spastyczność”) */
@@ -27,8 +27,11 @@ const SearchInnovations = z.object({
 const GetInnovation = z.object({ innovation_id: z.number().int() })
 const SearchDocuments = z.object({ query: z.string().min(2).max(500) })
 const SearchChallenges = z.object({ query: z.string().min(2).max(500) })
+const PrzeslaStats = z.object({ categories: z.array(z.enum(CATEGORIES)).min(1), district: z.string().max(80).optional() })
 const ProposeAction = z.object({
-  kind: z.enum(["dostosuj", "kreator", "rozmowa_rops", "dopasuj", "otworz"]),
+  kind: z.enum(["dostosuj", "kreator", "rozmowa_rops", "dopasuj", "otworz", "lista_testow", "przesla"]),
+  categories: z.array(z.enum(CATEGORIES)).optional(),
+  target_groups: z.array(z.enum(TARGET_GROUPS)).optional(),
   label: z.string().min(2).max(80),
   innovation_id: z.number().int().optional(),
   text: z.string().max(1500).optional(),
@@ -79,6 +82,23 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     eager_input_streaming: true,
   },
   {
+    name: "przesla_stats",
+    description:
+      "Przęsła — sprawdza (anonimowo, tylko liczby), ile osób w podobnej sytuacji zgodziło się na kontakt z innymi oraz jakie kręgi wsparcia już działają. " +
+      "Używaj, gdy użytkownik opisuje osobistą, trudną sytuację (opieka, niepełnosprawność, samotność, migracja), żeby pokazać, że nie jest sam, i zaproponować dołączenie (za zgodą).",
+    input_schema: {
+      type: "object",
+      properties: {
+        categories: { type: "array", items: { type: "string", enum: [...CATEGORIES] } },
+        district: { type: "string", description: "dzielnica/gmina, jeśli użytkownik ją podał" },
+      },
+      required: ["categories"],
+      additionalProperties: false,
+    },
+    strict: true,
+    eager_input_streaming: true,
+  },
+  {
     name: "propose_action",
     description:
       "Proponuje użytkownikowi następny krok jako przycisk (wykonuje go użytkownik, nie Ty). Rodzaje: " +
@@ -86,11 +106,15 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
       "kreator — stworzenie nowego pomysłu, gdy brak dobrego rozwiązania (text = opis problemu i luki); " +
       "rozmowa_rops — przekazanie sprawy pracownikowi/ekspertowi ROPS (text = podsumowanie sprawy); " +
       "dopasuj — pełne dopasowanie innowacji do opisu problemu (text = opis problemu); " +
-      "otworz — przejście do sekcji serwisu (path). Proponuj 1–2 akcje na odpowiedź, gdy to naprawdę pomaga.",
+      "otworz — przejście do sekcji serwisu (path); " +
+      "lista_testow — zapis na listę oczekujących na testy nowych innowacji (categories, target_groups, text = krótki opis sytuacji BEZ danych osobowych; kontakt użytkownik poda sam w formularzu); " +
+      "przesla — dołączenie do Przęseł, kręgów wsparcia osób w podobnej sytuacji. Proponuj 1–2 akcje na odpowiedź, gdy to naprawdę pomaga.",
     input_schema: {
       type: "object",
       properties: {
-        kind: { type: "string", enum: ["dostosuj", "kreator", "rozmowa_rops", "dopasuj", "otworz"] },
+        kind: { type: "string", enum: ["dostosuj", "kreator", "rozmowa_rops", "dopasuj", "otworz", "lista_testow", "przesla"] },
+        categories: { type: "array", items: { type: "string", enum: [...CATEGORIES] } },
+        target_groups: { type: "array", items: { type: "string", enum: [...TARGET_GROUPS] } },
         label: { type: "string", description: "Krótki napis na przycisku, np. „Dostosuj Senior CUDER do fundacji”" },
         innovation_id: { type: "integer" },
         text: { type: "string" },
@@ -110,6 +134,7 @@ export const TOOL_LABELS: Record<string, string> = {
   search_documents: "Przeszukuję raporty ROPS",
   search_challenges: "Sprawdzam Mapę Wyzwań",
   propose_action: "Przygotowuję następny krok",
+  przesla_stats: "Sprawdzam, kto jest w podobnej sytuacji",
 }
 
 const STOP = new Set("jest moze mozna mamy mama ktory ktora ktore tego taki takie bardzo przez kiedy gdzie dodatkowo swoj moje mojego nasze sobie szukam chcemy prowadze zrobic potrzebuje pomoc pomocy czyli wiele ograniczony".split(" "))
@@ -229,6 +254,25 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
         })),
       }
     }
+    case "przesla_stats": {
+      const p = PrzeslaStats.safeParse(input)
+      if (!p.success) return { content: "Nieprawidłowe parametry", isError: true }
+      const base = () => db.from("needs_profiles").select("*", { count: "exact", head: true }).eq("consent_przesla", true).overlaps("categories", p.data.categories)
+      const [{ count: region }, local, { data: circles }] = await Promise.all([
+        base(),
+        p.data.district ? base().ilike("district", `%${p.data.district}%`) : Promise.resolve({ count: null }),
+        db.from("circles").select("title, region_label, circle_members(count)").overlaps("categories", p.data.categories).limit(5),
+      ])
+      return {
+        content: JSON.stringify({
+          osoby_w_malopolsce: region ?? 0,
+          ...(p.data.district ? { osoby_w_okolicy: local.count ?? 0 } : {}),
+          kregi: (circles ?? []).map((c) => ({ nazwa: c.title, gdzie: c.region_label, osob: (c.circle_members as unknown as { count: number }[])[0]?.count ?? 0 })),
+          uwaga: "Tylko liczby — tożsamość osób jest chroniona. Kontakt wyłącznie za zgodą, pod pseudonimem.",
+          zrodlo: "[Przęsła MostIn]",
+        }),
+      }
+    }
     case "propose_action": {
       const p = ProposeAction.safeParse(input)
       if (!p.success) return { content: "Nieprawidłowa akcja", isError: true }
@@ -250,6 +294,17 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
           break
         case "dopasuj":
           href = `/?problem=${encodeURIComponent(a.text ?? "")}`
+          break
+        case "lista_testow": {
+          const qs = new URLSearchParams({ zrodlo: "mostek" })
+          if (a.categories?.length) qs.set("kategorie", a.categories.join(","))
+          if (a.target_groups?.length) qs.set("dla", a.target_groups.join(","))
+          if (a.text) qs.set("sytuacja", a.text)
+          href = `/testuj?${qs.toString()}#lista`
+          break
+        }
+        case "przesla":
+          href = "/przesla"
           break
         default:
           href = a.path ?? "/"

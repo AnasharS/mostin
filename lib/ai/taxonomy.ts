@@ -80,6 +80,9 @@ const LABELS: Record<string, string> = {
   testowana: "Testowana",
   wdrozona: "Wdrożona",
   upowszechniana: "Upowszechniana",
+  planned: "Planowany",
+  open: "Nabór otwarty",
+  closed: "Zakończony",
 }
 
 export const label = (slug: string) =>

@@ -201,6 +201,24 @@ opis problemu
 - **Efekt:** Edki są pierwszą propozycją z trafnym opisem. Scenariusze kontrolne (seniorzy → Senior CUDER, gmina z rodzinami z Ukrainy → Mój pomocny Virtual World) nadal działają.
 - **Na pitch:** jakość dopasowania sprawdzaliśmy na realnych scenariuszach użytkowników i poprawialiśmy mierzalnie (pozycja oczekiwanej innowacji w rankingu: #8 → #1 w odpowiedzi Mostka).
 
+## 19. Profil potrzeb → Testuj (lista oczekujących) + Przęsła
+
+- **Jeden opcjonalny profil potrzeb zasila trzy funkcje:** listę oczekujących na testy, Przęsła i (docelowo) rekomendacje wydarzeń. Zawiera obszary (wspólna taksonomia), grupy, krótki opis sytuacji, dzielnicę lub gminę, pseudonim i **dwie osobne zgody** (powiadomienia o testach / widoczność w Przęsłach).
+- **Prywatność z założenia:**
+  - **dane kontaktowe są w osobnej tabeli `profile_contacts`, nigdy nie trafiają do modeli AI** i widzi je tylko ROPS;
+  - Mostek proponuje zapis przyciskiem z gotowymi kategoriami, a kontakt człowiek wpisuje sam w formularzu;
+  - opis sytuacji jest maskowany z danych osobowych i filtrowany z wulgaryzmów, zanim trafi do embeddingu;
+  - do działania wystarczą obszary, bez diagnoz (zgodnie z wytycznymi: nie wymagamy informacji o niepełnosprawności).
+- **Lista oczekujących:** ROPS w panelu zmienia status testu na „open”, a system dopasowuje profile ze zgodą (kategorie i grupy) i tworzy **zaproszenia** (`test_invitations`). Użytkownik widzi je jako powiadomienia na stronie Testuj („Chcę testować / Nie teraz”). Wysyłka maili lub SMS to kolejny krok (kolumna `preferred` jest już w bazie).
+- **Przęsła** (przęsło łączy dwa brzegi mostu, stąd nazwa) to kręgi wsparcia osób w podobnej sytuacji:
+  - **anonimowe liczby** („4 osoby w okolicy Nowa Huta, 5 w Małopolsce”) z funkcji `przesla_similar`, która nie zwraca tożsamości, liczy tylko zgody i porównuje kategorie oraz embedding;
+  - rozmowy **pod pseudonimem**, każda wiadomość przez filtr wulgaryzmów, moderację i maskowanie danych osobowych;
+  - **propozycja spotkania** na żywo, tylko gdy grupa chce;
+  - zasady kręgu: bez oceniania i bez porad medycznych.
+- **Mostek** ma narzędzie `przesla_stats` i akcje `lista_testow` / `przesla`. W scenariuszu mamy dziecka ze spastycznością z Nowej Huty mówi: „Nie jest Pani sama. W Nowej Hucie działa krąg »Rodzice dzieci ze spastycznością« (4 osoby)” i proponuje dołączenie.
+- **Dane demo** (`pnpm seed:demo`) są **syntetyczne**: 10 profili, 3 testy (Edki do otwarcia w demo, Senior CUDER i Virtual World otwarte), 3 kręgi z rozmowami.
+- **Scenariusz demo:** ROPS otwiera test Edek w panelu → rodziny z listy dostają zaproszenia → mama widzi powiadomienie.
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [x] Mostek — agent z narzędziami (sekcja 17)
@@ -208,7 +226,7 @@ opis problemu
 - [x] Knowledge RAG w praktyce (sekcje 14 i 17)
 - [ ] Kreator pomysłów + generator wniosków + wizualizacja
 - [ ] **Wizualizacja pomysłu (obraz z opisu):** osoba z pomysłem, ale bez środków na projekt czy grafika, generuje obraz innowacji (np. przedmiotu, miejsca, usługi) z opisu w Kreatorze i może wysłać fiszkę z wizualizacją do ROPS do wglądu. Obniża próg wejścia dla oddolnych innowatorów. Koszt kontrolowany limitem obrazów na użytkownika i przełącznikiem w ustawieniach AI.
-- [ ] Tester innowacji + **lista oczekujących na testy**: zapis przez checkboxy, czat lub głos z Mostkiem → kategorie problemu + kontakt. Kontakt wpisuje się w formularzu i nie trafia do LLM. Gdy ROPS oznaczy innowację jako „gotową do testów”, system dopasowuje listę (kategorie + embedding) i tworzy powiadomienia (demo bez wysyłki maili).
+- [x] Tester innowacji + **lista oczekujących na testy** (sekcja 19): zapis przez checkboxy, czat lub głos z Mostkiem → kategorie problemu + kontakt. Kontakt wpisuje się w formularzu i nie trafia do LLM. Gdy ROPS oznaczy innowację jako „gotową do testów”, system dopasowuje listę (kategorie + embedding) i tworzy powiadomienia (demo bez wysyłki maili).
 - [ ] Rozmowy z ROPS (Realtime, powiadomienia)
 - [ ] Panel kosztów i ustawień AI (kaganiec + **tone of voice przez archetypy marki**)
 - [ ] **Sterowanie głosem** (jeśli wystarczy czasu): „Powiedz Mostkowi”, push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności lokalnie bez LLM. Dla seniorów i osób z niepełnosprawnościami ruchowymi lub wzroku.

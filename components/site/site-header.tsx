@@ -11,6 +11,7 @@ const NAV = [
   { href: "/wiedza", label: "Wiedza" },
   { href: "/kreator", label: "Kreator pomysłów" },
   { href: "/testuj", label: "Testuj" },
+  { href: "/przesla", label: "Przęsła" },
   { href: "/rozmowy", label: "Rozmowy z ROPS" },
 ]
 

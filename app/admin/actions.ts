@@ -70,7 +70,15 @@ export async function saveRecord(slug: string, id: string | null, form: FormData
   if (error) redirect(`/admin/${slug}/${id ?? "nowy"}?blad=${encodeURIComponent(error.message)}`)
 
   revalidatePath(`/admin/${slug}`)
-  redirect(`/admin/${slug}/${data.id}?ok=${encodeURIComponent("Zapisano")}`)
+  let msg = "Zapisano"
+  // otwarcie naboru testów → dopasowanie listy oczekujących i zaproszenia (powiadomienia w serwisie)
+  if (resource.table === "tests" && values.status === "open") {
+    const { matchTestToWaitlist } = await import("@/lib/profiles")
+    const { invited } = await matchTestToWaitlist(Number(data.id))
+    msg = `Zapisano. Lista oczekujących: wysłano ${invited} ${invited === 1 ? "zaproszenie" : "zaproszeń"} do testów.`
+    revalidatePath("/testuj")
+  }
+  redirect(`/admin/${slug}/${data.id}?ok=${encodeURIComponent(msg)}`)
 }
 
 export async function deleteRecord(slug: string, id: string) {
