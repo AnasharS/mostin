@@ -14,7 +14,14 @@ export default async function PrzeslaReportsPage() {
     .select("id, message_id, reason, status, created_at, circles(title), circle_messages(nickname, body, hidden)")
     .order("created_at", { ascending: false }).limit(100)
   const rows = (data ?? []) as unknown as Row[]
-  const open = rows.filter((r) => r.status === "new")
+  // kilka zgłoszeń tej samej wiadomości = jedna pozycja z listą powodów
+  const grouped = new Map<number, Row & { reasons: string[]; count: number }>()
+  for (const r of rows.filter((x) => x.status === "new")) {
+    const g = grouped.get(r.message_id)
+    if (g) { g.count++; if (r.reason) g.reasons.push(r.reason) }
+    else grouped.set(r.message_id, { ...r, count: 1, reasons: r.reason ? [r.reason] : [] })
+  }
+  const open = [...grouped.values()]
 
   return (
     <div className="max-w-4xl">
@@ -34,7 +41,8 @@ export default async function PrzeslaReportsPage() {
               <p className="text-sm font-semibold">{r.circle_messages?.nickname}</p>
               <p className="whitespace-pre-wrap">{r.circle_messages?.body}</p>
             </blockquote>
-            {r.reason && <p className="mt-2 text-sm"><strong>Powód zgłoszenia:</strong> {r.reason}</p>}
+            <p className="mt-2 text-sm font-semibold">{r.count === 1 ? "1 zgłoszenie" : `${r.count} zgłoszenia od różnych osób`}</p>
+            {r.reasons.length > 0 && <ul className="mt-1 list-disc pl-5 text-sm">{r.reasons.map((x, i) => <li key={i}>{x}</li>)}</ul>}
             <div className="mt-3 flex flex-wrap gap-2">
               <form action={hideReported.bind(null, r.message_id)}><Button type="submit" size="sm">Ukryj wiadomość</Button></form>
               <form action={dismissReport.bind(null, r.message_id)}><Button type="submit" size="sm" variant="outline">Zgłoszenie bezzasadne</Button></form>

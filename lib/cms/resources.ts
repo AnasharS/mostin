@@ -88,7 +88,7 @@ export const RESOURCES: Resource[] = [
     ingest: "document",
     fields: [
       { name: "title", label: "Tytuł", type: "text", required: true },
-      { name: "kind", label: "Rodzaj", type: "select", options: ["report", "regulation", "challenge_map", "guide", "call_rules", "other"], required: true },
+      { name: "kind", label: "Rodzaj", type: "select", options: ["report", "regulation", "challenge_map", "guide", "call_rules", "innovation_model", "other"], required: true },
       { name: "description", label: "Opis", type: "textarea" },
       { name: "storage_path", label: "Plik PDF", type: "file", bucket: "documents", accept: "application/pdf" },
       { name: "source_url", label: "Link do źródła", type: "url" },
@@ -193,7 +193,7 @@ export const RESOURCES: Resource[] = [
       { name: "innovation_id", label: "ID innowacji", type: "number", required: true },
       { name: "title", label: "Tytuł", type: "text", required: true },
       { name: "description", label: "Opis", type: "textarea" },
-      { name: "status", label: "Status", type: "select", options: ["planned", "open", "closed"], required: true, help: "open = nabór otwarty → zaproszenia dla pasujących osób z listy oczekujących" },
+      { name: "status", label: "Status", type: "select", options: ["planned", "open", "closed"], required: true, help: "„Nabór otwarty” wysyła zaproszenia do pasujących osób z listy oczekujących." },
       { name: "categories", label: "Kategorie (do dopasowania listy oczekujących)", type: "multiselect", options: CATEGORIES },
       { name: "target_groups", label: "Grupy docelowe", type: "multiselect", options: TARGET_GROUPS },
       { name: "location", label: "Miejsce", type: "text" },

@@ -15,7 +15,8 @@
     "seed:mapa": "tsx --conditions=react-server scripts/seed-challenge-map.ts",
     "seed:demo": "tsx --conditions=react-server scripts/seed-demo.ts",
     "verify:facts": "tsx --conditions=react-server scripts/verify-facts.ts",
-    "ingest:zips": "tsx --conditions=react-server scripts/ingest-zips.ts"
+    "ingest:zips": "tsx --conditions=react-server scripts/ingest-zips.ts",
+    "seed:demo-extra": "tsx --conditions=react-server scripts/seed-demo-extra.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

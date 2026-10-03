@@ -85,6 +85,17 @@ const LABELS: Record<string, string> = {
   wszyscy: "Wszyscy", jst: "Samorządy (JST)", organizacje: "Organizacje", mieszkancy: "Mieszkańcy", usluga_wrazliwa: "Usługa Wrażliwa",
   open: "Nabór otwarty",
   closed: "Zakończony",
+  // rodzaje dokumentów i materiałów w CMS
+  report: "Raport",
+  regulation: "Regulamin",
+  challenge_map: "Mapa wyzwań",
+  guide: "Poradnik",
+  call_rules: "Zasady naboru",
+  innovation_model: "Model innowacji (z paczki ROPS)",
+  other: "Inny",
+  canvas: "Kanwa / szablon",
+  video: "Film",
+  course: "Kurs",
 }
 
 export const label = (slug: string) =>

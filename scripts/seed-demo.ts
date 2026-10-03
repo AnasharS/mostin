@@ -20,7 +20,7 @@ async function main() {
   const { createAdminClient } = await import("@/lib/supabase/admin")
   const { embed, toPgVector } = await import("@/lib/ai/embeddings")
   const { profileText, matchTestToWaitlist } = await import("@/lib/profiles")
-  const { CAREGIVER_CIRCLE, CAREGIVER_PROFILES } = await import("@/lib/demo/circles")
+  const { CAREGIVER_CIRCLE, CAREGIVER_PROFILES, EXTRA_MESSAGES } = await import("@/lib/demo/circles")
   PROFILES.push(...CAREGIVER_PROFILES)
   const db = createAdminClient()
 
@@ -85,9 +85,11 @@ async function main() {
       title: c.title, topic: c.topic, categories: c.categories, district: c.district, region_label: c.district, created_by: byNick.get(c.by), meeting_note: c.meeting_note,
     }).select("id").single()
     await db.from("circle_members").insert(c.members.map((n) => ({ circle_id: circle!.id, profile_id: byNick.get(n) })))
-    const base = Date.now() - c.messages.length * 3600_000
-    await db.from("circle_messages").insert(c.messages.map(([n, body], i) => ({
-      circle_id: circle!.id, profile_id: byNick.get(n), nickname: n, body, created_at: new Date(base + i * 3600_000).toISOString(),
+    // wiadomości startowe + dłuższa przykładowa rozmowa, rozłożone w czasie do teraz
+    const all = [...c.messages, ...(EXTRA_MESSAGES[c.title] ?? [])]
+    const base2 = Date.now() - all.length * 1800_000
+    await db.from("circle_messages").insert(all.map(([n, body], i) => ({
+      circle_id: circle!.id, profile_id: byNick.get(n), nickname: n, body, created_at: new Date(base2 + i * 1800_000).toISOString(),
     })))
   }
   // pomysły z Kreatora (syntetyczne) - z kategoriami i wątkiem w Rozmowach

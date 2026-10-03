@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { label } from "@/lib/ai/taxonomy"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getResource } from "@/lib/cms/resources"
@@ -13,6 +14,8 @@ function Cell({ name, value }: { name: string; value: unknown }) {
   if (typeof value === "boolean") return <>{value ? "Tak" : "Nie"}</>
   if (value === null || value === undefined || value === "") return <span className="text-muted-foreground">-</span>
   if (name.endsWith("_at") && typeof value === "string") return <>{new Date(value).toLocaleDateString("pl-PL")}</>
+  // wartości słownikowe (rodzaj, etap, status) po polsku
+  if (["kind", "stage", "status", "eligibility_check"].includes(name) && typeof value === "string") return <>{label(value)}</>
   return <>{String(value)}</>
 }
 

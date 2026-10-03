@@ -441,3 +441,14 @@ opis problemu
 ### 36. Przęsła w demo: persona w kręgu i szybkie dołączanie
 - Persona „Anna, mieszkanka Nowego Targu” (opiekuje się mamą po udarze) przy wejściu dostaje profil z pseudonimem Anna_NowyTarg i miejsce w nowym kręgu „Opiekunowie bliskich po udarze - Małopolska” (syntetyczne osoby i rozmowa, `lib/demo/circles.ts`, także w `pnpm seed:demo`). Jury od razu widzi rozmowę, „Zgłoś” i „Poproś o kontakt”.
 - „Dołącz do kręgu” bez profilu nie odsyła już do Testuj z błędem. Prowadzi do krótkiego kroku `/przesla/dolacz`: pseudonim + zgoda i od razu wejście do kręgu. Obok ramka DEMO „Dołącz jako przykładowa osoba” - wylosowany pseudonim i jedno kliknięcie.
+
+### 37. Dane demo do pokazu i panel po polsku
+- Kręgi Przęseł mają dłuższe przykładowe rozmowy (wszystkie 4). Widać w nich zasady: ukryty numer i podpowiedź „Poproś o kontakt”, rozmowę o zmęczeniu bez oceniania, umawianie spotkania (`EXTRA_MESSAGES` w `lib/demo/circles.ts`, także w `pnpm seed:demo`).
+- `pnpm seed:demo-extra` (idempotentne, session_key `demo-extra`) uzupełnia panel ROPS:
+  - 5 leadów gmin z historią pytań do asystenta grantowego (różna gotowość i statusy),
+  - 3 przedwstępne wnioski (jeden komplet, dwa z warunkami do wyjaśnienia),
+  - 3 pytania gmin w Rozmowach z ROPS (jedno pilne, jedno z odpowiedzią),
+  - zgłoszenia z Przęseł: reklama suplementu zgłoszona przez dwie osoby i jedno zgłoszenie z nieporozumienia,
+  - 4 aktualności i 3 zdarzenia w dzienniku moderacji (fragmenty zamaskowane).
+- Zgłoszenia tej samej wiadomości są grupowane (liczba zgłoszeń + lista powodów).
+- CMS po polsku: rodzaje dokumentów i materiałów (Raport, Regulamin, Mapa wyzwań, Poradnik, Zasady naboru, Model innowacji, Kurs…) w formularzach i na listach; statusy i etapy też przez słownik etykiet.
