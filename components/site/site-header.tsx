@@ -36,7 +36,7 @@ export async function SiteHeader() {
         </div>
       </div>
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="text-2xl" aria-label="MostIn — strona główna">
+        <Link href="/" className="text-[2rem] leading-none" aria-label="MostIn — strona główna">
           <Logo />
         </Link>
         <nav aria-label="Główna">

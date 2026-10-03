@@ -1,17 +1,10 @@
-/** Znak MostIn: łuk mostu łączący dwa brzegi — problem i rozwiązanie. „Most” + „In” (wejście do świata innowacji). */
-export function Logo({ className = "" }: { className?: string }) {
+// Logo MostIn — wektor z pliku MostIn_logo.svg (Adobe Illustrator), wstawiony inline,
+// żeby kolory reagowały na tryb wysokiego kontrastu (--logo-ink / --logo-accent w globals.css).
+export function Logo({ className = "", title = "MostIn" }: { className?: string; title?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 font-bold tracking-tight ${className}`}>
-      <svg viewBox="0 0 40 24" className="h-[1.05em] w-auto text-brand" aria-hidden="true" focusable="false">
-        <path d="M2 20 Q20 -4 38 20" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M2 20 H38" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M11 20 V12 M20 20 V8 M29 20 V12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      </svg>
-      <span>
-        <span className="text-foreground">Most</span>
-        <span className="text-brand">In</span>
-      </span>
-    </span>
+    <svg viewBox="0 0 214 49.76" className={`h-[1.15em] w-auto ${className}`} role="img" aria-label={title}>
+      <g> <path className="fill-[var(--logo-ink)]" d="M102.47,43.45V13.51c0-.67.11-1.45.11-1.5-.06.06-.33.61-.56.89l-12.76,17.22h-2.23l-12.88-16.78c-.22-.22-.5-.72-.56-.84,0,.11.11.78.11,1.45v29.49h-5.57V2.76h4.74l15.33,19.9,14.88-19.9h4.96v40.69h-5.57Z"/> <path className="fill-[var(--logo-ink)]" d="M125.99,44.12c-6.86,0-11.82-4.85-11.82-12.43,0-6.24,4.46-12.1,11.71-12.1s12.04,5.57,12.04,11.87c0,7.02-4.85,12.65-11.93,12.65ZM125.88,24.49c-3.96,0-6.3,3.23-6.3,7.19,0,4.63,2.34,7.52,6.24,7.52,4.74,0,6.69-3.23,6.69-7.41,0-4.52-2.56-7.3-6.63-7.3Z"/> <path className="fill-[var(--logo-ink)]" d="M150.13,44c-3.23,0-6.02-1.06-8.36-2.95l2.62-3.96c1.95,1.56,4.18,2.17,5.46,2.17,1.51,0,3.01-.61,3.01-2.01,0-1.62-1.45-2.45-3.46-3.46-3.01-1.45-7.02-3.01-7.02-7.69,0-3.62,3.46-6.52,7.69-6.52,2.23,0,5.02.39,7.47,2.06l-2.17,4.18c-1.67-1.17-3.73-1.62-5.07-1.62-1.23,0-2.62.33-2.62,1.78,0,1.23,1.67,2.01,3.74,3.01,3.01,1.5,6.74,3.46,6.74,7.97,0,3.9-3.34,7.02-8.03,7.02Z"/> <path className="fill-[var(--logo-ink)]" d="M173.26,43.78c-5.29,0-8.64-1.06-8.64-7.86v-10.76h-3.18v-4.91h3.18v-10.87h5.3v10.87h4.18v4.91h-4.18v10.59c0,2.45.89,3.01,3.29,3.01.28,0,.95-.06.95-.06v5.02s-.67.06-.89.06Z"/> <path className="fill-[var(--logo-accent)]" d="M180.5,43.45V2.76h5.57v40.69h-5.57Z"/> <path className="fill-[var(--logo-accent)]" d="M208.71,43.45v-14.1c0-2.84-1.39-4.85-4.4-4.85-3.96,0-5.41,3.62-5.41,6.47v12.49h-5.29v-23.19h5.29v2.79c1.45-2.23,3.9-3.46,6.58-3.46,4.96,0,8.53,3.01,8.53,8.75v15.11h-5.29Z"/> </g> <g> <path className="fill-[var(--logo-accent)]" d="M22.02,5.63v14.33c0,1.5,1.21,2.71,2.71,2.71h0c1.5,0,2.71-1.21,2.71-2.71V5.63c8.57,1.2,15.36,7.96,16.55,16.54h5.47C48.11,9.7,37.56,0,24.73,0S1.35,9.7,0,22.17h5.47c1.2-8.57,7.98-15.34,16.55-16.54Z"/> <path className="fill-[var(--logo-accent)]" d="M24.73,44.34c-9.83,0-17.95-7.28-19.27-16.75H0c1.35,12.47,11.91,22.17,24.73,22.17s23.38-9.7,24.73-22.17h-5.47c-1.32,9.46-9.44,16.75-19.27,16.75Z"/> </g>
+    </svg>
   )
 }
 

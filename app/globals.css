@@ -15,6 +15,8 @@
   --brand: #e85d2a;              /* MostIn Orange — znak, „In”, linia mostu, kropka Mostka */
   --brand-dark: #a83b18;         /* linki w tekście */
   --brand-light: #f6b89e;
+  --logo-ink: #414042;           /* kolory z MostIn_logo.svg */
+  --logo-accent: #f7941d;
 
   --background: #f7f4ee;         /* Warm Background */
   --foreground: #181816;
@@ -53,6 +55,8 @@
   --brand: #ffd600;
   --brand-dark: #ffd600;
   --brand-light: #ffd600;
+  --logo-ink: #ffffff;
+  --logo-accent: #ffd600;
   --primary: #ffd600;
   --primary-foreground: #000000;
   --secondary: #1a1a1a;
