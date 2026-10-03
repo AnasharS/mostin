@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </a>
       <aside className="border-b bg-muted/40 p-4 md:border-b-0 md:border-r">
         <Link href="/admin" className="mb-6 block text-lg font-semibold">
-          MostIn <span className="font-normal text-muted-foreground">· Panel ROPS</span>
+          <Logo /> <span className="font-normal text-muted-foreground">· Panel ROPS</span>
         </Link>
         <nav aria-label="Panel administratora">
           <ul className="space-y-1 text-sm">

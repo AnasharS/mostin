@@ -16,7 +16,7 @@ const NAV = [
 export async function SiteHeader() {
   const profile = await getCurrentProfile()
   return (
-    <header className="border-b bg-card">
+    <header className="border-b bg-card print:hidden">
       <a href="#tresc" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
         Przejdź do treści
       </a>
@@ -59,7 +59,7 @@ export async function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t bg-card">
+    <footer className="mt-auto border-t bg-card print:hidden">
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-4 py-6 text-sm text-muted-foreground">
         <p>MostIn — <Tagline /> · Małopolski Hub Innowacji Społecznych · prototyp HackYeah 2026</p>
         <p>

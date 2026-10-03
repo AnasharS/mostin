@@ -29,7 +29,7 @@ export async function ingestInnovation(id: number) {
     const embedding = await embedOne(searchText)
 
     const { error: upErr } = await db.from("innovations").update({
-      summary: row.summary?.trim() ? row.summary : data.summary,
+      summary: row.summary?.trim() && row.summary.trim() !== row.title.trim() ? row.summary : data.summary,
       problem: data.problem,
       solution: data.solution,
       needs: data.needs,

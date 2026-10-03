@@ -33,7 +33,7 @@ async function main() {
     const { id, ...data } = v
     const current = byId.get(id)
     const { error } = await db.from("innovations").update({
-      summary: current?.summary?.trim() ? current.summary : data.summary,
+      summary: current?.summary?.trim() && current.summary.trim() !== current.title?.trim() ? current.summary : data.summary,
       problem: data.problem,
       solution: data.solution,
       needs: data.needs,

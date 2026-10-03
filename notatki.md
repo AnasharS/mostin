@@ -114,10 +114,23 @@ opis problemu
 - **Mostek nie jest maskotką.** Oznacza go pomarańczowy węzeł ● jako punkt łączący elementy systemu.
 - **Decyzja WCAG:** biały tekst na `#E85D2A` ma tylko 3.48:1, czyli poniżej AA. Przyciski dostały pomarańcz przyciemniony do `#C54415` (4.99:1 z białym), linki w tekście `#A83B18` (5.79:1). Czysty `#E85D2A` zostaje tam, gdzie obowiązuje próg 3:1 dla grafiki (znak, linie, paski, fokus 3.17:1). Obramowania pól mają `#8C877D` (3.26:1, WCAG 1.4.11).
 
+## 13. Middleman Innowacji — „Dostosuj z Mostkiem”
+
+- **Wejście:** przycisk na każdej karcie wyniku matchmakingu i na stronie innowacji. Opis problemu przechodzi z wyszukiwania, a typ i nazwa instytucji z persony.
+- **Formularz zamiast czatu:** typ instytucji, miejscowość, odbiorcy, ludzie do dyspozycji, budżet (przedziały), czas, ograniczenia. Dlaczego formularz: szybszy, dostępny z klawiatury i czytnika, nie wymaga umiejętności „rozmawiania z AI” (seniorzy, urzędnicy). Mostek w czacie będzie drugą drogą do tej samej funkcji.
+- **Wynik (structured output, Opus 5.5):**
+  - tytuł planu i **ocena wykonalności 0–100** ze szczerym komentarzem;
+  - tabela **„W oryginale / U Ciebie”**, czyli co i dlaczego zmienić;
+  - etapy z rolami i czasem, budżet orientacyjny w PLN, partnerzy lokalni, ryzyka z zapobieganiem, wskaźniki sukcesu, **pierwszy tydzień**;
+  - **założenia** przyjęte z braku danych do sprawdzenia przez użytkownika.
+- **Ugruntowanie:** plan opiera się na opisie innowacji z Biblioteki ROPS i danych z formularza. Czego nie wiadomo (np. ceny gry), model oznacza jako założenie zamiast zgadywać. Formularz przechodzi przez ten sam guard co zapytania (wulgaryzmy, moderacja, dane osobowe, budżet).
+- **Wydajność:** jeden plan na Opus trwał ~38 s, czyli powyżej limitu Netlify. Generujemy go jako **dwie równoległe części** z tymi samymi danymi wejściowymi (ocena, zmiany, etapy + budżet, partnerzy, ryzyka, wskaźniki, pierwszy tydzień), co daje ~25 s. Docelowo trasy AI idą do Supabase Edge Functions (limit liczony w minutach).
+- **Wyjście:** „Drukuj / zapisz PDF” (style druku ukrywają nawigację), „Skonsultuj plan z ekspertem ROPS” (most do modułu komunikacji). Plan zapisuje się w `adaptation_plans`, więc ROPS widzi, jakie innowacje gminy chcą wdrażać, a to sygnał do upowszechniania.
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [ ] Mostek — agent z narzędziami (warstwa konwersacyjna nad wszystkimi modułami)
-- [ ] Middleman — „Dostosuj z Mostkiem”
+- [x] Middleman — „Dostosuj z Mostkiem” (sekcja 13)
 - [ ] Knowledge RAG w praktyce (cytowanie stron)
 - [ ] Kreator pomysłów + generator wniosków + wizualizacja
 - [ ] Tester innowacji
