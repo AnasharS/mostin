@@ -86,15 +86,16 @@ export function usePlainLanguage() {
   return Boolean(usePrefs().plain)
 }
 
-/** Telefon: wyraźny przycisk „Dostępność” przy logo rozwija pełny panel (nagłówek jest przyklejony, więc musi być niski). */
+/** Telefon: przycisk z okiem przy logo rozwija pełny panel (nagłówek jest przyklejony, więc musi być niski; sama ikona, bo z napisem wiersz nie mieścił się na wąskich ekranach). */
 export function A11yMobile() {
   const [open, setOpen] = useState(false)
   const panelId = useId()
   return (
     <div className="md:hidden">
       <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}
-        className="inline-flex h-11 items-center gap-1.5 border-2 border-foreground px-3 text-sm font-semibold aria-expanded:bg-foreground aria-expanded:text-background">
-        <Eye aria-hidden="true" className="size-5" /> Dostępność
+        aria-label="Dostępność" title="Dostępność"
+        className="inline-flex size-[44px] items-center justify-center border-2 border-foreground aria-expanded:bg-foreground aria-expanded:text-background">
+        <Eye aria-hidden="true" className="size-[20px]" />
       </button>
       {open && (
         <div id={panelId} className="absolute inset-x-0 top-full z-50 border-b-2 border-foreground bg-card px-4 py-3">

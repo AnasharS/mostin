@@ -30,8 +30,8 @@ export function MobileMenu({ qualifyHref, account }: { qualifyHref: string | nul
   return (
     <div className="md:hidden">
       <button ref={btn} type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}
-        className="inline-flex size-11 items-center justify-center border-2 border-foreground aria-expanded:bg-foreground aria-expanded:text-background">
-        {open ? <X aria-hidden="true" className="size-6" /> : <Menu aria-hidden="true" className="size-6" />}
+        className="inline-flex size-[44px] items-center justify-center border-2 border-foreground aria-expanded:bg-foreground aria-expanded:text-background">
+        {open ? <X aria-hidden="true" className="size-[24px]" /> : <Menu aria-hidden="true" className="size-[24px]" />}
         <span className="sr-only">{open ? "Zamknij menu" : "Menu"}</span>
       </button>
       {open && (

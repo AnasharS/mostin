@@ -22,11 +22,11 @@ export async function InnovationReviews({ innovationId, ok, error }: { innovatio
         Testowałeś(-aś) to rozwiązanie albo z niego korzystasz? Twoja ocena i pomysł na usprawnienie trafią do autorów i zespołu ROPS.
       </p>
 
-      <div className="mt-6 grid gap-10 md:grid-cols-[1fr_1.1fr]">
+      <div className="mt-6 grid gap-10 md:grid-cols-[1fr_1.1fr] [&>*]:min-w-0">
         <div>
           {rows.length > 0 ? (
             <>
-              <p className="flex items-end gap-3">
+              <p className="flex flex-wrap items-end gap-x-3 gap-y-1">
                 <span className="text-5xl font-bold leading-none">{avg.toFixed(1).replace(".", ",")}</span>
                 <span className="pb-1 text-sm text-muted-foreground">/ 5 · {rows.length} {rows.length === 1 ? "opinia" : rows.length < 5 ? "opinie" : "opinii"}{tested ? `, w tym ${tested} z testów` : ""}</span>
               </p>
@@ -59,7 +59,7 @@ export async function InnovationReviews({ innovationId, ok, error }: { innovatio
             <legend className="font-medium">Twoja ocena</legend>
             <div className="mt-2 flex gap-2">
               {[1, 2, 3, 4, 5].map((n) => (
-                <label key={n} className="flex size-11 cursor-pointer items-center justify-center border-2 text-lg font-bold has-[:checked]:border-brand has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring">
+                <label key={n} className="flex size-[44px] cursor-pointer items-center justify-center border-2 text-lg font-bold has-[:checked]:border-brand has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring">
                   <input type="radio" name="rating" value={n} required className="sr-only" />
                   {n}<span className="sr-only"> na 5</span>
                 </label>

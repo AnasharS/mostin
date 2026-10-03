@@ -49,17 +49,17 @@ export async function SiteHeader() {
           </div>
         </div>
         <ScrollHeader className="pointer-events-auto border-b bg-card">
-          <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5 md:py-4">
+          <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2.5 md:py-4">
             <div className="flex items-center gap-4">
               {/* flex: bez zapasu pod linią bazową, żeby środek logo i hasła był na tej samej wysokości */}
-              <Link href="/" className="flex text-[1.6rem] leading-none md:text-[2rem]" aria-label="MostIn - strona główna"><Logo /></Link>
+              <Link href="/" className="flex shrink-0 text-[22px] leading-none min-[360px]:text-[25.6px] md:text-[2rem]" aria-label="MostIn - strona główna"><Logo /></Link>
               <Tagline className="hidden border-l pl-4 text-sm leading-tight text-muted-foreground lg:inline" />
             </div>
-            <div className="flex items-center gap-2 md:hidden">
+            <div className="flex shrink-0 items-center gap-1.5 min-[360px]:gap-2 md:hidden">
               {shortcut && (
                 <Link href={shortcut.href} aria-label={shortcut.label} title={shortcut.label}
-                  className="inline-flex size-11 items-center justify-center border-2 border-foreground text-foreground! no-underline hover:bg-muted">
-                  <shortcut.Icon aria-hidden="true" className="size-5" />
+                  className="inline-flex size-[44px] items-center justify-center border-2 border-foreground text-foreground! no-underline hover:bg-muted">
+                  <shortcut.Icon aria-hidden="true" className="size-[20px]" />
                 </Link>
               )}
               <A11yMobile />

@@ -27,7 +27,7 @@ export async function GrantRadar({ compact = false }: { compact?: boolean }) {
         {open.map((c) => {
           const d = daysLeft(c.closes_at!)
           return (
-            <li key={c.id} className="border-l-4 border-brand bg-card py-5 pl-5 pr-4">
+            <li key={c.id} className="min-w-0 border-l-4 border-brand bg-card py-5 pl-5 pr-4">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-lg font-bold">{c.title.replace(/^\[DEMO\]\s*/, "")}</p>
@@ -52,7 +52,7 @@ export async function GrantRadar({ compact = false }: { compact?: boolean }) {
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {c.eligibility_check && (
-                  <Link href={`/dla-gmin/kwalifikacja?nabor=${c.id}`} className={buttonVariants({ size: "lg" }) + " h-11 px-5 text-base"}>
+                  <Link href={`/dla-gmin/kwalifikacja?nabor=${c.id}`} className={buttonVariants({ size: "lg" }) + " h-auto min-h-11 whitespace-normal px-5 py-2 text-left text-base"}>
                     Sprawdź w 60 sekund, czy się kwalifikujecie
                   </Link>
                 )}

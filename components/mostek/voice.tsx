@@ -15,7 +15,7 @@ export function useVoiceConfig(page: string) {
 }
 
 // Jeden odtwarzacz na całą stronę: nowa odpowiedź zatrzymuje poprzednią, przycisk w trakcie ładowania przerywa pobieranie.
-type Playing = { id: string; audio?: HTMLAudioElement; abort: AbortController; url?: string }
+type Playing = { id: string; audio?: HTMLAudioElement; abort: AbortController; urls: string[] }
 let current: Playing | null = null
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach((l) => l())
@@ -23,9 +23,37 @@ export function stopSpeaking() {
   if (!current) return
   current.abort.abort()
   current.audio?.pause()
-  if (current.url) URL.revokeObjectURL(current.url)
+  current.urls.forEach((u) => URL.revokeObjectURL(u))
   current = null
   emit()
+}
+
+// Ułamek sekundy ciszy (WAV). Odtworzony od razu w kliknięciu „odblokowuje” element audio - Safari na iPhonie
+// odrzuca play() wywołane dopiero po kilku sekundach czekania na serwer.
+let silent: string | null = null
+function silence() {
+  if (silent) return silent
+  const n = 800, b = new Uint8Array(44 + n), v = new DataView(b.buffer)
+  const tag = (o: number, t: string) => { for (let i = 0; i < t.length; i++) b[o + i] = t.charCodeAt(i) }
+  tag(0, "RIFF"); v.setUint32(4, 36 + n, true); tag(8, "WAVE"); tag(12, "fmt ")
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true)
+  v.setUint16(32, 1, true); v.setUint16(34, 8, true); tag(36, "data"); v.setUint32(40, n, true); b.fill(128, 44)
+  silent = "data:audio/wav;base64," + btoa(String.fromCharCode(...b))
+  return silent
+}
+
+/** Tekst do czytania w kawałkach po zdaniach: pierwszy krótki (mowa rusza po kilku sekundach), kolejne do ok. 450 znaków. */
+export function speechChunks(text: string) {
+  const clean = text.replace(/\[[^\]]{3,160}\]/g, "").replace(/[*_#`>]/g, "").replace(/\s+/g, " ").trim()
+  const sentences = clean.match(/[^.!?…:;]+[.!?…:;]*\s*/g) ?? [clean]
+  const out: string[] = []
+  let cur = ""
+  for (const sentence of sentences) {
+    if (cur && (cur + sentence).length > (out.length === 0 ? 180 : 450)) { out.push(cur.trim()); cur = "" }
+    cur += sentence
+  }
+  if (cur.trim()) out.push(cur.trim())
+  return out.filter(Boolean)
 }
 
 // format nagrania zależy od przeglądarki (Safari/iPhone: mp4) - nazwa pliku musi pasować, inaczej rozpoznawanie mowy odrzuca plik
@@ -99,46 +127,75 @@ export function MicButton({ page, onText, onStatus }: { page: string; onText: (t
 export function SpeakButton({ text, page, auto = false }: { text: string; page: string; auto?: boolean }) {
   const id = useId()
   const [state, setState] = useState<"idle" | "loading" | "playing">("idle")
+  const [failed, setFailed] = useState(false)
   const autoDone = useRef(false)
 
   // inny przycisk przejął odtwarzanie albo ktoś je zatrzymał - wracamy do „Odsłuchaj”
   useEffect(() => {
-    const l = () => { if (current?.id !== id) setState("idle") }
+    const l = () => { if (current?.id !== id) { setState("idle"); setFailed(false) } }
     listeners.add(l)
     return () => { listeners.delete(l); if (current?.id === id) stopSpeaking() }
   }, [id])
 
-  async function play() {
+  async function play(isAuto = false) {
     if (current?.id === id) { stopSpeaking(); return }
     stopSpeaking()
-    const me: Playing = { id, abort: new AbortController() }
+    const audio = new Audio()
+    audio.src = silence()
+    audio.play().catch(() => {})
+    const me: Playing = { id, audio, abort: new AbortController(), urls: [] }
     current = me
     emit()
+    setFailed(false)
     setState("loading")
+    const parts = speechChunks(text)
+    // kolejny fragment pobiera się w tle, gdy poprzedni jest czytany
+    const pending = new Map<number, Promise<string>>()
+    const get = (i: number) => {
+      if (!pending.has(i)) {
+        const req = fetch("/api/voice/speak", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: parts[i], page }), signal: me.abort.signal })
+          .then(async (res) => {
+            if (!res.ok) throw new Error("tts")
+            const url = URL.createObjectURL(await res.blob())
+            me.urls.push(url)
+            return url
+          })
+        req.catch(() => {})
+        pending.set(i, req)
+      }
+      return pending.get(i)!
+    }
     try {
-      const res = await fetch("/api/voice/speak", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, page }), signal: me.abort.signal })
-      if (!res.ok || current !== me) { if (current === me) stopSpeaking(); return }
-      me.url = URL.createObjectURL(await res.blob())
-      if (current !== me) { URL.revokeObjectURL(me.url); return }
-      me.audio = new Audio(me.url)
-      me.audio.onended = () => { if (current === me) stopSpeaking() }
-      await me.audio.play()
-      setState("playing")
-    } catch {
+      for (let i = 0; i < parts.length; i++) {
+        const url = await get(i)
+        if (i + 1 < parts.length) void get(i + 1)
+        if (current !== me) return
+        audio.src = url
+        await audio.play()
+        setState("playing")
+        await new Promise<void>((done, fail) => {
+          audio.onended = () => done()
+          audio.onerror = () => fail(new Error("audio"))
+          me.abort.signal.addEventListener("abort", () => done(), { once: true })
+        })
+        if (current !== me) return
+      }
       if (current === me) stopSpeaking()
+    } catch {
+      if (current === me) { stopSpeaking(); if (!isAuto) setFailed(true) }
     }
   }
   useEffect(() => {
-    if (auto && !autoDone.current && text) { autoDone.current = true; void play() }
+    if (auto && !autoDone.current && text) { autoDone.current = true; void play(true) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, text])
 
-  const label = state === "playing" ? "Zatrzymaj" : state === "loading" ? "Przygotowuję… (kliknij, aby przerwać)" : "Odsłuchaj"
+  const label = state === "playing" ? "Zatrzymaj" : state === "loading" ? "Przygotowuję… (kliknij, aby przerwać)" : failed ? "Nie udało się odczytać - spróbuj ponownie" : "Odsłuchaj"
   return (
-    <button type="button" onClick={play} aria-pressed={state !== "idle"}
+    <button type="button" onClick={() => play()} aria-pressed={state !== "idle"}
       className="inline-flex items-center gap-1.5 border px-2.5 py-1 text-sm hover:bg-muted aria-pressed:border-foreground">
       {state === "loading" ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : state === "playing" ? <Square aria-hidden="true" className="size-4" /> : <Volume2 aria-hidden="true" className="size-4" />}
-      {label}
+      <span aria-live="polite">{label}</span>
     </button>
   )
 }

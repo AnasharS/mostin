@@ -15,7 +15,7 @@ export async function NewsList({ audience, limit = 4, title = "Aktualności", mo
   const allSample = news.every((n) => n.is_sample)
   return (
     <section aria-labelledby={`news-${audience ?? "all"}`} className="mt-10">
-      <div className="flex items-end justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <h2 id={`news-${audience ?? "all"}`} className="text-xl font-semibold">{title}</h2>
         {more && <Link href="/aktualnosci" className="text-sm">Wszystkie aktualności</Link>}
       </div>

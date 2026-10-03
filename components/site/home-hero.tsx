@@ -76,7 +76,7 @@ export function HomeHero({ qualifyHref, below }: {
       <div className="border-b">
       <ScrollRow className="mx-auto flex max-w-6xl overflow-x-auto px-4">
         {/* w tablist tylko zakładki - link do Bazy wiedzy obok (WCAG / ARIA: aria-required-children) */}
-        <div role="tablist" aria-label="Dla kogo" className="flex">
+        <div role="tablist" aria-label="Dla kogo" className="flex shrink-0">
         {panels.map((x, i) => (
           <button
             key={x.id} ref={(el) => { tabs.current[i] = el }} role="tab" id={`tab-${x.id}`} aria-controls={`panel-${x.id}`}
@@ -91,10 +91,10 @@ export function HomeHero({ qualifyHref, below }: {
         <Link href="/wiedza" className="shrink-0 border-r px-4 py-3 text-[0.95rem] font-semibold text-muted-foreground hover:bg-muted">Baza wiedzy</Link>
       </ScrollRow>
       </div>
-      <div role="tabpanel" id={`panel-${p.id}`} aria-labelledby={`tab-${p.id}`} className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.25fr_1fr] md:py-16">
+      <div role="tabpanel" id={`panel-${p.id}`} aria-labelledby={`tab-${p.id}`} className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.25fr_1fr] md:py-16 [&>*]:min-w-0">
         <div>
           <Breadcrumbs section={p.id} />
-          <h1 className="mt-5 text-4xl font-bold leading-[1.12] tracking-tight md:text-5xl">
+          <h1 className="mt-5 text-4xl font-bold leading-[1.12] tracking-tight [overflow-wrap:anywhere] hyphens-auto md:text-5xl">
             {/* duży tekst (≥ 24 px) - próg AA 3:1; brand/bg = 3.17:1 */}
             <span className="font-extrabold text-brand">{p.title[0]}</span>{" "}
             <br className="hidden sm:block" />
@@ -111,9 +111,9 @@ export function HomeHero({ qualifyHref, below }: {
           <ol className="mt-3 border-t">
             {p.entries.map((e, i) => (
               <li key={e.href + i} className="border-b">
-                <Link href={e.href} className="group flex items-center gap-5 px-4 py-5 text-foreground transition-colors hover:bg-muted/50">
-                  <span className="w-8 text-lg font-bold tabular-nums text-brand-dark">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="flex-1">
+                <Link href={e.href} className="group flex items-center gap-3 px-4 py-5 min-[360px]:gap-5 text-foreground transition-colors hover:bg-muted/50">
+                  <span className="w-8 shrink-0 text-lg font-bold tabular-nums text-brand-dark">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="min-w-0 flex-1">
                     <span className="block text-lg font-semibold">{e.title}</span>
                     <span className="block text-sm text-muted-foreground">{e.text}</span>
                   </span>

@@ -251,3 +251,15 @@ input[type="checkbox"].switch::after {
 }
 input[type="checkbox"].switch:checked { background: var(--primary); border-color: var(--primary); background-image: none; }
 input[type="checkbox"].switch:checked::after { transform: translateX(1.25rem); background: var(--primary-foreground); }
+
+/* Telefon: przyciski z długim napisem (np. „Sprawdź w 60 sekund, czy się kwalifikujecie”) zawijają się zamiast wychodzić
+   poza ekran - zwłaszcza przy powiększonym tekście. Przyciski z samą ikoną (size-*) bez zmian. */
+@media (max-width: 480px) {
+  .group\/button:not([class~="size-6"], [class~="size-7"], [class~="size-8"], [class~="size-9"], [class~="size-10"], [class~="size-11"], [class~="size-[44px]"]) {
+    height: auto;
+    min-height: 2.5rem;
+    max-width: 100%;
+    padding-block: 0.5rem;
+    white-space: normal;
+  }
+}
