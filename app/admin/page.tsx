@@ -1,5 +1,8 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import { Button } from "@/components/ui/button"
+import { Flash } from "@/components/admin/flash"
+import { syncRopsNow } from "@/app/admin/actions"
 
 async function count(table: string, filter?: (q: any) => any) { // eslint-disable-line @typescript-eslint/no-explicit-any
   const supabase = await createClient()
@@ -9,8 +12,10 @@ async function count(table: string, filter?: (q: any) => any) { // eslint-disabl
   return count ?? 0
 }
 
-export default async function AdminHome() {
+export default async function AdminHome({ searchParams }: { searchParams: Promise<{ ok?: string; blad?: string }> }) {
+  const { ok, blad } = await searchParams
   const supabase = await createClient()
+  const { data: runs } = await supabase.from("sync_runs").select("*").order("started_at", { ascending: false }).limit(5)
   const [innovations, ready, documents, needsNew, ideasNew, threadsOpen, usage] = await Promise.all([
     count("innovations"),
     count("innovations", (q) => q.eq("ingest_status", "ready")),
@@ -34,6 +39,7 @@ export default async function AdminHome() {
   return (
     <>
       <h1 className="mb-6 text-2xl font-semibold">Pulpit</h1>
+      <Flash ok={ok} error={blad} />
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {tiles.map((t) => (
           <li key={t.label}>
@@ -45,6 +51,39 @@ export default async function AdminHome() {
           </li>
         ))}
       </ul>
+
+      <section className="mt-10 max-w-3xl" aria-labelledby="sync">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 id="sync" className="text-lg font-semibold">Synchronizacja z Biblioteką Innowacji ROPS</h2>
+            <p className="text-sm text-muted-foreground">
+              Pobiera aktualne innowacje ze strony ROPS. Do przetwarzania AI trafiają tylko nowe i zmienione (porównanie skrótu treści).
+              Docelowo uruchamiana automatycznie raz dziennie.
+            </p>
+          </div>
+          <form action={syncRopsNow}>
+            <Button type="submit">Synchronizuj teraz</Button>
+          </form>
+        </div>
+        <table className="mt-4 w-full text-sm">
+          <caption className="sr-only">Ostatnie synchronizacje</caption>
+          <thead className="text-left text-muted-foreground">
+            <tr><th className="py-1 font-medium">Start</th><th className="font-medium">Status</th><th className="font-medium">Wynik</th></tr>
+          </thead>
+          <tbody>
+            {(runs ?? []).map((r) => {
+              const s = r.stats as Record<string, number>
+              return (
+                <tr key={r.id} className="border-t">
+                  <td className="py-1.5">{new Date(r.started_at).toLocaleString("pl-PL")}</td>
+                  <td>{({ success: "Sukces", partial: "Częściowo", error: "Błąd", running: "W toku" } as Record<string, string>)[r.status] ?? r.status}</td>
+                  <td>{s.fetched ?? 0} sprawdzonych · {s.created ?? 0} nowych · {s.updated ?? 0} zmienionych · {s.unchanged ?? 0} bez zmian · AI {s.ai_processed ?? 0}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </section>
     </>
   )
 }

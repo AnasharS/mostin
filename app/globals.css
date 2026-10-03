@@ -1,26 +1,127 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+@custom-variant dark (&:is([data-contrast="high"] *));
+
+/*
+ * MOSTIN — motyw. Kontrasty sprawdzone pod WCAG 2.1 AA:
+ * foreground/background 15.9:1, primary/white 10.6:1, muted-foreground/background 7.0:1,
+ * accent-foreground/accent 9.1:1, ring 3:1+ na tle.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 0.75rem;
+
+  --background: #fbfaf7;
+  --foreground: #14213a;
+  --card: #ffffff;
+  --card-foreground: #14213a;
+  --popover: #ffffff;
+  --popover-foreground: #14213a;
+
+  --primary: #1f3a68;            /* granat „mostu” */
+  --primary-foreground: #ffffff;
+  --secondary: #e8eef7;
+  --secondary-foreground: #14213a;
+  --muted: #f0eee8;
+  --muted-foreground: #4a5160;
+  --accent: #f4c55c;             /* bursztyn — wyróżnienia */
+  --accent-foreground: #2b1d00;
+  --destructive: #b42318;
+  --success: #116b3c;
+  --warning: #8a5300;
+
+  --border: #d6d3cb;
+  --input: #a9a59b;
+  --ring: #1f6feb;
+
+  --font-scale: 1;
 }
+
+/* Tryb wysokiego kontrastu (pasek dostępności) */
+:root[data-contrast="high"] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  --primary: #ffd600;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
+  --muted: #111111;
+  --muted-foreground: #e6e6e6;
+  --accent: #ffd600;
+  --accent-foreground: #000000;
+  --destructive: #ff6b6b;
+  --success: #6dff9e;
+  --warning: #ffd600;
+  --border: #ffffff;
+  --input: #ffffff;
+  --ring: #00e5ff;
+}
+
+/* Powiększenie tekstu (pasek dostępności): 100% / 125% / 150% */
+:root[data-font="lg"] { --font-scale: 1.25; }
+:root[data-font="xl"] { --font-scale: 1.5; }
+html { font-size: calc(100% * var(--font-scale)); }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-atkinson), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/60;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  /* Widoczny fokus wszędzie (WCAG 2.4.7 / 2.4.11) */
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+  a {
+    text-underline-offset: 0.2em;
+  }
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Ograniczenie animacji: preferencja systemu lub przełącznik */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+:root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
 }

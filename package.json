@@ -8,13 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "make-admin": "tsx scripts/make-admin.ts",
-    "db:push": "./scripts/db-push.sh"
+    "db:push": "./scripts/db-push.sh",
+    "ingest": "tsx --conditions=react-server scripts/ingest.ts",
+    "apply-structured": "tsx --conditions=react-server scripts/apply-structured.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
     "@base-ui/react": "^1.8.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
+    "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cn": "^0.4.0",

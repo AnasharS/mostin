@@ -41,5 +41,46 @@ export const TARGET_GROUPS = [
   "ogol_mieszkancow",
 ] as const
 
+const LABELS: Record<string, string> = {
+  starzenie_sie_i_seniorzy: "Starzenie się i seniorzy",
+  zdrowie_psychiczne: "Zdrowie psychiczne",
+  samotnosc_i_izolacja: "Samotność i izolacja",
+  wykluczenie_cyfrowe: "Wykluczenie cyfrowe",
+  niepelnosprawnosc_i_dostepnosc: "Niepełnosprawność i dostępność",
+  dostep_do_uslug_spolecznych: "Dostęp do usług społecznych",
+  rodzina_i_dzieci: "Rodzina i dzieci",
+  mlodziez: "Młodzież",
+  integracja_spoleczna_i_migranci: "Integracja i migranci",
+  ubostwo_i_bezdomnosc: "Ubóstwo i bezdomność",
+  rynek_pracy_i_ekonomia_spoleczna: "Rynek pracy i ekonomia społeczna",
+  opieka_i_opiekunowie: "Opieka i opiekunowie",
+  mieszkalnictwo: "Mieszkalnictwo",
+  transport_i_mobilnosc: "Transport i mobilność",
+  edukacja: "Edukacja",
+  aktywnosc_obywatelska_i_wolontariat: "Aktywność obywatelska i wolontariat",
+  depopulacja_i_obszary_wiejskie: "Depopulacja i obszary wiejskie",
+  koordynacja_instytucji: "Koordynacja instytucji",
+  seniorzy: "Seniorzy",
+  osoby_z_niepelnosprawnoscia: "Osoby z niepełnosprawnością",
+  opiekunowie_nieformalni: "Opiekunowie nieformalni",
+  dzieci: "Dzieci",
+  rodziny: "Rodziny",
+  osoby_w_kryzysie_psychicznym: "Osoby w kryzysie psychicznym",
+  osoby_bezrobotne: "Osoby bezrobotne",
+  migranci: "Migranci",
+  mieszkancy_wsi: "Mieszkańcy wsi",
+  osoby_w_kryzysie_bezdomnosci: "Osoby w kryzysie bezdomności",
+  kobiety: "Kobiety",
+  pracownicy_pomocy_spolecznej: "Pracownicy pomocy społecznej",
+  organizacje_pozarzadowe: "Organizacje pozarządowe",
+  samorzady: "Samorządy",
+  ogol_mieszkancow: "Ogół mieszkańców",
+  pomysl: "Pomysł",
+  prototyp: "Prototyp",
+  testowana: "Testowana",
+  wdrozona: "Wdrożona",
+  upowszechniana: "Upowszechniana",
+}
+
 export const label = (slug: string) =>
-  slug.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())
+  LABELS[slug] ?? slug.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())

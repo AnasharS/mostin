@@ -215,3 +215,48 @@ Zasada: każdy moduł najpierw w wersji „działa end-to-end", dopiero potem sz
 **B. Innovation Matchmaker** — przy ingestion Claude normalizuje opis do struktury (problem, potrzeby, kategorie i grupy ze wspólnej taksonomii `lib/ai/taxonomy.ts`, lokalizacja, wymagania wdrożeniowe, zasoby) + `search_text` z potocznymi sformułowaniami → embedding. Zapytanie użytkownika przechodzi tę samą normalizację → `match_innovations` (0.65 wektor + 0.2 FTS + 0.15 zgodność kategorii/grup) → rerank i uzasadnienie przez Claude.
 
 **CMS (Panel ROPS)** — deklaratywny (`lib/cms/resources.ts`): jedna definicja = lista, formularz, zapis przez sesję admina (RLS). Przycisk „Przetwórz AI” uruchamia ingestion A lub B; pliki idą z przeglądarki prosto do Supabase Storage.
+
+## 13. „Kaganiec” AI — polityka ROPS, dozwolone źródła, moderacja
+
+Jedna tabela `ai_policy` (pojedynczy rekord), edytowana w Panelu ROPS prostymi przełącznikami. Każde wywołanie LLM przechodzi przez wspólną warstwę `lib/ai/guard.ts`:
+
+```
+wejście użytkownika
+  → [1] filtr deterministyczny: lista wulgaryzmów PL (+ odmiany), dane osobowe (PESEL, telefon, e-mail) → maskowanie
+  → [2] OpenAI Moderation (bezpłatne): obraźliwość, nienawiść, przemoc, samookaleczenia → blokada / komunikat wsparcia
+  → [3] Mostek (Claude) z promptem systemowym budowanym z ai_policy:
+        • odpowiada WYŁĄCZNIE na podstawie wyników narzędzi (dozwolone źródła: innowacje, dokumenty RAG, wyzwania, nabory)
+        • brak źródła → „nie wiem / przekażę do ROPS”, nigdy wiedza ogólna modelu
+        • tematy wyłączone przez ROPS (polityka, porady medyczne/prawne, religia, …) → grzeczna odmowa + skierowanie
+  → [4] kontrola wyjścia: każda wskazana innowacja/dokument musi istnieć w wynikach narzędzi (walidacja ID), filtr [1] na odpowiedzi
+  → log do ai_usage + ai_moderation_events (panel: co i dlaczego zablokowano)
+```
+
+Przełączniki ROPS (przykłady): blokuj wulgaryzmy · blokuj obraźliwe treści · tylko dozwolone źródła · bez porad medycznych · bez porad prawnych · bez polityki · bez tematów spoza polityki społecznej · własna lista zakazanych tematów · własny komunikat odmowy · generowanie obrazów wł./wył. · tryb głosowy wł./wył.
+
+## 14. Kontrola kosztów (Panel ROPS → „Koszty AI”)
+
+- Każde wywołanie (Claude, embeddingi, obrazy, STT/TTS) zapisuje tokeny/jednostki i koszt w `ai_usage` (`lib/ai/usage.ts`).
+- Limity w `ai_policy`: miesięczny budżet USD, dzienny limit na użytkownika/sesję, limit obrazów i minut głosu.
+- Progi: 80% budżetu → alert w panelu; 100% → tryb oszczędny (wyłączone obrazy i TTS, niższy `effort`), twarde zatrzymanie opcjonalne.
+- Widok: koszt dziś / miesiąc / prognoza, podział na funkcje (Mostek, matchmaking, ingestion, obrazy, głos), top sesje.
+
+## 15. WCAG 2.1 AA od pierwszego ekranu
+
+Zasady dla każdego komponentu (lista kontrolna w PR):
+- Semantyczny HTML, jeden `h1`, logiczne nagłówki, landmarki (`header/nav/main/footer`), skip-link.
+- Pełna obsługa klawiaturą, widoczny focus (min. 2 px, kontrast ≥ 3:1), brak pułapek fokusu w dialogach.
+- Kontrast tekstu ≥ 4.5:1 (duży ≥ 3:1) w obu motywach; informacja nigdy tylko kolorem (statusy = ikona + tekst).
+- Formularze: etykiety, `aria-describedby` dla podpowiedzi i błędów, błędy opisane tekstem, `autocomplete`.
+- Treści dynamiczne (strumień Mostka, wyniki dopasowania) w regionach `aria-live="polite"`.
+- Pasek dostępności w nagłówku: większy tekst (3 poziomy), wysoki kontrast, „prosty język”, ograniczenie animacji (`prefers-reduced-motion`), zapamiętywane lokalnie.
+- Filmy z napisami/transkrypcją, obrazy z `alt`, mapy i wykresy z alternatywą tabelaryczną.
+- Testy: axe (automat), przejście klawiaturą i VoiceOver po głównym scenariuszu przed demo.
+
+## 16. Sterowanie głosem — „Powiedz Mostkowi”
+
+- Przycisk mikrofonu w nagłówku na każdej stronie + skrót klawiszowy (np. `Alt+M`), push-to-talk.
+- Mowa → tekst (OpenAI STT) → **ten sam Mostek** z narzędziem `navigate` i narzędziami modułów:
+  „Pokaż innowacje dla seniorów”, „Chcę zgłosić problem”, „Przeczytaj mi trzecie rozwiązanie”, „Połącz mnie z ROPS”, „Większa czcionka”.
+- Komendy dostępności (większy tekst, kontrast, czytaj na głos) obsługiwane lokalnie bez LLM — natychmiast i za darmo.
+- Odpowiedź tekstem + opcjonalnie czytana (TTS); rozpoznany tekst zawsze widoczny i edytowalny przed wysłaniem.

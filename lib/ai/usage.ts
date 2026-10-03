@@ -14,6 +14,7 @@ export async function logUsage(entry: {
   output_tokens?: number
   cache_read_tokens?: number
   user_id?: string | null
+  session_key?: string | null
 }) {
   const p = PRICES[entry.model] ?? { in: 0, out: 0, cacheRead: 0 }
   const input = entry.input_tokens ?? 0
@@ -28,5 +29,6 @@ export async function logUsage(entry: {
     cache_read_tokens: cacheRead,
     cost_usd: cost,
     user_id: entry.user_id ?? null,
+    session_key: entry.session_key ?? null,
   })
 }

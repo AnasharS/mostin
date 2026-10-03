@@ -122,3 +122,18 @@ export async function ingestAllPending() {
   revalidatePath("/admin/innowacje")
   redirect(`/admin/innowacje?ok=${encodeURIComponent(`Przetworzono ${ok}, błędy: ${failed}`)}`)
 }
+
+/** Synchronizacja z Biblioteką Innowacji ROPS — nowe i zmienione rekordy (hash) idą do AI, reszta jest pomijana. */
+export async function syncRopsNow() {
+  await requireAdmin()
+  const { syncRopsLibrary } = await import("@/lib/ingest/sync-rops")
+  let msg: string
+  try {
+    const s = await syncRopsLibrary({ log: () => {} })
+    msg = `Synchronizacja: ${s.fetched} sprawdzonych, ${s.created} nowych, ${s.updated} zmienionych, ${s.unchanged} bez zmian, AI: ${s.ai_processed}, błędy: ${s.failed}`
+  } catch (e) {
+    redirect(`/admin?blad=${encodeURIComponent("Synchronizacja nie powiodła się: " + (e as Error).message)}`)
+  }
+  revalidatePath("/admin")
+  redirect(`/admin?ok=${encodeURIComponent(msg)}`)
+}
