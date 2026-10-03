@@ -6,7 +6,6 @@ config({ path: ".env.local" })
 
 const KEY = "demo-extra"
 const ago = (h: number) => new Date(Date.now() - h * 3600_000).toISOString()
-const UW = "https://rops.krakow.pl/aktualnosci"
 
 // pytania gmin do asystenta grantowego (bez odpowiedzi - panel pokazuje ostatnie pytania)
 const LEADS = [
