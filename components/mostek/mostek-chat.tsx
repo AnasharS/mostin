@@ -1,15 +1,16 @@
 "use client"
 
 import { Check } from "lucide-react"
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useId, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { usePlainLanguage } from "@/components/site/a11y-toolbar"
 import type { Source, ActionCard } from "@/lib/mostek/tools"
+import { quickLinks, type Page } from "@/lib/site/sitemap"
 import { MicButton, SpeakButton, useVoiceConfig } from "./voice"
 
-type Msg = { role: "user" | "assistant"; text: string; sources?: Source[]; actions?: ActionCard[]; tools?: string[] }
+type Msg = { role: "user" | "assistant"; text: string; sources?: Source[]; actions?: ActionCard[]; tools?: string[]; quick?: Pick<Page, "path" | "title">[] }
 
 const STORE = "mostin-mostek"
 const STARTERS = [
@@ -51,7 +52,7 @@ function RichText({ text }: { text: string }) {
 export function MostekChat({ compact = false, initial, mode, starters = STARTERS, storeKey = STORE, intro }: {
   compact?: boolean
   initial?: string
-  mode?: "grant"
+  mode?: "grant" | "rops"
   starters?: string[]
   storeKey?: string
   intro?: { title: string; text: string }
@@ -69,6 +70,10 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
   const sentInitial = useRef(false)
   const voice = useVoiceConfig(pathname)
   const [lastDone, setLastDone] = useState(-1)
+  const inputId = useId()
+  const admin = mode === "rops"
+  // szybkie przejścia: dopasowanie do mapy serwisu w przeglądarce - od razu, bez czekania na AI
+  const typed = input.trim().length >= 4 ? quickLinks(input, { admin }).filter((p) => p.path !== pathname) : []
 
   // przywrócenie rozmowy z tej przeglądarki (historia API i tak żyje po stronie serwera)
   useEffect(() => {
@@ -94,7 +99,8 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
     setInput("")
     setBusy(true)
     setStatus("Mostek myśli…")
-    setMsgs((m) => [...m, { role: "user", text: q }, { role: "assistant", text: "", tools: [] }])
+    const quick = quickLinks(q, { admin }).filter((p) => p.path !== pathname).map(({ path, title }) => ({ path, title }))
+    setMsgs((m) => [...m, { role: "user", text: q }, { role: "assistant", text: "", tools: [], quick }])
     const patch = (fn: (m: Msg) => Msg) => setMsgs((all) => [...all.slice(0, -1), fn(all[all.length - 1])])
     let answer = ""
 
@@ -196,6 +202,12 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
                   {[...new Set(m.tools)].map((t) => <span key={t} className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5"><Check className="size-3" /> {t}</span>)}
                 </p>
               )}
+              {m.quick && m.quick.length > 0 && (
+                <nav aria-label="Szybkie przejścia" className="mb-2 border-l-4 border-brand pl-3 text-sm">
+                  <span className="text-muted-foreground">Od razu możesz przejść: </span>
+                  {m.quick.map((p, qi) => <Fragment key={p.path}>{qi > 0 && " · "}<Link href={p.path} className="font-semibold">{p.title}</Link></Fragment>)}
+                </nav>
+              )}
               <div className="leading-relaxed">{m.text ? <RichText text={m.text} /> : <p className="text-muted-foreground">…</p>}</div>
               {voice.enabled && m.text && (!busy || i < msgs.length - 1) && (
                 <div className="mt-1"><SpeakButton text={m.text} page={pathname} auto={voice.autoRead && i === lastDone} /></div>
@@ -233,10 +245,16 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
       <p className="sr-only" aria-live="polite">{announce}</p>
 
       <form onSubmit={(e) => { e.preventDefault(); void send(input) }} className="border-t p-3">
-        <label htmlFor="mostek-input" className="sr-only">Napisz do Mostka</label>
+        {typed.length > 0 && !busy && (
+          <nav aria-label="Pasujące strony" className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            <span className="text-muted-foreground">Przejdź od razu:</span>
+            {typed.map((p) => <Link key={p.path} href={p.path} className="font-semibold">{p.title} <span aria-hidden="true">→</span></Link>)}
+          </nav>
+        )}
+        <label htmlFor={inputId} className="sr-only">Napisz do Mostka</label>
         <div className="flex items-end gap-2">
           <textarea
-            id="mostek-input"
+            id={inputId}
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}

@@ -1,4 +1,5 @@
 import "server-only"
+import { ALL_PATHS, PUBLIC_PATHS } from "@/lib/site/sitemap"
 import type Anthropic from "@anthropic-ai/sdk"
 import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -12,6 +13,8 @@ export type Source = { id: string; kind: "innowacja" | "dokument" | "wyzwanie"; 
 export type ActionCard = { kind: "dostosuj" | "kreator" | "rozmowa_rops" | "dopasuj" | "otworz" | "lista_testow" | "przesla"; label: string; href: string; description?: string }
 
 export type ToolContext = {
+  /** rozmowa w panelu ROPS - wolno wskazywać strony panelu */
+  admin?: boolean
   /** ostatnia wypowiedź użytkownika - dołączana do wyszukiwania, żeby nie zgubić jego kluczowych słów (np. „spastyczność”) */
   userText?: string
   /** ograniczenie wyszukiwania dokumentów do jednego naboru (np. 'uw:' - Usługa Wrażliwa) */
@@ -37,7 +40,7 @@ const ProposeAction = z.object({
   label: z.string().min(2).max(80),
   innovation_id: z.number().int().optional(),
   text: z.string().max(1500).optional(),
-  path: z.enum(["/", "/innowacje", "/wiedza", "/kreator", "/testuj", "/rozmowy"]).optional(),
+  path: z.string().refine((v) => ALL_PATHS.includes(v)).optional(),
 })
 
 export const TOOLS: Anthropic.Beta.BetaTool[] = [
@@ -109,7 +112,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
       "kreator - stworzenie nowego pomysłu, gdy brak dobrego rozwiązania (text = opis problemu i luki); " +
       "rozmowa_rops - przekazanie sprawy pracownikowi/ekspertowi ROPS (text = podsumowanie sprawy); " +
       "dopasuj - pełne dopasowanie innowacji do opisu problemu (text = opis problemu); " +
-      "otworz - przejście do sekcji serwisu (path); " +
+      "otworz - przejście do strony serwisu (path z mapy serwisu); " +
       "lista_testow - zapis na listę oczekujących na testy nowych innowacji (categories, target_groups, text = krótki opis sytuacji BEZ danych osobowych; kontakt użytkownik poda sam w formularzu); " +
       "przesla - dołączenie do Przęseł, kręgów wsparcia osób w podobnej sytuacji. Proponuj 1-2 akcje na odpowiedź, gdy to naprawdę pomaga.",
     input_schema: {
@@ -121,7 +124,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
         label: { type: "string", description: "Krótki napis na przycisku, np. „Dostosuj Senior CUDER do fundacji”" },
         innovation_id: { type: "integer" },
         text: { type: "string" },
-        path: { type: "string", enum: ["/", "/innowacje", "/wiedza", "/kreator", "/testuj", "/rozmowy"] },
+        path: { type: "string", enum: ALL_PATHS },
       },
       required: ["kind", "label"],
       additionalProperties: false,
@@ -313,6 +316,8 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
           href = "/przesla"
           break
         default:
+          // strony panelu ROPS tylko w trybie ROPS
+          if (a.path && !ctx.admin && !PUBLIC_PATHS.includes(a.path)) return { content: "Ta strona jest dostępna tylko dla zespołu ROPS.", isError: true }
           href = a.path ?? "/"
       }
       if (!ctx.actions.some((x) => x.href === href)) ctx.actions.push({ kind: a.kind, label: a.label, href })

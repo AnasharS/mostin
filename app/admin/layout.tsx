@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth"
 import { RESOURCES } from "@/lib/cms/resources"
 import { signOut } from "@/app/logowanie/actions"
 import { Logo } from "@/components/site/logo"
+import { MostekLauncher } from "@/components/mostek/mostek-launcher"
 
 export const metadata = { title: "Panel ROPS · MostIn" }
 
@@ -40,6 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
       <main id="tresc" className="p-4 md:p-8">{children}</main>
+      <MostekLauncher mode="rops" floating="always" />
     </div>
   )
 }

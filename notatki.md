@@ -393,3 +393,10 @@ opis problemu
 ### 28c. Favicon i nagłówek hero
 - Favicon: sygnet z logo (sam łuk mostu) jako `app/icon.svg`; ikona iOS generowana z tego samego wektora (`app/apple-icon.tsx`, next/og).
 - Hero: wróciliśmy do dwóch wierszy z pierwszej wersji - pierwszy pomarańczowy (pytanie), drugi z odręczną, nieregularną kreską (odpowiedź). Jeden ludzki akcent przełamuje urzędową siatkę linii. Kreska jest tłem z `box-decoration-break: clone`, więc przy zawijaniu podkreśla każdą linijkę; w trybie wymuszonych kolorów zamienia się na zwykłe podkreślenie.
+
+### 29. Mostek na każdej stronie, także w panelu ROPS
+- Publicznie: przycisk „Zapytaj Mostka” w nagłówku; po przewinięciu w rogu pojawia się pływający „Mostek” (nie zasłania powitania na stronie głównej). Alt+M działa wszędzie.
+- Panel ROPS: pływający „Zapytaj Mostka” na każdej stronie panelu, tryb `rops` (sprawdzany po stronie serwera rolą admin): krótkie, rzeczowe odpowiedzi jak od współpracownika, wskazywanie stron panelu (leady, rozmowy, nabory, budżet AI), bez proponowania Przęseł czy Kreatora.
+- Szybkie przejścia bez AI: mapa serwisu (`lib/site/sitemap.ts`, słowa kluczowe z polską odmianą) dopasowywana w przeglądarce. Pod polem czatu „Przejdź od razu: …” już podczas pisania, a nad odpowiedzią „Od razu możesz przejść: …” zanim AI skończy. Zero kosztu, zero opóźnienia - AI dopowiada kontekst i źródła.
+- Ta sama mapa trafia do promptu Mostka: przycisk „otworz” może wskazać każdą stronę (strony panelu tylko w trybie ROPS - walidacja w narzędziu). Pytania nawigacyjne: 1-2 zdania + przycisk, bez wyszukiwania.
+- Kliknięcie linku w odpowiedzi zamyka panel, rozmowa zostaje w sesji.

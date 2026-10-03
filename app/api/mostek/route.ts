@@ -22,7 +22,7 @@ const Body = z.object({
   sessionId: z.string().uuid().nullish(),
   plain: z.boolean().optional(),
   page: z.string().max(200).optional(),
-  mode: z.enum(["grant"]).optional(),
+  mode: z.enum(["grant", "rops"]).optional(),
 })
 
 const sse = (e: MostekEvent | { type: "session"; id: string }) => `data: ${JSON.stringify(e)}\n\n`
@@ -30,12 +30,18 @@ const sse = (e: MostekEvent | { type: "session"; id: string }) => `data: ${JSON.
 export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => null))
   if (!parsed.success) return Response.json({ message: "Nieprawidłowe zapytanie" }, { status: 400 })
-  const { message, sessionId, plain, page, mode } = parsed.data
+  const { message, sessionId, plain, page } = parsed.data
+  let mode = parsed.data.mode
   // Strefa JST: rozmowa grantowa powiązana z leadem gminy (kontakt podany na starcie)
   const leadId = mode === "grant" ? jarLead(await cookies()) : null
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  // tryb panelu ROPS tylko dla zalogowanego zespołu (persona demo ROPS też ma rolę admin)
+  if (mode === "rops") {
+    const { data: isAdmin } = await supabase.rpc("is_admin")
+    if (!isAdmin) mode = undefined
+  }
   const jar = await cookies()
   let sessionKey = jar.get("mostin_sid")?.value
   if (!sessionKey) {

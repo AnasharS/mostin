@@ -38,6 +38,7 @@ export function MostekWelcome() {
       role="dialog"
       aria-modal="false"
       aria-labelledby="mostek-welcome-title"
+      data-mostek-welcome=""
       className="fixed bottom-4 right-4 z-40 w-[min(92vw,380px)] rounded-2xl border-2 border-brand bg-card p-4 shadow-xl print:hidden"
     >
       <div className="flex items-start justify-between gap-2">
