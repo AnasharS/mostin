@@ -235,13 +235,42 @@ opis problemu
 - **Prywatność:** treść jest zapisywana z zamaskowanymi danymi osobowymi. Kontakt (opcjonalny) jest w osobnej tabeli i widzi go tylko ROPS. Wulgaryzmy są blokowane przy wysłaniu.
 - **Dlaczego triaż w tle:** użytkownik nie czeka na AI (odpowiedź „wysłano” przychodzi od razu), a pracownik ROPS dostaje sprawę już uporządkowaną. To realne skrócenie czasu obsługi, a nie chatbot udający urzędnika.
 
+## 21. Kreator pomysłów — od problemu do wniosku grantowego
+
+- **Oparty na materiałach ROPS:** Social Innovation Canvas (ROPS / INNO AGH) i **prawdziwy wzór formularza aplikacyjnego naboru „Inkubator Włączenia Społecznego 2.0”** (zał. nr 3, FERS 2021–2027, Działanie 5.1).
+- **5 kroków po kanwie z pytaniami pomocniczymi i opcjami do zaznaczenia** zamiast pustych pól, czyli przystępnie dla osób, które nigdy nie pisały wniosku:
+  1. Problem (intensywność, częstotliwość, skala, odbiorcy).
+  2. Rozwiązanie (typ, gotowość, zrozumiałość).
+  3. Ludzie i wartość (kto wspiera / utrudnia, wartości emocjonalne i funkcjonalne, płatnik, decydent).
+  4. Koszty stałe i zmienne.
+  5. Ocena Mostka.
+  - Wejście z matchmakingu przenosi opis problemu i „lukę”.
+- **Ocena Mostka** (archetyp Twórcy, Opus 5.5):
+  - **sprawdzenie unikalności względem 115 innowacji ROPS** (wyszukiwanie hybrydowe + werdykt „unikalny / częściowo podobny / powiela” z uzasadnieniem). Regulamin naboru wymaga, by innowacja **nie powielała już inkubowanych**, więc to sprawdzenie ma realną wartość;
+  - mocne strony, luki z pytaniami pomocniczymi, nieoczywiste usprawnienia łączące pomysł z innowacjami z biblioteki (oznaczone jako propozycja), propozycja tytułu i następny krok.
+  - Test: wypożyczalnia pomocy terapeutycznych w bibliotece → „częściowo podobny: korzysta z Edek, ale ich nie powiela; nowością jest model wypożyczalni + warsztaty”.
+- **Wizualizacja pomysłu** (OpenAI `gpt-image-1`, 1024×1024, jakość low, **~$0.011 za obraz**):
+  - ciepła ilustracja w palecie marki, bez tekstu i stygmatyzacji, zapisana w Supabase Storage;
+  - przełącznik ROPS i **dzienny limit na osobę** (domyślnie 5), w trybie oszczędnym wyłączona;
+  - dla osób bez środków na grafika czy projekt.
+- **Fiszka → „Wyślij do ROPS”:** zapis pomysłu (`ideas`), wątek w Rozmowach z pełną kanwą i wizualizacją, powiadomienie administratorów i triaż AI. ROPS odpowiada w tej samej skrzynce.
+- **Generator wniosku IWS 2.0:**
+  - sekcje merytoryczne 1, 3–11 według wzoru formularza;
+  - **sekcja 5 (diagnoza)** korzysta z RAG: fragmenty raportów ROPS z numerami stron i wyzwania z Mapy Wyzwań (z zaznaczeniem, że to dane ogólnopolskie);
+  - **sekcja 4 (innowacyjność)** porównuje z konkretnymi innowacjami z biblioteki;
+  - pilnuje wymogów naboru (okres przygotowawczy max 3 mies., testowanie max 9 mies. w fazie I i II, bez opłat od testujących);
+  - kwot i zespołu nie zmyśla, tylko oznacza je **[DO UZUPEŁNIENIA]**;
+  - **sekcje 2 (dane pomysłodawcy) i 12 (oświadczenia) świadomie poza AI** (dane osobowe i odpowiedzialność karna);
+  - kopiowanie sekcji, druk / PDF, lista źródeł.
+- **Wydajność:** cały wniosek w jednym wywołaniu trwał ~40 s, podział na 2–3 części po stronie serwera nadal ~38 s. Rozwiązanie: **przeglądarka wysyła 6 równoległych żądań po 1–3 sekcje** (każde < 25 s, mieści się w limicie hostingu), a sekcje pojawiają się w miarę gotowości. Szkic wniosku zapisuje się w `applications` (jeden na pomysł i nabór).
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [x] Mostek — agent z narzędziami (sekcja 17)
 - [x] Middleman — „Dostosuj z Mostkiem” (sekcja 13)
 - [x] Knowledge RAG w praktyce (sekcje 14 i 17)
-- [ ] Kreator pomysłów + generator wniosków + wizualizacja
-- [ ] **Wizualizacja pomysłu (obraz z opisu):** osoba z pomysłem, ale bez środków na projekt czy grafika, generuje obraz innowacji (np. przedmiotu, miejsca, usługi) z opisu w Kreatorze i może wysłać fiszkę z wizualizacją do ROPS do wglądu. Obniża próg wejścia dla oddolnych innowatorów. Koszt kontrolowany limitem obrazów na użytkownika i przełącznikiem w ustawieniach AI.
+- [x] Kreator pomysłów + generator wniosków + wizualizacja (sekcja 21)
+- [x] **Wizualizacja pomysłu (obraz z opisu):** osoba z pomysłem, ale bez środków na projekt czy grafika, generuje obraz innowacji (np. przedmiotu, miejsca, usługi) z opisu w Kreatorze i może wysłać fiszkę z wizualizacją do ROPS do wglądu. Obniża próg wejścia dla oddolnych innowatorów. Koszt kontrolowany limitem obrazów na użytkownika i przełącznikiem w ustawieniach AI.
 - [x] Tester innowacji + **lista oczekujących na testy** (sekcja 19): zapis przez checkboxy, czat lub głos z Mostkiem → kategorie problemu + kontakt. Kontakt wpisuje się w formularzu i nie trafia do LLM. Gdy ROPS oznaczy innowację jako „gotową do testów”, system dopasowuje listę (kategorie + embedding) i tworzy powiadomienia (demo bez wysyłki maili).
 - [x] Rozmowy z ROPS (sekcja 20)
 - [ ] Panel kosztów i ustawień AI (kaganiec + **tone of voice przez archetypy marki**)
