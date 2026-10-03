@@ -5,7 +5,7 @@ import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
 import { policyPrompt, tonePrompt, type AiPolicy } from "@/lib/ai/policy"
 import { sanitizeOutput } from "@/lib/ai/guard"
 import { factsPrompt } from "@/lib/jst/facts"
-import { TOOLS, TOOL_LABELS, runTool, type ToolContext, type Source, type ActionCard } from "./tools"
+import { TOOLS, ROPS_TOOLS, TOOL_LABELS, runTool, type ToolContext, type Source, type ActionCard } from "./tools"
 
 export type MostekEvent =
   | { type: "text"; delta: string }
@@ -41,6 +41,7 @@ const ROPS_SYSTEM = `TRYB: PANEL ROPS. Rozmawia z Tobą pracownik zespołu Hubu 
 - Odpowiadaj krótko i rzeczowo, jak współpracownik: 1-3 zdania albo krótka lista. Bez wstępów i bez tonu wsparcia emocjonalnego.
 - Gdy pyta, gdzie coś jest lub jak coś zrobić w panelu (leady, rozmowy, budżet AI, dodanie naboru lub innowacji), wskaż stronę przyciskiem propose_action „otworz” (strony /admin/...) i w jednym zdaniu powiedz, co tam zrobi.
 - Gdy szuka innowacji, danych lub zapisów regulaminów - użyj narzędzi jak zwykle i podaj źródła.
+- Pytania o koszty, wydatki, budżet lub limity AI → narzędzie koszty_ai. Podaj konkretne kwoty z wyniku (USD, z wykorzystaniem budżetu w %, 2-3 największe pozycje) ze źródłem, a do zmiany budżetu i limitów wskaż /admin/ustawienia-ai przyciskiem „otworz”.
 - Nie proponuj mu Przęseł, listy testów ani Kreatora jako użytkownikowi.`
 
 // Tryb grantowy (Strefa JST): prowadzenie pracownika gminy przez nabór „Usługa Wrażliwa”
@@ -71,15 +72,16 @@ export async function* runMostek(
 ): AsyncGenerator<MostekEvent, Anthropic.Beta.BetaMessageParam[]> {
   const appended: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: userText }]
   const messages = [...history, ...appended]
-  const ctx: ToolContext = { admin: opts.mode === "rops", docPrefix: opts.mode === "grant" ? "uw:" : undefined, userText: userText.replace(/<strona_uzytkownika>[\s\S]*?<\/strona_uzytkownika>\n?/, "").slice(0, 600), sources: [], actions: [], seenInnovations: new Set() }
+  const ctx: ToolContext = { admin: opts.mode === "rops", docPrefix: opts.mode === "grant" ? "uw:" : undefined, userText: userText.replace(/<strona_uzytkownika>[\s\S]*?<\/strona_uzytkownika>\n?/, "").slice(0, 600), sources: [], actions: [], seenInnovations: new Set(), seenCircles: new Set() }
   let fullText = ""
 
-  // innowacje, które pojawiły się wcześniej w tej rozmowie, wolno wskazywać w propose_action
+  // innowacje i kręgi, które pojawiły się wcześniej w tej rozmowie, wolno wskazywać w propose_action
   for (const m of history) {
     if (m.role !== "user" || typeof m.content === "string") continue
     for (const b of m.content) {
       if (b.type === "tool_result" && typeof b.content === "string") {
         for (const id of b.content.matchAll(/"(?:innovation_id|id)":(\d+)/g)) ctx.seenInnovations.add(Number(id[1]))
+        for (const id of b.content.matchAll(/"krag_id":(\d+)/g)) ctx.seenCircles.add(Number(id[1]))
       }
     }
   }
@@ -100,7 +102,7 @@ export async function* runMostek(
       ...FALLBACK,
       output_config: { effort: "low" },
       system,
-      tools: TOOLS,
+      tools: opts.mode === "rops" ? [...TOOLS, ...ROPS_TOOLS] : TOOLS,
       messages,
     })
 

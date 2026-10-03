@@ -1,11 +1,11 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { requireMentor } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { KIND_LABELS } from "@/lib/rozmowy"
-import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { replyAsMentor } from "../actions"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 const ROLE: Record<string, string> = { rops: "Zespół ROPS", expert: "Mentor", system: "System" }
 
@@ -22,7 +22,7 @@ export default async function MentorThread({ params, searchParams }: { params: P
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <nav aria-label="Okruszki" className="text-sm text-muted-foreground"><Link href="/mentor">Panel mentora</Link> /</nav>
+      <Breadcrumbs section={null} items={[{ label: "Panel mentora", href: "/mentor" }, { label: t.subject }]} />
       <h1 className="mt-2 text-2xl font-bold">{t.subject}</h1>
       <p className="mt-1 text-sm text-muted-foreground">{KIND_LABELS[t.kind] ?? t.kind} · {t.requester_label ?? "anonim"}</p>
       {t.ai_summary && <p className="mt-3 border-l-4 border-brand py-1 pl-3 text-sm"><strong>W skrócie:</strong> {t.ai_summary}</p>}
@@ -40,7 +40,7 @@ export default async function MentorThread({ params, searchParams }: { params: P
       <form action={replyAsMentor.bind(null, t.id)} className="mt-8 grid gap-3 border-t-2 border-foreground pt-6">
         <label htmlFor="body" className="font-medium">Twoja odpowiedź jako mentor</label>
         <textarea id="body" name="body" rows={6} required maxLength={6000} className="w-full border border-input bg-background p-2.5 text-base" />
-        <Button type="submit" size="lg" className="h-11 w-fit px-5">Wyślij odpowiedź</Button>
+        <SubmitButton size="lg" className="h-11 w-fit px-5">Wyślij odpowiedź</SubmitButton>
       </form>
     </div>
   )

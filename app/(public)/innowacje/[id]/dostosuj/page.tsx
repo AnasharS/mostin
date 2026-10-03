@@ -1,9 +1,9 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentProfile } from "@/lib/auth"
 import { AdaptFlow } from "@/components/middleman/adapt-flow"
 import { MostekMark } from "@/components/site/logo"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
 
 export const metadata = { title: "Dostosuj z Mostkiem · MostIn" }
 
@@ -30,9 +30,7 @@ export default async function AdaptPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <nav aria-label="Okruszki" className="text-sm text-muted-foreground">
-        <Link href={`/innowacje/${i.id}`}>{i.title}</Link> <span aria-hidden="true">/</span>
-      </nav>
+      <Breadcrumbs section="know" items={[{ label: "Biblioteka innowacji", href: "/innowacje" }, { label: i.title, href: `/innowacje/${i.id}` }, { label: "Plan wdrożenia" }]} />
       <h1 className="mt-2 text-3xl font-bold tracking-tight">
         Dostosuj „{i.title}” do swojej instytucji
       </h1>

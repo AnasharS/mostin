@@ -1,11 +1,14 @@
 "use client"
 
-import { Check, ThumbsUp, ThumbsDown, CircleCheck, CircleAlert, CircleX } from "lucide-react"
+import { Check, ThumbsUp, ThumbsDown, CircleCheck, CircleAlert, CircleX, ImagePlus, Sparkles, Trash2, Copy, ExternalLink, FileDown, Printer } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { OPTIONS, USERS, EMOTIONAL, PAYERS, AUTHORITIES, COSTS_FIXED, COSTS_VARIABLE, type Canvas } from "@/lib/kreator/canvas"
 import type { Assessment } from "@/lib/kreator/ai"
+import { Thinking } from "@/components/site/thinking"
+import { buildDocx, buildOdt, download } from "@/lib/export/documents"
+import { norm } from "@/lib/search"
 
 const STORE = "mostin-kreator"
 const STEPS = ["Problem", "Rozwiązanie", "Ludzie i wartość", "Koszty", "Ocena Mostka"] as const
@@ -74,9 +77,12 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
   const [c, setC] = useState<Canvas>({ ...empty, problem: initialProblem ?? "" })
   const [assessment, setAssessment] = useState<Assessment | null>(null)
   const [visual, setVisual] = useState<string | null>(null)
+  // opis użyty do ilustracji AI (null = zdjęcie dołączone przez autora) i własny opis obrazu wpisany przez użytkownika
+  const [visualPrompt, setVisualPrompt] = useState<string | null>(null)
+  const [visualNote, setVisualNote] = useState("")
   const [ideaId, setIdeaId] = useState<number | null>(null)
   const [threadId, setThreadId] = useState<number | null>(null)
-  const [busy, setBusy] = useState<"" | "assess" | "visual" | "save" | "send" | "app">("")
+  const [busy, setBusy] = useState<"" | "assess" | "visual" | "upload" | "save" | "send" | "app">("")
   const [error, setError] = useState("")
   const [app, setApp] = useState<{ sections: Section[]; sources: Source[]; title: string; pending: number; failed?: number[] } | null>(null)
   const headRef = useRef<HTMLHeadingElement>(null)
@@ -88,13 +94,13 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
       if (s?.c) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- jednorazowe przywrócenie szkicu
         setC(initialProblem ? { ...s.c, problem: initialProblem } : s.c)
-        setAssessment(s.assessment ?? null); setVisual(s.visual ?? null); setIdeaId(s.ideaId ?? null); setThreadId(s.threadId ?? null)
+        setAssessment(s.assessment ?? null); setVisual(s.visual ?? null); setVisualPrompt(s.visualPrompt ?? null); setIdeaId(s.ideaId ?? null); setThreadId(s.threadId ?? null)
       }
     } catch {}
   }, [initialProblem])
   useEffect(() => {
-    try { sessionStorage.setItem(STORE, JSON.stringify({ c, assessment, visual, ideaId, threadId })) } catch {}
-  }, [c, assessment, visual, ideaId, threadId])
+    try { sessionStorage.setItem(STORE, JSON.stringify({ c, assessment, visual, visualPrompt, ideaId, threadId })) } catch {}
+  }, [c, assessment, visual, visualPrompt, ideaId, threadId])
   const appOpen = app !== null
   useEffect(() => { headRef.current?.focus() }, [step, appOpen])
 
@@ -107,6 +113,21 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
       return data as T
     } catch {
       setError("Nie udało się połączyć. Spróbuj ponownie."); return null
+    } finally { setBusy("") }
+  }
+
+  /** Zdjęcie lub szkic od autora - serwer sprawdza typ, rozmiar i moderuje obraz. */
+  async function upload(file: File) {
+    if (file.size > 5 * 1024 * 1024) { setError("Plik jest za duży - maksymalnie 5 MB."); return }
+    setBusy("upload"); setError("")
+    try {
+      const fd = new FormData()
+      fd.append("file", file)
+      const data = await (await fetch("/api/kreator/upload", { method: "POST", body: fd })).json()
+      if (!data.ok) { setError(data.message); return }
+      setVisual(data.url); setVisualPrompt(null)
+    } catch {
+      setError("Nie udało się wysłać zdjęcia. Spróbuj ponownie.")
     } finally { setBusy("") }
   }
 
@@ -150,15 +171,30 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
   }
 
   async function save(send: boolean) {
-    const r = await call<{ ideaId: number; threadId: number | null }>("/api/kreator/save", { send, ideaId, assessment, visual_url: visual }, send ? "send" : "save")
+    const r = await call<{ ideaId: number; threadId: number | null }>("/api/kreator/save", { send, ideaId, assessment, visual_url: visual, visual_prompt: visual ? visualPrompt : null }, send ? "send" : "save")
     if (r) { setIdeaId(r.ideaId); setThreadId(r.threadId) }
   }
 
   if (app) {
+    const exportDoc = () => ({
+      kicker: `Szkic wniosku · ${app.title}`,
+      title: c.title || assessment?.title_suggestion || "Pomysł na innowację",
+      note: "Sekcje 2. Dane pomysłodawcy i 12. Oświadczenia wypełniasz samodzielnie w formularzu naboru. Fragmenty [DO UZUPEŁNIENIA] wymagają Twojej wiedzy. Przygotowano w MostIn.",
+      sections: app.sections.map((x) => ({ heading: `${x.nr}. ${x.title}`, content: x.content })),
+      sources: app.sources.map((x) => [x.title, x.detail, x.url].filter(Boolean).join(", ")),
+    })
+    const fileBase = () => `wniosek-${norm(c.title || assessment?.title_suggestion || "pomysl").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50)}`
     return (
       <section className="mt-8" aria-labelledby="wniosek">
         <div className="flex flex-wrap gap-2 print:hidden">
-          <Button type="button" onClick={() => window.print()} size="lg" className="h-10 px-4">Drukuj / zapisz PDF</Button>
+          <Button type="button" size="lg" className="h-10 gap-1.5 px-4" onClick={() => download(buildDocx(exportDoc()), `${fileBase()}.docx`, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}>
+            <FileDown aria-hidden="true" className="size-4" /> Pobierz .docx (Word)
+          </Button>
+          <Button type="button" variant="outline" size="lg" className="h-10 gap-1.5 px-4" onClick={() => download(buildOdt(exportDoc()), `${fileBase()}.odt`, "application/vnd.oasis.opendocument.text")}>
+            <FileDown aria-hidden="true" className="size-4" /> Pobierz .odt (LibreOffice)
+          </Button>
+          <CopyButton text={() => app.sections.map((x) => `${x.nr}. ${x.title}\n\n${x.content}`).join("\n\n")} label="Kopiuj cały wniosek" />
+          <Button type="button" variant="outline" onClick={() => window.print()} size="lg" className="h-10 gap-1.5 px-4"><Printer aria-hidden="true" className="size-4" /> Drukuj / PDF</Button>
           <Button type="button" variant="outline" size="lg" className="h-10 px-4" onClick={() => setApp(null)}>Wróć do kanwy</Button>
         </div>
         <div className="mt-6 border-t-4 border-brand pt-6 print:border-0 print:pt-0">
@@ -169,15 +205,17 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
             Fragmenty <strong>[DO UZUPEŁNIENIA]</strong> wymagają Twojej wiedzy.
           </p>
           {app.pending > 0 && (
-            <p role="status" className="mt-4"><span aria-hidden="true" className="mr-2 inline-block size-2.5 animate-pulse rounded-full bg-brand" />
-              Mostek pisze kolejne sekcje… (gotowe {app.sections.length} z 10). Sekcja 5 (diagnoza) korzysta z raportów ROPS i Mapy Wyzwań.</p>
+            <div className="mt-4">
+              <Thinking typical={30} steps={["Mostek pisze sekcje wniosku…", "Szukam danych w raportach ROPS i Mapie Wyzwań…", "Porównuję z innowacjami z Biblioteki…", "Dopisuję kolejne sekcje…"]}
+                note={<>Gotowe {app.sections.length} z 10 sekcji - pojawiają się poniżej w miarę gotowości.</>} />
+            </div>
           )}
           {app.failed && app.failed.length > 0 && <p role="alert" className="mt-4 rounded-lg border border-destructive p-3 text-sm">Nie udało się przygotować sekcji: {app.failed.join(", ")}. Spróbuj ponownie później.</p>}
           {app.sections.map((s) => (
             <section key={s.nr} className="mt-6" aria-labelledby={`s${s.nr}`}>
               <div className="flex items-center justify-between gap-3">
                 <h3 id={`s${s.nr}`} className="text-lg font-semibold">{s.nr}. {s.title}</h3>
-                <Button type="button" variant="ghost" size="sm" className="print:hidden" onClick={() => navigator.clipboard.writeText(s.content)}>Kopiuj</Button>
+                <CopyButton text={() => s.content} label="Kopiuj sekcję" small />
               </div>
               <div className="mt-2 whitespace-pre-wrap leading-relaxed">{s.content}</div>
             </section>
@@ -288,7 +326,15 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
 
         {step === 4 && (
           <div className="mt-4" aria-live="polite">
-            {busy === "assess" && <p role="status"><span aria-hidden="true" className="mr-2 inline-block size-2.5 animate-pulse rounded-full bg-brand" />Mostek porównuje pomysł ze 115 innowacjami ROPS i analizuje kanwę…</p>}
+            {busy === "assess" && (
+              <Thinking typical={20} skeleton={5} steps={[
+                "Mostek czyta Twój pomysł…",
+                "Szukam podobnych rozwiązań wśród 115 innowacji ROPS…",
+                "Porównuję pomysł z najbliższymi innowacjami…",
+                "Analizuję kanwę: mocne strony i luki…",
+                "Przygotowuję ocenę i następny krok…",
+              ]} />
+            )}
             {assessment && (
               <div className="grid gap-5">
                 <div className="border-l-4 border-brand py-1 pl-4">
@@ -303,7 +349,10 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
                   </p>
                   <p className="mt-1 text-sm">{assessment.uniqueness_comment}</p>
                   <ul className="mt-2 flex flex-wrap gap-2 text-sm">
-                    {assessment.similar.slice(0, 4).map((s) => <li key={s.id}><Link href={`/innowacje/${s.id}`} target="_blank" className="rounded-full border bg-background px-2.5 py-1">{s.title} · {s.similarity}%</Link></li>)}
+                    {assessment.similar.slice(0, 4).map((s) => <li key={s.id}><Link href={`/innowacje/${s.id}`} target="_blank" className="group inline-flex items-center gap-1.5 border bg-background px-2.5 py-1 text-foreground! no-underline transition-colors hover:border-foreground hover:bg-muted">
+                      <span className="group-hover:underline">{s.title}</span> <span className="text-muted-foreground">· {s.similarity}%</span>
+                      <ExternalLink aria-hidden="true" className="size-3.5 text-muted-foreground" /><span className="sr-only"> (otwiera się w nowej karcie)</span>
+                    </Link></li>)}
                   </ul>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -314,16 +363,47 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
                 <p className="border-l-4 border-brand py-1 pl-4 text-sm"><strong>Następny krok:</strong> {assessment.next_step}</p>
 
                 <div className="border-t pt-5">
-                  <h3 className="font-semibold">Wizualizacja pomysłu</h3>
-                  <p className="text-sm text-muted-foreground">Nie masz grafika ani budżetu na projekt? Mostek przygotuje poglądową ilustrację, którą dołączysz do fiszki.</p>
-                  {visual ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- obraz z Supabase Storage, wymiary stałe
-                    <img src={visual} alt={`Poglądowa ilustracja pomysłu: ${c.title || assessment.title_suggestion}. ${c.solution.slice(0, 140)}`} width={512} height={512} className="mt-3 w-full max-w-md rounded-lg border" />
-                  ) : null}
-                  <Button type="button" variant="outline" size="lg" className="mt-3 h-10 px-4" disabled={busy !== ""} onClick={async () => {
-                    const r = await call<{ url: string }>("/api/kreator/visualize", {}, "visual")
-                    if (r) setVisual(r.url)
-                  }}>{busy === "visual" ? "Rysuję… (ok. 15 s)" : visual ? "Narysuj inną wersję" : "Wygeneruj wizualizację"}</Button>
+                  <h3 className="font-semibold">Obraz pomysłu <span className="font-normal text-muted-foreground">(opcjonalnie)</span></h3>
+                  <p className="text-sm text-muted-foreground">Zdjęcie, szkic albo ilustracja pomaga zespołowi Hubu zrozumieć pomysł. Obraz trafi razem z fiszką do ROPS.</p>
+                  {visual && (
+                    <figure className="mt-3 max-w-md">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- obraz z Supabase Storage */}
+                      <img src={visual} alt={`${visualPrompt ? "Ilustracja" : "Zdjęcie"} pomysłu: ${c.title || assessment.title_suggestion}`} className="w-full border" />
+                      <figcaption className="mt-1.5 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                        {visualPrompt ? "Ilustracja wygenerowana przez AI" : "Twoje zdjęcie lub szkic"}
+                        <button type="button" onClick={() => { setVisual(null); setVisualPrompt(null) }} className="inline-flex items-center gap-1 underline underline-offset-4 hover:text-foreground">
+                          <Trash2 aria-hidden="true" className="size-3.5" /> Usuń obraz
+                        </button>
+                      </figcaption>
+                    </figure>
+                  )}
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    {/* 1. własne zdjęcie */}
+                    <div className="border bg-card p-4">
+                      <p className="flex items-center gap-2 font-semibold"><ImagePlus aria-hidden="true" className="size-5 text-brand-dark" /> Dołącz zdjęcie lub szkic</p>
+                      <p className="mt-1 text-sm text-muted-foreground">JPG, PNG lub WebP, do 5 MB. Nie dołączaj zdjęć osób bez ich zgody ani dokumentów z danymi osobowymi.</p>
+                      <label className={buttonVariants({ variant: "outline", size: "lg" }) + ` mt-3 h-10 cursor-pointer px-4 ${busy !== "" ? "pointer-events-none opacity-50" : ""}`}>
+                        {busy === "upload" ? "Wysyłam i sprawdzam…" : "Wybierz plik"}
+                        <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={busy !== ""}
+                          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f) }} />
+                      </label>
+                    </div>
+                    {/* 2. ilustracja AI z opisu */}
+                    <div className="border bg-card p-4">
+                      <p className="flex items-center gap-2 font-semibold"><Sparkles aria-hidden="true" className="size-5 text-brand-dark" /> Wygeneruj ilustrację z AI</p>
+                      <p className="mt-1 text-sm text-muted-foreground">Nie masz zdjęcia ani grafika? Mostek narysuje poglądową ilustrację na podstawie opisu pomysłu.</p>
+                      <label htmlFor="visual-note" className="mt-3 block text-sm font-medium">Co ma być na obrazie? <span className="font-normal text-muted-foreground">(opcjonalnie)</span></label>
+                      <textarea id="visual-note" rows={2} maxLength={300} value={visualNote} onChange={(e) => setVisualNote(e.target.value)}
+                        placeholder="np. senior i wnuczka grają w karty przy stole w świetlicy" className="mt-1 w-full border border-input p-2 text-sm" />
+                      <Button type="button" variant="outline" size="lg" className="mt-2 h-10 px-4" disabled={busy !== ""} onClick={async () => {
+                        const r = await call<{ url: string; prompt: string }>("/api/kreator/visualize", { extra: visualNote.trim() || undefined }, "visual")
+                        if (r) { setVisual(r.url); setVisualPrompt(r.prompt) }
+                      }}>{busy === "visual" ? "Rysuję… (ok. 15 s)" : visual && visualPrompt ? "Narysuj inną wersję" : "Wygeneruj ilustrację"}</Button>
+                      <p className="mt-3 border-l-2 border-muted-foreground/40 pl-2 text-xs text-muted-foreground">
+                        Docelowo dla zalogowanych użytkowników (koszt generowania obrazu). W wersji demonstracyjnej na HackYeah dostępne od razu.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2 border-t pt-5">
@@ -384,5 +464,17 @@ export function KreatorFlow({ initialProblem, openCall }: { initialProblem?: str
         )}
       </div>
     </div>
+  )
+}
+
+/** Kopiowanie z potwierdzeniem „Skopiowano” (widocznym i ogłaszanym czytnikowi). */
+function CopyButton({ text, label, small }: { text: () => string; label: string; small?: boolean }) {
+  const [done, setDone] = useState(false)
+  return (
+    <Button type="button" variant="outline" size={small ? "sm" : "lg"} className={`${small ? "h-9" : "h-10"} gap-1.5 px-3 print:hidden`}
+      onClick={async () => { await navigator.clipboard.writeText(text()); setDone(true); setTimeout(() => setDone(false), 2000) }}>
+      {done ? <Check aria-hidden="true" className="size-4 text-success" /> : <Copy aria-hidden="true" className="size-4" />}
+      <span aria-live="polite">{done ? "Skopiowano" : label}</span>
+    </Button>
   )
 }

@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { FileUpload } from "./file-upload"
+import { InnovationPicker, type InnovationOption } from "./innovation-picker"
+import { StructuredField } from "./structured-field"
 
 type Area = { id: number; name: string }
 
@@ -17,7 +19,7 @@ function toText(field: Field, value: unknown) {
   return String(value)
 }
 
-export function FieldInput({ field, value, areas }: { field: Field; value: unknown; areas: Area[] }) {
+export function FieldInput({ field, value, areas, innovations = [] }: { field: Field; value: unknown; areas: Area[]; innovations?: InnovationOption[] }) {
   const id = field.name
   const describedBy = field.help ? `${id}-help` : undefined
   const common = { id, name: field.name, required: field.required, "aria-describedby": describedBy }
@@ -76,6 +78,17 @@ export function FieldInput({ field, value, areas }: { field: Field; value: unkno
         </fieldset>
       )
     }
+    case "structured":
+      return (
+        <fieldset aria-describedby={describedBy}>
+          <legend className="mb-1 text-sm font-medium">{field.label}</legend>
+          {field.help && <p id={`${id}-help`} className="mb-2 text-xs text-muted-foreground">{field.help}</p>}
+          <StructuredField name={field.name} schema={field.schema!} defaultValue={value} />
+        </fieldset>
+      )
+    case "innovation":
+      control = <InnovationPicker name={field.name} options={innovations} defaultValue={value as number | null} required={field.required} describedBy={describedBy} />
+      break
     case "file":
       control = <FileUpload name={field.name} bucket={field.bucket!} accept={field.accept} defaultValue={value as string | null} label={field.label} />
       break

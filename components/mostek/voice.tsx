@@ -88,9 +88,9 @@ export function MicButton({ page, onText, onStatus }: { page: string; onText: (t
       aria-pressed={state === "rec"}
       aria-label={state === "rec" ? "Zakończ nagrywanie" : "Powiedz to Mostkowi (mikrofon)"}
       title="Powiedz to Mostkowi"
-      className={`inline-flex size-11 shrink-0 items-center justify-center rounded-lg border-2 ${state === "rec" ? "animate-pulse border-destructive bg-destructive text-white" : "border-brand bg-card hover:bg-accent"}`}
+      className={`inline-flex size-12 shrink-0 items-center justify-center rounded-full ${state === "rec" ? "bg-destructive text-white motion-safe:animate-pulse" : "text-foreground hover:bg-muted"}`}
     >
-      {state === "busy" ? <Loader2 aria-hidden="true" className="size-5 animate-spin" /> : state === "rec" ? <Square aria-hidden="true" className="size-5" /> : <Mic aria-hidden="true" className="size-5 text-brand-dark" />}
+      {state === "busy" ? <Loader2 aria-hidden="true" className="size-6 animate-spin" /> : state === "rec" ? <Square aria-hidden="true" className="size-5 fill-current" /> : <Mic aria-hidden="true" className="size-6" />}
     </button>
   )
 }

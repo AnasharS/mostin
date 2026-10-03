@@ -4,7 +4,7 @@ export function Tagline({ className = "" }: { className?: string }) {
     <span className={className}>
       Twój <strong className="font-bold text-foreground">Most</strong> do{" "}
       <strong className="font-bold text-foreground">
-        <span className="text-brand">In</span>
+        <span className="text-brand-dark">In</span>
       </strong>
       nowacji Społecznych
     </span>

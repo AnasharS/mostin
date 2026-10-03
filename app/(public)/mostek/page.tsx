@@ -1,4 +1,5 @@
 import { MostekChat } from "@/components/mostek/mostek-chat"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
 
 export const metadata = { title: "Mostek - asystent · MostIn" }
 
@@ -6,7 +7,8 @@ export default async function MostekPage({ searchParams }: { searchParams: Promi
   const { q } = await searchParams
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-3xl font-bold tracking-tight">
+      <Breadcrumbs items={[{ label: "Porozmawiaj z Mostkiem" }]} />
+      <h1 className="mt-3 text-3xl font-bold tracking-tight">
         <span aria-hidden="true" className="mr-2 inline-block size-3.5 rounded-full bg-brand align-middle" />
         Porozmawiaj z Mostkiem
       </h1>

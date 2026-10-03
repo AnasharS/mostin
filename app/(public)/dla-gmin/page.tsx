@@ -3,11 +3,12 @@ import Link from "next/link"
 import { FileSearch, ListChecks, PhoneCall, ShieldCheck } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { MostekChat } from "@/components/mostek/mostek-chat"
-import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { startGrantSession, resetGrantSession } from "./actions"
 import { GrantRadar } from "@/components/jst/grant-radar"
 import { NewsList } from "@/components/site/news-list"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 export const metadata = { title: "Dla gmin - granty na wdrożenie innowacji · MostIn" }
 
@@ -27,7 +28,7 @@ export default async function DlaGmin({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Strefa JST <span aria-hidden="true" className="text-brand">/</span> gminy, powiaty, OPS, CUS</p>
+      <Breadcrumbs />
       <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">Grant na wdrożenie innowacji w Twojej gminie - bez przekopywania się przez dokumenty</h1>
       <p className="mt-3 max-w-3xl text-lg text-muted-foreground">
         Nabór <strong className="text-foreground">„Usługa Wrażliwa”</strong> (Fundusze Europejskie dla Małopolski 2021-2027) finansuje wdrożenie sprawdzonych innowacji
@@ -57,7 +58,8 @@ export default async function DlaGmin({ searchParams }: { searchParams: Promise<
       <div className="mt-4"><Flash error={blad} /></div>
 
       {!lead ? (
-        <section className="mt-8 border-l-4 border-brand bg-card py-5 pl-5 pr-4" aria-labelledby="start">
+        // ta sama kotwica co rozmowa z asystentem - link „Asystent grantowy” w menu prowadzi tu przed rozpoczęciem rozmowy
+        <section id="asystent" className="mt-8 border-l-4 border-brand bg-card py-5 pl-5 pr-4" aria-labelledby="start">
           <h2 id="start" className="text-xl font-semibold">Zacznijmy - kogo reprezentujesz?</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Podaj kontakt, żeby zespół ROPS mógł pomóc, jeśli coś okaże się niejasne - nawet gdy przerwiesz rozmowę. Dane kontaktowe widzi tylko ROPS; nie są przekazywane do asystenta AI.
@@ -93,14 +95,14 @@ export default async function DlaGmin({ searchParams }: { searchParams: Promise<
               <input type="checkbox" name="consent" defaultChecked className="mt-1 size-4" />
               <span className="text-sm">Zgadzam się na kontakt zespołu Małopolskiego Hubu Innowacji Społecznych (ROPS Kraków) w sprawie naboru.</span>
             </label>
-            <div className="md:col-span-2"><Button type="submit" size="lg" className="h-11 px-5 text-base">Rozpocznij rozmowę z Mostkiem</Button></div>
+            <div className="md:col-span-2"><SubmitButton size="lg" className="h-11 px-5 text-base">Rozpocznij rozmowę z Mostkiem</SubmitButton></div>
           </form>
         </section>
       ) : (
-        <section id="asystent" className="mt-8 scroll-mt-6" aria-labelledby="asystent-h">
+        <section id="asystent" className="mt-8" aria-labelledby="asystent-h">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 id="asystent-h" className="text-xl font-semibold">Asystent grantowy - {lead.institution}</h2>
-            <form action={resetGrantSession}><Button type="submit" variant="ghost" size="sm">To nie ja / inna instytucja</Button></form>
+            <form action={resetGrantSession}><SubmitButton variant="ghost" size="sm">To nie ja / inna instytucja</SubmitButton></form>
           </div>
           <MostekChat
             mode="grant"

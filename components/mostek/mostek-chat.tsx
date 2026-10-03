@@ -1,10 +1,12 @@
 "use client"
 
-import { Check } from "lucide-react"
+import { ArrowUp, Check, Loader2 } from "lucide-react"
 import { Fragment, useEffect, useId, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { scrollBehavior } from "@/lib/motion"
 import { usePlainLanguage } from "@/components/site/a11y-toolbar"
 import type { Source, ActionCard } from "@/lib/mostek/tools"
 import { quickLinks, type Page } from "@/lib/site/sitemap"
@@ -50,13 +52,15 @@ function RichText({ text }: { text: string }) {
   )
 }
 
-export function MostekChat({ compact = false, initial, mode, starters = STARTERS, storeKey = STORE, intro }: {
+export function MostekChat({ compact = false, initial, mode, starters = STARTERS, storeKey = STORE, intro, context }: {
   compact?: boolean
   initial?: string
   mode?: "grant" | "rops"
   starters?: string[]
   storeKey?: string
   intro?: { title: string; text: string }
+  /** dopisek do strony dla modelu, np. „zakładka: Dla gmin i instytucji” */
+  context?: string
 }) {
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [input, setInput] = useState("")
@@ -89,9 +93,11 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
   }, [storeKey])
   useEffect(() => {
     try {
-      if (sessionRef.current) sessionStorage.setItem(storeKey, JSON.stringify({ id: sessionRef.current, msgs }))
+      // pusta lista nie nadpisuje zapisanej rozmowy: przy otwarciu czatu zapis rusza w tym samym cyklu co odczyt
+      // (w trybie deweloperskim efekty biegną dwa razy) i kasował historię; „Nowa rozmowa” czyści pamięć jawnie
+      if (sessionRef.current && msgs.length > 0) sessionStorage.setItem(storeKey, JSON.stringify({ id: sessionRef.current, msgs }))
     } catch {}
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" })
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: scrollBehavior() })
   }, [msgs, storeKey])
 
   async function send(text: string) {
@@ -110,7 +116,7 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
       const res = await fetch("/api/mostek", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: q, sessionId: sessionRef.current, plain, page: pathname, mode }),
+        body: JSON.stringify({ message: q, sessionId: sessionRef.current, plain, page: context ? `${pathname} (${context})` : pathname, mode }),
       })
       if (!res.body) throw new Error("no body")
       const reader = res.body.getReader()
@@ -215,14 +221,26 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
                   {m.quick.map((p, qi) => <Fragment key={p.path}>{qi > 0 && " · "}<Link href={p.path} className="font-semibold">{p.title}</Link></Fragment>)}
                 </nav>
               )}
-              <div className="leading-relaxed">{m.text ? <RichText text={m.text} /> : <p className="text-muted-foreground">…</p>}</div>
+              <div className="leading-relaxed">
+                {m.text ? <RichText text={m.text} /> : busy && i === msgs.length - 1 ? (
+                  // oczekiwanie widać w rozmowie, tam gdzie pojawi się odpowiedź - nie tylko drobnym tekstem pod polem
+                  <p className="inline-flex items-center gap-2.5 border-l-4 border-brand bg-background py-2 pl-3 pr-4 font-medium" aria-hidden="true">
+                    <span className="flex gap-1">
+                      <span className="size-2 rounded-full bg-brand motion-safe:animate-bounce" />
+                      <span className="size-2 rounded-full bg-brand motion-safe:animate-bounce [animation-delay:150ms]" />
+                      <span className="size-2 rounded-full bg-brand motion-safe:animate-bounce [animation-delay:300ms]" />
+                    </span>
+                    {status || "Mostek myśli…"}
+                  </p>
+                ) : <p className="text-muted-foreground">…</p>}
+              </div>
               {voice.enabled && m.text && (!busy || i < msgs.length - 1) && (
                 <div className="mt-1"><SpeakButton text={m.text} page={pathname} auto={voice.autoRead && i === lastDone} /></div>
               )}
               {m.actions && m.actions.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {m.actions.map((a) => (
-                    <Link key={a.href} href={a.href} className={buttonVariants({ size: "lg" }) + " h-auto min-h-10 whitespace-normal px-4 py-2 text-left"}>
+                    <Link key={a.href} href={a.href} className={cn(buttonVariants({ size: "lg" }), "h-auto min-h-10 max-w-full shrink justify-start whitespace-normal px-4 py-2 text-left")}>
                       {a.label} <span aria-hidden="true">→</span>
                     </Link>
                   ))}
@@ -259,7 +277,9 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
           </nav>
         )}
         <label htmlFor={inputId} className="sr-only">Napisz do Mostka</label>
-        <div className="flex items-end gap-2">
+        {/* jedna ramka na pełną szerokość: pole tekstowe, a na dole w tej samej ramce mikrofon i „Wyślij”;
+            fokus (WCAG 2.4.7) to zmiana koloru tej ramki na pomarańcz marki (3.17:1, próg 3:1), bez drugiego obrysu */}
+        <div className="border-2 border-input bg-field transition-colors hover:border-foreground/60 has-[textarea:focus-visible]:border-brand">
           <textarea
             id={inputId}
             ref={inputRef}
@@ -270,15 +290,18 @@ export function MostekChat({ compact = false, initial, mode, starters = STARTERS
             maxLength={4000}
             placeholder="Napisz pytanie…"
             aria-describedby={`${inputId}-h`}
-            className="min-h-11 flex-1 resize-none rounded-lg border border-input bg-background p-2.5 text-base"
+            className="field-bare block min-h-16 w-full resize-none bg-transparent px-4 pt-3 text-lg leading-snug placeholder:text-muted-foreground focus-visible:outline-none"
           />
-          {voice.enabled && <MicButton page={pathname} onText={(t) => void send(input.trim() ? `${input.trim()} ${t}` : t)} onStatus={setStatus} />}
-          <Button type="submit" size="lg" className="h-11 px-4" disabled={busy || !input.trim()}>
-            {busy ? "…" : "Wyślij"}
-          </Button>
+          <div className="flex items-center justify-end gap-1 px-2 pb-2">
+            {voice.enabled && <MicButton page={pathname} onText={(t) => void send(input.trim() ? `${input.trim()} ${t}` : t)} onStatus={setStatus} />}
+            <button type="submit" disabled={busy || !input.trim()} aria-label={busy ? "Mostek odpowiada" : "Wyślij"} title="Wyślij (Enter)"
+              className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-brand-dark disabled:bg-muted disabled:text-muted-foreground">
+              {busy ? <Loader2 aria-hidden="true" className="size-6 motion-safe:animate-spin" /> : <ArrowUp aria-hidden="true" className="size-6" strokeWidth={2.5} />}
+            </button>
+          </div>
         </div>
         <p id={`${inputId}-h`} className="sr-only">Enter wysyła, Shift+Enter dodaje nową linię.</p>
-        {status && <p className="mt-1.5 text-xs text-muted-foreground" aria-hidden="true">{status}</p>}
+        {status && !busy && <p className="mt-1.5 text-xs text-muted-foreground" aria-hidden="true">{status}</p>}
       </form>
     </div>
   )

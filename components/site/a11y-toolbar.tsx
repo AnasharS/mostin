@@ -1,6 +1,6 @@
 "use client"
 
-import { Accessibility } from "lucide-react"
+import { Eye } from "lucide-react"
 import { useId, useMemo, useState, useSyncExternalStore } from "react"
 
 type Prefs = { font?: "lg" | "xl"; contrast?: "high"; motion?: "reduced"; plain?: boolean }
@@ -46,6 +46,8 @@ export function applyPrefs(p: Prefs) {
   try {
     localStorage.setItem(KEY, JSON.stringify(p))
   } catch {}
+  // serwer też musi wiedzieć o „prostym języku” (odpowiedzi AI w dopasowaniu, Kreatorze, planie wdrożenia)
+  document.cookie = `mostin_plain=${p.plain ? 1 : 0}; path=/; max-age=31536000; samesite=lax`
   window.dispatchEvent(new CustomEvent("mostin-a11y", { detail: p }))
 }
 
@@ -68,7 +70,8 @@ export function A11yToolbar() {
       <button type="button" className={btn} aria-pressed={p.contrast === "high"} onClick={() => update({ contrast: p.contrast ? undefined : "high" })}>
         Kontrast
       </button>
-      <button type="button" className={btn} aria-pressed={Boolean(p.plain)} onClick={() => update({ plain: !p.plain })}>
+      <button type="button" className={btn} aria-pressed={Boolean(p.plain)} onClick={() => update({ plain: !p.plain })}
+        title="Upraszcza odpowiedzi asystenta AI: czat Mostka, uzasadnienia dopasowań, ocenę w Kreatorze i plan wdrożenia">
         Prosty język
       </button>
       <button type="button" className={btn} aria-pressed={p.motion === "reduced"} onClick={() => update({ motion: p.motion ? undefined : "reduced" })}>
@@ -91,7 +94,7 @@ export function A11yMobile() {
     <div className="md:hidden">
       <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}
         className="inline-flex h-11 items-center gap-1.5 border-2 border-foreground px-3 text-sm font-semibold aria-expanded:bg-foreground aria-expanded:text-background">
-        <Accessibility aria-hidden="true" className="size-5" /> Dostępność
+        <Eye aria-hidden="true" className="size-5" /> Dostępność
       </button>
       {open && (
         <div id={panelId} className="absolute inset-x-0 top-full z-50 border-b-2 border-foreground bg-card px-4 py-3">

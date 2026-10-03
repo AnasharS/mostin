@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 // Ustawienia dostępności przed pierwszym renderem - bez „mignięcia” przy powiększonym tekście / kontraście
 const a11yBoot = `try{var s=JSON.parse(localStorage.getItem("mostin-a11y")||"{}");var d=document.documentElement;
 if(s.font)d.dataset.font=s.font;if(s.contrast)d.dataset.contrast=s.contrast;if(s.motion)d.dataset.motion=s.motion;
-if(s.plain)d.dataset.plain="1"}catch(e){}`
+if(s.plain)d.dataset.plain="1";document.cookie="mostin_plain="+(s.plain?1:0)+"; path=/; max-age=31536000; samesite=lax"}catch(e){}`
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

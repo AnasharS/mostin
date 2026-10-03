@@ -1,7 +1,7 @@
 import { Star } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { Button } from "@/components/ui/button"
 import { submitReview } from "@/app/(public)/innowacje/[id]/actions"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 const RELATION: Record<string, string> = { test: "testował(a) w MostIn", korzystam: "korzysta z rozwiązania", wdrazam: "wdraża w instytucji", opis: "zna z opisu" }
 const field = "mt-1.5 w-full border border-input bg-background p-2.5 text-base"
@@ -89,7 +89,7 @@ export async function InnovationReviews({ innovationId, ok, error }: { innovatio
             <label htmlFor="nickname" className="font-medium">Podpis (opcjonalnie, np. pseudonim)</label>
             <input id="nickname" name="nickname" maxLength={40} className={field} />
           </div>
-          <Button type="submit" size="lg" className="h-11 w-fit px-5">Wyślij opinię</Button>
+          <SubmitButton size="lg" className="h-11 w-fit px-5">Wyślij opinię</SubmitButton>
           <p className="text-xs text-muted-foreground">Nie podawaj danych osobowych - numery i adresy e-mail ukrywamy automatycznie.</p>
         </form>
       </div>

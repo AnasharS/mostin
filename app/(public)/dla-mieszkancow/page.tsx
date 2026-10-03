@@ -2,15 +2,16 @@ import Link from "next/link"
 import { MatchFlow } from "@/components/match/match-flow"
 import { MostekMark } from "@/components/site/logo"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
 
-export const metadata = { title: "Dla mieszkańców - znajdź rozwiązanie · MostIn" }
+export const metadata = { title: "Dla Mieszkańców - znajdź rozwiązanie · MostIn" }
 
 export default async function DlaMieszkancow({ searchParams }: { searchParams: Promise<{ problem?: string }> }) {
   const { problem } = await searchParams
   const { count } = await createAdminClient().from("innovations").select("*", { count: "exact", head: true }).eq("ingest_status", "ready")
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
-      <p className="flex items-center gap-3 text-sm font-bold uppercase tracking-[0.12em] text-muted-foreground"><span aria-hidden="true" className="inline-block h-1 w-8 bg-brand" /> Ścieżka dla mieszkańców</p>
+      <Breadcrumbs />
       <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight md:text-5xl">Masz problem społeczny? Znajdźmy rozwiązanie.</h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
         Opisz swoją sytuację własnymi słowami. <MostekMark className="text-foreground" /> przeszuka {count ?? 0} sprawdzonych innowacji społecznych z Małopolski

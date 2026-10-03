@@ -4,9 +4,28 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireAdmin } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
-import { getResource, type Field } from "@/lib/cms/resources"
+import { getResource, type Field, type SubField } from "@/lib/cms/resources"
 import { ingestInnovation } from "@/lib/ingest/innovation"
 import { ingestDocument } from "@/lib/ingest/document"
+
+/** Porządki po polu strukturalnym: bez pustych linii w listach tekstów i bez wierszy, w których wypełniono tylko listy wyboru. */
+function tidy(v: unknown, items?: SubField[]): unknown {
+  if (Array.isArray(v)) {
+    const typed = new Map((items ?? []).map((f) => [f.key, f]))
+    return v
+      .map((x) => (x && typeof x === "object" && !Array.isArray(x) ? tidyObj(x as Record<string, unknown>, items) : tidy(x)))
+      .filter((x) => {
+        if (typeof x === "string") return x.trim() !== ""
+        if (x && typeof x === "object") return Object.entries(x).some(([k, y]) => typed.get(k)?.type !== "select" && y !== "" && y !== null && y !== undefined)
+        return x !== null
+      })
+  }
+  if (v && typeof v === "object") return tidyObj(v as Record<string, unknown>, items)
+  return typeof v === "string" ? v.trim() : v
+}
+function tidyObj(o: Record<string, unknown>, props?: SubField[]) {
+  return Object.fromEntries(Object.entries(o).map(([k, x]) => [k, tidy(x, props?.find((p) => p.key === k)?.items)]))
+}
 
 function parseField(field: Field, form: FormData): unknown {
   const raw = form.get(field.name)
@@ -15,6 +34,7 @@ function parseField(field: Field, form: FormData): unknown {
       return raw === "on"
     case "number":
     case "area":
+    case "innovation":
       return raw ? Number(raw) : null
     case "tags":
       return String(raw ?? "").split(",").map((s) => s.trim()).filter(Boolean)
@@ -27,6 +47,16 @@ function parseField(field: Field, form: FormData): unknown {
     case "file":
     case "select":
       return raw ? String(raw) : null
+    case "structured": {
+      const txt = String(raw ?? "").trim()
+      try {
+        const schema = field.schema
+        const parsed = txt ? JSON.parse(txt) : schema?.kind === "object" ? {} : []
+        return schema?.kind === "list" ? tidy(parsed, schema.items) : tidyObj(parsed, schema?.kind === "object" ? schema.props : undefined)
+      } catch {
+        throw new Error(`Nie udało się odczytać pola „${field.label}”`)
+      }
+    }
     case "textarea":
       if (["media", "indicators", "rules"].includes(field.name)) {
         const txt = String(raw ?? "").trim()

@@ -10,7 +10,7 @@ export async function getCurrentProfile() {
   if (!user) return null
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role, display_name, organization, plain_language")
+    .select("id, role, display_name, organization, plain_language, demo_persona")
     .eq("id", user.id)
     .single()
   return profile ? { ...profile, email: user.email, role: profile.role as Role } : null

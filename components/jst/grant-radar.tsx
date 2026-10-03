@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { CalendarPlus, Clock, Coins, ShieldCheck } from "lucide-react"
+import { Clock, Coins, ShieldCheck } from "lucide-react"
+import { CalendarMenu } from "./calendar-menu"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { buttonVariants } from "@/components/ui/button"
 
@@ -55,9 +56,7 @@ export async function GrantRadar({ compact = false }: { compact?: boolean }) {
                     Sprawdź w 60 sekund, czy się kwalifikujecie
                   </Link>
                 )}
-                <a href={`/api/kalendarz/${c.id}`} className={buttonVariants({ variant: "outline", size: "lg" }) + " h-11 px-4"}>
-                  <CalendarPlus aria-hidden="true" className="size-4" /> Dodaj termin do kalendarza
-                </a>
+                <CalendarMenu callId={c.id} title={c.title.replace(/^\[DEMO\]\s*/, "")} details={c.description ?? ""} date={c.closes_at!} />
               </div>
             </li>
           )

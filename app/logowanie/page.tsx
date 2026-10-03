@@ -1,81 +1,116 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { FlaskConical } from "lucide-react"
 import { Flash } from "@/components/admin/flash"
-import { Logo } from "@/components/site/logo"
-import { PERSONAS, isDemoMode } from "@/lib/demo/personas"
+import { SiteHeader, SiteFooter } from "@/components/site/site-header"
+import { isDemoMode } from "@/lib/demo/personas"
 import { signIn, signUp, enterAsPersona } from "./actions"
+import { SubmitButton } from "@/components/ui/submit-button"
 
-export const metadata = { title: "Wejście · MostIn" }
+export const metadata = { title: "Logowanie i rejestracja · MostIn" }
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ next?: string; blad?: string; ok?: string; tryb?: string }>
-}) {
+const field = "mt-1.5 h-11 w-full border border-input px-3 text-base"
+const ACCOUNT_TYPES = [
+  ["mieszkaniec", "Mieszkaniec / mieszkanka", "szukam wsparcia, chcę testować innowacje"],
+  ["specjalista", "Specjalista / ekspert", "doradzam innowatorom i gminom"],
+  ["organizacja", "Organizacja społeczna", "mam pomysł albo chcę wdrożyć innowację"],
+  ["gmina", "Gmina / instytucja", "szukam innowacji i grantów na wdrożenie"],
+] as const
+
+/**
+ * Logowanie i rejestracja. W trybie demo (HackYeah) formularze są podglądem - przyciski nieaktywne, a „automatyczna rejestracja”
+ * wpuszcza jako przykładowa osoba (persona). W wersji docelowej działa prawdziwe logowanie e-mailem (zespół ROPS, eksperci).
+ */
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; blad?: string; ok?: string; tryb?: string }> }) {
   const { next = "/", blad, ok, tryb } = await searchParams
   const register = tryb === "rejestracja"
-  const personas = PERSONAS.filter((p) => p.role !== "admin" || isDemoMode())
+  const demo = isDemoMode()
+  const tab = (on: boolean) => `flex-1 border-b-4 px-4 py-3 text-center font-semibold no-underline ${on ? "border-brand bg-card text-foreground!" : "border-transparent text-muted-foreground! hover:bg-muted"}`
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center p-6">
-      <Link href="/" className="mb-8 text-2xl" aria-label="MostIn - strona główna"><Logo /></Link>
-      <h1 className="text-xl font-semibold">Wejdź do MostIn</h1>
-      <p className="mt-1 mb-6 text-muted-foreground">
-        Wybierz, kim jesteś - bez zakładania konta. Z większości funkcji możesz też korzystać bez wchodzenia.
-      </p>
-      <Flash ok={ok} error={blad} />
+    <>
+      <SiteHeader />
+      <main id="tresc" className="flex-1">
+        <div className="mx-auto max-w-xl px-4 py-10">
+          <h1 className="text-3xl font-bold tracking-tight">{register ? "Załóż konto" : "Zaloguj się"}</h1>
+          <p className="mt-2 text-muted-foreground">Konto nie jest wymagane - z wyszukiwarki rozwiązań, Mostka i Biblioteki korzystasz bez logowania. Konto przyda się, by zapisać profil i śledzić zgłoszenia.</p>
+          <div className="mt-4"><Flash ok={ok} error={blad} /></div>
 
-      <ul className="border-t">
-        {personas.map((p) => (
-          <li key={p.id}>
-            <form action={enterAsPersona.bind(null, p.id)} className="h-full">
-              <button
-                type="submit"
-                className="w-full border-b px-1 py-4 text-left hover:bg-muted/50"
-              >
-                <span className="block font-medium">{p.name}</span>
-                <span className="mt-1 block text-sm text-muted-foreground">{p.description}</span>
-              </button>
-            </form>
-          </li>
-        ))}
-      </ul>
-      {isDemoMode() && (
-        <p className="mt-3 text-xs text-muted-foreground">
-          Tryb demonstracyjny: persony działają na anonimowych sesjach, dane są przykładowe.
-        </p>
-      )}
+          <nav aria-label="Logowanie lub rejestracja" className="mt-6 flex border-b">
+            <Link href={`/logowanie?next=${encodeURIComponent(next)}`} aria-current={!register ? "page" : undefined} className={tab(!register)}>Zaloguj się</Link>
+            <Link href={`/logowanie?tryb=rejestracja&next=${encodeURIComponent(next)}`} aria-current={register ? "page" : undefined} className={tab(register)}>Załóż konto</Link>
+          </nav>
 
-      <details className="mt-10 border-t pt-6" open={register || Boolean(blad && !blad.includes("persona"))}>
-        <summary className="cursor-pointer text-sm font-medium">Mam konto - zaloguj e-mailem</summary>
-        <form action={register ? signUp : signIn} className="mt-4 grid max-w-sm gap-4">
-          <input type="hidden" name="next" value={next} />
-          {register && (
-            <div className="grid gap-1.5">
-              <Label htmlFor="display_name">Imię lub nazwa organizacji</Label>
-              <Input id="display_name" name="display_name" autoComplete="name" />
-            </div>
-          )}
-          <div className="grid gap-1.5">
-            <Label htmlFor="email">E-mail</Label>
-            <Input id="email" name="email" type="email" autoComplete="email" required />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="password">Hasło</Label>
-            <Input id="password" name="password" type="password" autoComplete={register ? "new-password" : "current-password"} required minLength={8} />
-          </div>
-          <Button type="submit">{register ? "Załóż konto" : "Zaloguj"}</Button>
-          <p className="text-sm text-muted-foreground">
-            {register ? (
-              <Link className="underline" href={`/logowanie?next=${next}`}>Mam już konto</Link>
-            ) : (
-              <Link className="underline" href={`/logowanie?tryb=rejestracja&next=${next}`}>Załóż konto</Link>
+          <form action={register ? signUp : signIn} className="mt-6 grid gap-4">
+            <input type="hidden" name="next" value={next} />
+            {register && (
+              <>
+                <div>
+                  <label htmlFor="display_name" className="font-medium">Imię, pseudonim lub nazwa organizacji</label>
+                  <input id="display_name" name="display_name" autoComplete="name" className={field} />
+                </div>
+                <fieldset>
+                  <legend className="font-medium">Typ konta</legend>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {ACCOUNT_TYPES.map(([v, l, d], i) => (
+                      <label key={v} className="flex cursor-pointer items-start gap-3 border bg-field p-3 has-checked:border-primary">
+                        <input type="radio" name="account_type" value={v} defaultChecked={i === 0} className="mt-0.5" />
+                        <span><span className="block font-medium">{l}</span><span className="block text-sm text-muted-foreground">{d}</span></span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </>
             )}
-          </p>
-        </form>
-      </details>
-    </main>
+            <div>
+              <label htmlFor="email" className="font-medium">E-mail</label>
+              <input id="email" name="email" type="email" autoComplete="email" required className={field} />
+            </div>
+            <div>
+              <label htmlFor="password" className="font-medium">Hasło</label>
+              <input id="password" name="password" type="password" autoComplete={register ? "new-password" : "current-password"} required minLength={8} className={field} />
+              {register && <p className="mt-1 text-sm text-muted-foreground">Co najmniej 8 znaków.</p>}
+            </div>
+            {register && (
+              <label className="flex items-start gap-3 text-sm">
+                <input type="checkbox" name="terms" required className="mt-0.5" />
+                <span>Akceptuję regulamin serwisu i zasady przetwarzania danych przez ROPS Kraków.</span>
+              </label>
+            )}
+            {!register && <p className="text-sm"><span className="text-muted-foreground">Nie pamiętasz hasła?</span> <span className="underline underline-offset-4 opacity-60">Przypomnij hasło</span></p>}
+            {demo ? (
+              <div>
+                <button type="button" disabled aria-describedby="demo-info" className="h-12 w-full cursor-not-allowed bg-primary/50 px-5 text-base font-bold text-primary-foreground">
+                  {register ? "Załóż konto" : "Zaloguj się"}
+                </button>
+                <p id="demo-info" className="mt-2 text-sm text-muted-foreground">W wersji demonstracyjnej {register ? "rejestracja" : "logowanie"} e-mailem jest nieaktywne - skorzystaj z opcji poniżej.</p>
+              </div>
+            ) : (
+              <SubmitButton size="lg" className="h-12 text-base">{register ? "Załóż konto" : "Zaloguj się"}</SubmitButton>
+            )}
+          </form>
+
+          {demo && (
+            <section aria-labelledby="demo-rej" className="mt-10 border-2 border-dashed border-muted-foreground/60 p-5">
+              <p className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 bg-foreground px-1.5 py-0.5 text-xs font-bold text-background"><FlaskConical aria-hidden="true" className="size-3.5" /> DEMO</span>
+                <span id="demo-rej" className="font-semibold">Zarejestruj się automatycznie jako</span>
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">Na potrzeby pokazu: jednym kliknięciem wejdziesz jako przykładowa osoba z gotowym profilem - bez e-maila i hasła.</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {[["mieszkanka", "Mieszkaniec", "Anna z Nowego Targu - profil potrzeb, krąg w Przęsłach"], ["ekspert", "Specjalista", "dr Marek - Panel mentora z prośbami o wsparcie"]].map(([id, l, d]) => (
+                  <form key={id} action={enterAsPersona.bind(null, id)}>
+                    <SubmitButton bare className="h-full w-full flex-col items-start border bg-card p-3 text-left hover:border-foreground">
+                      <span className="block font-semibold">{l}</span>
+                      <span className="block text-sm text-muted-foreground">{d}</span>
+                    </SubmitButton>
+                  </form>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </main>
+      <SiteFooter />
+    </>
   )
 }

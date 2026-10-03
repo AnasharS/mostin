@@ -2,11 +2,12 @@
 // Każdy moduł jest dostępny klasycznie z menu; Mostek to warstwa rozmowy nad wszystkimi.
 
 export type NavItem = { href: string; label: string }
-export type NavSection = { id: string; label: string; short: string; href: string; match: string[]; items: NavItem[] }
+export type NavSection = { id: string; label: string; short: string; /** nazwa w okruszkach */ crumb: string; href: string; match: string[]; items: NavItem[] }
 
 export const SECTIONS: NavSection[] = [
   {
-    id: "res", label: "Dla mieszkańców", short: "Dla mieszkańców", href: "/dla-mieszkancow",
+    // „Mieszkańców” wielką literą celowo (zakładki i okruszki) - z szacunku (zasada grzecznościowa); pozostałe sekcje zwyczajnie, małą
+    id: "res", label: "Dla Mieszkańców", short: "Dla Mieszkańców", crumb: "Most dla Mieszkańców", href: "/dla-mieszkancow",
     match: ["/dla-mieszkancow", "/przesla", "/testuj", "/mostek"],
     items: [
       { href: "/dla-mieszkancow", label: "Znajdź rozwiązanie" },
@@ -16,8 +17,8 @@ export const SECTIONS: NavSection[] = [
     ],
   },
   {
-    id: "jst", label: "Dla gmin i instytucji", short: "Dla gmin", href: "/dla-gmin",
-    match: ["/dla-gmin", "/innowacje/"],
+    id: "jst", label: "Dla gmin i instytucji", short: "Dla gmin", crumb: "Most dla gmin i instytucji", href: "/dla-gmin",
+    match: ["/dla-gmin"], // strony innowacji (także plan wdrożenia) należą do Bazy wiedzy - jak w okruszkach
     items: [
       { href: "/dla-gmin", label: "Radar naborów" },
       { href: "/dla-gmin#asystent", label: "Asystent grantowy" },
@@ -27,7 +28,7 @@ export const SECTIONS: NavSection[] = [
     ],
   },
   {
-    id: "org", label: "Dla organizacji i innowatorów", short: "Dla organizacji", href: "/kreator",
+    id: "org", label: "Dla organizacji i innowatorów", short: "Dla organizacji", crumb: "Most dla organizacji i innowatorów", href: "/kreator",
     match: ["/kreator"],
     items: [
       { href: "/kreator", label: "Kreator pomysłów" },
@@ -37,12 +38,12 @@ export const SECTIONS: NavSection[] = [
     ],
   },
   {
-    id: "know", label: "Baza wiedzy", short: "Wiedza", href: "/wiedza",
+    id: "know", label: "Baza wiedzy", short: "Wiedza", crumb: "Baza wiedzy", href: "/wiedza",
     match: ["/wiedza", "/innowacje", "/aktualnosci"],
     items: [
       { href: "/innowacje", label: "Biblioteka innowacji" },
       { href: "/wiedza", label: "Mapa wyzwań i raporty" },
-      { href: "/wiedza#materialy", label: "Materiały edukacyjne" },
+      { href: "/wiedza/materialy", label: "Materiały edukacyjne" },
       { href: "/aktualnosci", label: "Aktualności" },
     ],
   },

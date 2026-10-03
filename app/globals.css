@@ -15,13 +15,14 @@
   --brand: #e85d2a;              /* MostIn Orange - znak, „In”, linia mostu, kropka Mostka */
   --brand-dark: #a83b18;         /* linki w tekście */
   --brand-light: #f6b89e;
-  --logo-ink: #414042;           /* grafit z MostIn_logo.svg */
-  --logo-accent: #e85d2a;        /* pomarańcz marki (logo przechodzi z #f7941d na #e85d2a) */
+  --logo-ink: #181816;           /* czerń tekstu strony (oryginał logo: grafit #3c3c3b) */
+  --logo-accent: #e85d2a;        /* pomarańcz marki (oryginał logo #f39200 ujednolicony do #e85d2a strony) */
 
   --background: #f7f4ee;         /* Warm Background */
   --foreground: #181816;
   --card: #ffffff;
   --card-foreground: #181816;
+  --field: #fffefc;              /* tło pól formularzy: prawie biel, odcina się od kremowego tła strony */
   --popover: #ffffff;
   --popover-foreground: #181816;
 
@@ -50,6 +51,7 @@
   --foreground: #ffffff;
   --card: #000000;
   --card-foreground: #ffffff;
+  --field: #000000;
   --popover: #000000;
   --popover-foreground: #ffffff;
   --brand: #ffd600;
@@ -82,6 +84,7 @@ html { font-size: calc(100% * var(--font-scale)); }
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-field: var(--field);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
@@ -130,6 +133,11 @@ html { font-size: calc(100% * var(--font-scale)); }
   main a:not([class*="bg-"]):not([class*="rounded"]) {
     color: var(--brand-dark);
   }
+  /* link w zdaniu różni się od tekstu nie tylko kolorem (WCAG 1.4.1, axe: link-in-text-block) */
+  main :is(p, li, dd, span) > a:not([class]) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
   ::selection {
     background: var(--accent);
     color: var(--accent-foreground);
@@ -138,10 +146,11 @@ html { font-size: calc(100% * var(--font-scale)); }
 
 /* Ograniczenie animacji: preferencja systemu lub przełącznik */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after {
   animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important; /* pętle (kropki „Mostek myśli”, pulsowanie) nie migoczą */
   transition-duration: 0.01ms !important;
 }
 
@@ -167,3 +176,78 @@ html { scroll-padding-top: 11rem; }
 /* poziomo przewijane paski menu na telefonie - bez szarego paska przewijania */
 .scroll-row { scrollbar-width: none; }
 .scroll-row::-webkit-scrollbar { display: none; }
+
+/* ── Formularze (poza warstwami Tailwinda, więc wygrywają z klasami typu bg-background na polach) ── */
+
+/* Pola do wpisywania: jasne, prawie białe tło - czytelnie odcina się od kremowej strony (także komponenty shadcn
+   z bg-transparent w panelu ROPS). Wyjątek .field-bare: pole wewnątrz ramki, która sama ma tło pola (czat Mostka). */
+input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="submit"], [type="button"], [type="hidden"]):not(.field-bare),
+textarea:not(.field-bare),
+select {
+  background-color: var(--field);
+  color: var(--foreground);
+}
+
+/* Checkboxy i radio w stylu strony: ostre krawędzie, ramka pola (3.26:1), zaznaczenie w kolorze przycisków */
+input[type="checkbox"],
+input[type="radio"] {
+  appearance: none;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  border: 2px solid var(--input);
+  background: var(--field) center / 0.95rem no-repeat;
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s;
+  vertical-align: -0.2em;
+}
+input[type="radio"] { border-radius: 9999px; }
+input[type="checkbox"]:hover,
+input[type="radio"]:hover { border-color: var(--foreground); }
+input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+:root[data-contrast="high"] input[type="checkbox"]:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+/* radio: pomarańczowa kropka w ramce (pierścień z tła pola) */
+input[type="radio"]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  box-shadow: inset 0 0 0 3px var(--field);
+}
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled { opacity: 0.5; cursor: not-allowed; }
+/* tryb wymuszonych kolorów (Windows): systemowe kontrolki, żeby zaznaczenie było widoczne */
+@media (forced-colors: active) {
+  input[type="checkbox"], input[type="radio"] { appearance: auto; }
+}
+
+
+/* Przełącznik wł./wył. (checkbox z klasą .switch) - do ustawień, gdzie ważny jest stan, a nie zaznaczenie z listy */
+input[type="checkbox"].switch {
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border-color: var(--input);
+  background: var(--muted);
+  background-image: none;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+input[type="checkbox"].switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--foreground);
+  transition: transform 0.15s;
+}
+input[type="checkbox"].switch:checked { background: var(--primary); border-color: var(--primary); background-image: none; }
+input[type="checkbox"].switch:checked::after { transform: translateX(1.25rem); background: var(--primary-foreground); }

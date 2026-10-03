@@ -2,9 +2,11 @@ import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getMyProfile } from "@/lib/profiles"
 import { label } from "@/lib/ai/taxonomy"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { createCircle } from "./actions"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 export const metadata = { title: "Przęsła - kręgi wsparcia · MostIn" }
 
@@ -22,7 +24,7 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Przęsła <span aria-hidden="true" className="text-brand">/</span> kręgi wsparcia</p>
+      <Breadcrumbs items={[{ label: "Przęsła - kręgi wsparcia" }]} />
       <h1 className="mt-2 text-3xl font-bold tracking-tight">Nie jesteś z tym sam/sama</h1>
       <p className="mt-2 max-w-3xl text-lg text-muted-foreground">
         Przęsło to część mostu, która łączy dwa brzegi. Tutaj łączymy ludzi w podobnej sytuacji - rodziców, opiekunów, seniorów - żeby mogli
@@ -56,7 +58,7 @@ export default async function PrzeslaPage({ searchParams }: { searchParams: Prom
                 <label htmlFor="topic" className="text-sm font-medium">O czym chcecie rozmawiać?</label>
                 <input id="topic" name="topic" maxLength={200} className="mt-1 w-full rounded-lg border border-input bg-background p-2.5" />
               </div>
-              <Button type="submit" size="lg" className="h-10 w-fit px-4">Załóż krąg</Button>
+              <SubmitButton size="lg" className="h-10 w-fit px-4">Załóż krąg</SubmitButton>
             </form>
           </details>
         </div>

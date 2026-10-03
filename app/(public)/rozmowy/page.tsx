@@ -2,6 +2,7 @@ import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getOwnerKeys, KIND_LABELS } from "@/lib/rozmowy"
 import { buttonVariants } from "@/components/ui/button"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
 
 export const metadata = { title: "Rozmowy z ROPS · MostIn" }
 
@@ -19,7 +20,8 @@ export default async function RozmowyPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-3xl font-bold tracking-tight">Rozmowy z ROPS</h1>
+      <Breadcrumbs section={null} items={[{ label: "Rozmowy z ROPS" }]} />
+      <h1 className="mt-3 text-3xl font-bold tracking-tight">Rozmowy z ROPS</h1>
       <p className="mt-2 max-w-3xl text-lg text-muted-foreground">
         Zadaj pytanie zespołowi Małopolskiego Hubu Innowacji Społecznych, poproś o kontakt z ekspertem albo zaproponuj współpracę.
         Bez zakładania konta - rozmowa jest zapisana w tej przeglądarce.

@@ -1,4 +1,5 @@
 import "server-only"
+import { cookies } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ARCHETYPES, LENGTH_PROMPT, ADDRESS_PROMPT, type ArchetypeId } from "./persona"
 
@@ -57,6 +58,15 @@ const SOURCE_LABELS: Record<string, string> = {
 }
 
 /** Styl wypowiedzi Mostka z ustawień ROPS (archetyp + forma + długość). `plain` - preferencja użytkownika z paska dostępności. */
+/** „Prosty język” z paska dostępności (ciasteczko ustawiane razem z preferencją) - dla funkcji AI dla mieszkańców. */
+export async function prefersPlain() {
+  try {
+    return (await cookies()).get("mostin_plain")?.value === "1"
+  } catch {
+    return false // poza żądaniem (skrypty) - bez preferencji
+  }
+}
+
 export function tonePrompt(p: AiPolicy, opts: { plain?: boolean } = {}) {
   const a = ARCHETYPES[p.tone_archetype] ?? ARCHETYPES.opiekun
   const plain = opts.plain || p.plain_language_default

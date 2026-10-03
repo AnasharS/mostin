@@ -23,9 +23,12 @@ const Form = z.object({
   consent_tests: z.boolean(),
   consent_przesla: z.boolean(),
   source: z.enum(["form", "mostek", "voice"]).default("form"),
+  apply_test: z.coerce.number().int().positive().optional(),
 })
 
 export async function saveNeedsProfile(form: FormData) {
+  // formularz jest i na Testuj (zapis na listę), i w ustawieniach profilu - wracamy tam, skąd przyszedł
+  const back = form.get("back") === "/profil" ? "/profil" : "/testuj"
   const parsed = Form.safeParse({
     nickname: form.get("nickname"),
     categories: form.getAll("categories"),
@@ -38,15 +41,16 @@ export async function saveNeedsProfile(form: FormData) {
     consent_tests: form.get("consent_tests") === "on",
     consent_przesla: form.get("consent_przesla") === "on",
     source: form.get("source") || "form",
+    apply_test: form.get("apply_test") || undefined,
   })
-  if (!parsed.success) redirect(`/testuj?blad=${encodeURIComponent(parsed.error.issues[0].message)}#lista`)
+  if (!parsed.success) redirect(`${back}?blad=${encodeURIComponent(parsed.error.issues[0].message)}#lista`)
   const d = parsed.data
-  if (!d.consent_tests && !d.consent_przesla) redirect(`/testuj?blad=${encodeURIComponent("Zaznacz, na co się zgadzasz - powiadomienia o testach lub Przęsła")}#lista`)
+  if (!d.consent_tests && !d.consent_przesla) redirect(`${back}?blad=${encodeURIComponent("Zaznacz, na co się zgadzasz - powiadomienia o testach lub Przęsła")}#lista`)
 
   // opis sytuacji i pseudonim: bez wulgaryzmów i bez danych osobowych (opis trafia do embeddingu)
   const policy = await getPolicy()
   if (findProfanity(`${d.nickname} ${d.situation ?? ""}`, policy).length) {
-    redirect(`/testuj?blad=${encodeURIComponent("Usuń proszę wulgaryzmy z pseudonimu lub opisu")}#lista`)
+    redirect(`${back}?blad=${encodeURIComponent("Usuń proszę wulgaryzmy z pseudonimu lub opisu")}#lista`)
   }
   const situation = d.situation ? maskPersonalData(d.situation) : null
 
@@ -73,7 +77,7 @@ export async function saveNeedsProfile(form: FormData) {
   const { data: saved, error } = existing
     ? await db.from("needs_profiles").update(row).eq("id", existing.id).select("id").single()
     : await db.from("needs_profiles").insert(row).select("id").single()
-  if (error || !saved) redirect(`/testuj?blad=${encodeURIComponent(error?.message ?? "Nie udało się zapisać")}#lista`)
+  if (error || !saved) redirect(`${back}?blad=${encodeURIComponent(error?.message ?? "Nie udało się zapisać")}#lista`)
 
   // kontakt osobno - nigdy nie trafia do modeli AI, widoczny tylko dla ROPS
   await db.from("profile_contacts").upsert({
@@ -83,9 +87,18 @@ export async function saveNeedsProfile(form: FormData) {
     preferred: d.preferred,
   })
   const invited = d.consent_tests ? await inviteProfileToOpenTests() : 0
+  // profil zakładany po kliknięciu „Zgłoś się” przy konkretnym teście - od razu zgłaszamy
+  if (d.apply_test) {
+    const status = await signUpForTest(saved.id, d.apply_test)
+    if (status) {
+      revalidatePath("/testuj")
+      redirect(`/testuj?ok=${encodeURIComponent(status === "accepted" ? "Zapisano profil i zgłoszono Cię do testu. ROPS skontaktuje się w sprawie szczegółów." : "Zapisano profil. Damy znać, gdy test ruszy.")}#otwarte`)
+    }
+  }
   revalidatePath("/testuj")
   revalidatePath("/przesla")
-  redirect(`/testuj?zapisano=1&zaproszenia=${invited}#moj-profil`)
+  revalidatePath("/profil")
+  redirect(back === "/profil" ? `/profil?ok=${encodeURIComponent("Zapisano zmiany w profilu.")}` : `/testuj?zapisano=1&zaproszenia=${invited}#moj-profil`)
 }
 
 export async function respondToInvitation(invitationId: number, accept: boolean) {
@@ -99,3 +112,32 @@ export async function respondToInvitation(invitationId: number, accept: boolean)
   revalidatePath("/testuj")
   redirect(`/testuj?ok=${encodeURIComponent(accept ? "Dziękujemy! ROPS skontaktuje się w sprawie testów." : "Zaproszenie odrzucone.")}#moj-profil`)
 }
+
+/** Zgłoszenie do konkretnego testu: otwarty - od razu „chcę testować”, planowany - powiadomienie o starcie. */
+async function signUpForTest(profileId: string, testId: number) {
+  const db = createAdminClient()
+  const { data: test } = await db.from("tests").select("id, status").eq("id", testId).in("status", ["open", "planned"]).maybeSingle()
+  if (!test) return null
+  const status = test.status === "open" ? "accepted" : "sent"
+  await db.from("test_invitations").upsert(
+    { test_id: test.id, profile_id: profileId, status, match_reason: test.status === "open" ? "Zgłoszenie bezpośrednie" : "Prośba o powiadomienie o starcie" },
+    { onConflict: "test_id,profile_id" },
+  )
+  return status
+}
+
+/** Przycisk przy teście (lista testów, strona innowacji). Bez profilu - krótki formularz z obszarami testu, zgłoszenie po zapisie. */
+export async function applyToTest(testId: number) {
+  const me = await getMyProfile()
+  if (!me) {
+    const { data: test } = await createAdminClient().from("tests").select("categories").eq("id", testId).maybeSingle()
+    const qs = new URLSearchParams({ zglos: String(testId) })
+    if (test?.categories?.length) qs.set("kategorie", test.categories.join(","))
+    redirect(`/testuj?${qs.toString()}#lista`)
+  }
+  const status = await signUpForTest(me.id, testId)
+  revalidatePath("/testuj")
+  if (!status) redirect(`/testuj?blad=${encodeURIComponent("Ten test nie przyjmuje już zgłoszeń")}#otwarte`)
+  redirect(`/testuj?ok=${encodeURIComponent(status === "accepted" ? "Zgłoszono Cię do testu. ROPS skontaktuje się w sprawie szczegółów." : "Damy znać, gdy test ruszy.")}#otwarte`)
+}
+

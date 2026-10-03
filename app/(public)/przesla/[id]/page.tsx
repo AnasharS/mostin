@@ -1,13 +1,13 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Flag, LifeBuoy, UserPlus } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getMyProfile } from "@/lib/profiles"
-import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { AutoRefresh } from "@/components/przesla/auto-refresh"
 import { HELPLINES, HELPLINES_SOURCE } from "@/lib/przesla/safety"
 import { joinCircle, leaveCircle, postMessage, reportMessage, requestContact, respondContact } from "../actions"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 const INFO: Record<string, string> = {
   kontakt: "Ukryliśmy dane kontaktowe z Twojej wiadomości - w grupie rozmawiamy pod pseudonimem. Chcesz wymienić się kontaktem z kimś prywatnie? Użyj „Poproś o kontakt” poniżej.",
@@ -42,7 +42,7 @@ export default async function CirclePage({ params, searchParams }: { params: Pro
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <AutoRefresh />
-      <nav aria-label="Okruszki" className="text-sm text-muted-foreground"><Link href="/przesla">Przęsła</Link> /</nav>
+      <Breadcrumbs items={[{ label: "Przęsła - kręgi wsparcia", href: "/przesla" }, { label: circle.title }]} />
       <h1 className="mt-2 text-2xl font-bold">{circle.title}</h1>
       {circle.topic && <p className="mt-1 text-muted-foreground">{circle.topic}</p>}
       <p className="mt-2 text-sm">
@@ -75,7 +75,7 @@ export default async function CirclePage({ params, searchParams }: { params: Pro
                       <form action={reportMessage.bind(null, circle.id, m.id)} className="mt-2 grid w-64 gap-2">
                         <label htmlFor={`r-${m.id}`} className="text-muted-foreground">Co Cię niepokoi? (opcjonalnie)</label>
                         <input id={`r-${m.id}`} name="reason" maxLength={300} className={field + " text-sm"} />
-                        <Button type="submit" size="sm" variant="outline" className="w-fit">Wyślij zgłoszenie do ROPS</Button>
+                        <SubmitButton size="sm" variant="outline" className="w-fit">Wyślij zgłoszenie do ROPS</SubmitButton>
                       </form>
                     </details>
                   )}
@@ -106,7 +106,7 @@ export default async function CirclePage({ params, searchParams }: { params: Pro
           <form id="napisz" action={postMessage.bind(null, circle.id)} className="mt-6 grid gap-2">
             <label htmlFor="body" className="font-medium">Twoja wiadomość (jako {me!.nickname})</label>
             <textarea id="body" name="body" rows={3} required maxLength={1500} className={field} />
-            <Button type="submit" size="lg" className="h-10 w-fit px-4">Wyślij</Button>
+            <SubmitButton size="lg" className="h-10 w-fit px-4">Wyślij</SubmitButton>
           </form>
 
           <section id="kontakty" className="mt-10 border-t-2 border-foreground pt-5" aria-labelledby="kontakty-h">
@@ -126,10 +126,10 @@ export default async function CirclePage({ params, searchParams }: { params: Pro
                         <label htmlFor={`c-${r.id}`} className="text-sm">Twój kontakt dla tej osoby</label>
                         <input id={`c-${r.id}`} name="contact" placeholder="telefon, e-mail lub komunikator" maxLength={200} className={field} />
                       </div>
-                      <Button type="submit" size="lg" className="h-11 px-4">Zgadzam się</Button>
+                      <SubmitButton size="lg" className="h-11 px-4">Zgadzam się</SubmitButton>
                     </form>
                     <form action={respondContact.bind(null, circle.id, r.id, false)} className="mt-1">
-                      <button type="submit" className="text-sm underline">Nie teraz</button>
+                      <SubmitButton bare className="text-sm underline">Nie teraz</SubmitButton>
                     </form>
                   </li>
                 ))}
@@ -152,7 +152,7 @@ export default async function CirclePage({ params, searchParams }: { params: Pro
                             <input id={`q-${pid}`} name="contact" placeholder="telefon, e-mail lub komunikator" maxLength={200} className={field} />
                             <p className="mt-1 text-xs text-muted-foreground">{name} zobaczy go dopiero, gdy się zgodzi.</p>
                           </div>
-                          <Button type="submit" size="lg" variant="outline" className="h-11 px-4">Wyślij prośbę</Button>
+                          <SubmitButton size="lg" variant="outline" className="h-11 px-4">Wyślij prośbę</SubmitButton>
                         </form>
                       </details>
                     )}
@@ -167,11 +167,11 @@ export default async function CirclePage({ params, searchParams }: { params: Pro
             </ul>
           </section>
 
-          <form action={leaveCircle.bind(null, circle.id)} className="mt-6"><Button type="submit" variant="ghost">Opuść krąg</Button></form>
+          <form action={leaveCircle.bind(null, circle.id)} className="mt-6"><SubmitButton variant="ghost">Opuść krąg</SubmitButton></form>
         </>
       ) : (
         <form action={joinCircle.bind(null, circle.id)} className="mt-6">
-          <Button type="submit" size="lg" className="h-10 px-4">Dołącz do kręgu</Button>
+          <SubmitButton size="lg" className="h-10 px-4">Dołącz do kręgu</SubmitButton>
         </form>
       )}
     </div>

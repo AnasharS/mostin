@@ -11,12 +11,15 @@ export async function NewsList({ audience, limit = 4, title = "Aktualności", mo
   if (audience) q = q.overlaps("audience", [audience, "wszyscy"])
   const { data: news } = await q
   if (!news?.length) return null
+  // jedna informacja dla całej sekcji, gdy wszystko jest przykładowe; przy mieszanej liście znacznik w wierszu z datą
+  const allSample = news.every((n) => n.is_sample)
   return (
     <section aria-labelledby={`news-${audience ?? "all"}`} className="mt-10">
       <div className="flex items-end justify-between gap-3">
         <h2 id={`news-${audience ?? "all"}`} className="text-xl font-semibold">{title}</h2>
         {more && <Link href="/aktualnosci" className="text-sm">Wszystkie aktualności</Link>}
       </div>
+      {allSample && <p className="mt-1 text-sm text-muted-foreground">Wpisy poniżej to dane przykładowe na potrzeby pokazu.</p>}
       <ul className="mt-3 grid border-t md:grid-cols-2 md:gap-x-10">
         {news.map((n) => {
           const I = ICON[n.kind as keyof typeof ICON] ?? Info
@@ -25,14 +28,16 @@ export async function NewsList({ audience, limit = 4, title = "Aktualności", mo
               <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <I aria-hidden="true" className="size-4 text-brand-dark" /> {KIND[n.kind as keyof typeof KIND] ?? n.kind}
                 <span className="font-normal normal-case tracking-normal">· {new Date(n.published_at).toLocaleDateString("pl-PL")}</span>
+                {n.is_sample && !allSample && <span className="font-normal normal-case tracking-normal">· przykład</span>}
                 {n.pinned && <Pin aria-label="przypięte" className="size-3.5" />}
               </p>
               <p className="mt-1.5 font-semibold">{n.title}</p>
               <p className="mt-1 text-sm text-muted-foreground">{n.lead}</p>
-              <p className="mt-2 flex flex-wrap gap-3 text-sm">
-                {n.source_url && <a href={n.source_url} target={n.source_url.startsWith("http") ? "_blank" : undefined} rel="noreferrer">Więcej</a>}
-                {n.is_sample && <span className="text-xs text-muted-foreground">dane przykładowe</span>}
-              </p>
+              {n.source_url && (
+                <p className="mt-2 text-sm">
+                  <a href={n.source_url} target={n.source_url.startsWith("http") ? "_blank" : undefined} rel="noreferrer">Więcej</a>
+                </p>
+              )}
             </li>
           )
         })}

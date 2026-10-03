@@ -1,7 +1,8 @@
-import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { getCurrentProfile } from "@/lib/auth"
 import { createThread } from "../actions"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 export const metadata = { title: "Napisz do ROPS · MostIn" }
 
@@ -20,7 +21,8 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Pr
   const fromMostek = temat.length > 60
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-3xl font-bold tracking-tight">Napisz do ROPS</h1>
+      <Breadcrumbs section={null} items={[{ label: "Rozmowy z ROPS", href: "/rozmowy" }, { label: "Napisz do ROPS" }]} />
+      <h1 className="mt-3 text-3xl font-bold tracking-tight">Napisz do ROPS</h1>
       <p className="mt-2 text-muted-foreground">Odpowiadamy zwykle w ciągu 1 dnia roboczego. Nie podawaj danych wrażliwych - wystarczy opis sprawy.</p>
       <div className="mt-4"><Flash error={blad} /></div>
       <form action={createThread} className="mt-6 grid gap-5 border-t-2 border-foreground pt-6">
@@ -57,7 +59,7 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Pr
           </div>
         </div>
         <p className="text-sm text-muted-foreground">Kontakt widzi tylko zespół ROPS. Odpowiedź pojawi się też tutaj, w rozmowie.</p>
-        <div><Button type="submit" size="lg" className="h-11 px-5 text-base">Wyślij do ROPS</Button></div>
+        <div><SubmitButton size="lg" className="h-11 px-5 text-base">Wyślij do ROPS</SubmitButton></div>
       </form>
     </div>
   )

@@ -1,11 +1,11 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getMyThread, KIND_LABELS } from "@/lib/rozmowy"
-import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { AutoRefresh } from "@/components/przesla/auto-refresh"
 import { replyAsUser } from "../actions"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 const ROLE: Record<string, string> = { user: "", rops: "Zespół ROPS", expert: "Ekspert", system: "MostIn" }
 
@@ -21,7 +21,7 @@ export default async function ThreadPage({ params, searchParams }: { params: Pro
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <AutoRefresh seconds={8} />
-      <nav aria-label="Okruszki" className="text-sm text-muted-foreground"><Link href="/rozmowy">Rozmowy z ROPS</Link> /</nav>
+      <Breadcrumbs section={null} items={[{ label: "Rozmowy z ROPS", href: "/rozmowy" }, { label: t.subject }]} />
       <h1 className="mt-2 text-2xl font-bold">{t.subject}</h1>
       <p className="text-sm text-muted-foreground">{KIND_LABELS[t.kind] ?? t.kind} · rozpoczęta {new Date(t.created_at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}</p>
       <div className="mt-4"><Flash ok={wyslano ? "Wysłano! Zespół ROPS dostał powiadomienie." : undefined} error={blad} /></div>
@@ -41,7 +41,7 @@ export default async function ThreadPage({ params, searchParams }: { params: Pro
         <form action={replyAsUser.bind(null, t.id)} className="mt-6 grid gap-2">
           <label htmlFor="body" className="font-medium">Dopisz wiadomość</label>
           <textarea id="body" name="body" rows={3} required maxLength={4000} className="w-full rounded-lg border border-input bg-background p-2.5" />
-          <Button type="submit" size="lg" className="h-10 w-fit px-4">Wyślij</Button>
+          <SubmitButton size="lg" className="h-10 w-fit px-4">Wyślij</SubmitButton>
         </form>
       )}
     </div>

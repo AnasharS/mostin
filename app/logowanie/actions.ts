@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { ensurePersonaCircle } from "@/lib/demo/persona-circle"
 import { z } from "zod"
+import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getPersona, isDemoMode } from "@/lib/demo/personas"
@@ -39,6 +40,16 @@ export async function signUp(form: FormData) {
   if (error) redirect(`/logowanie?tryb=rejestracja&blad=${encodeURIComponent(error.message)}`)
   if (!data.session) redirect(`/logowanie?ok=${encodeURIComponent("Sprawdź skrzynkę i potwierdź adres e-mail")}`)
   redirect(next)
+}
+
+/** Demo: „Niezalogowany” - wylogowanie i nowa sesja przeglądarki (profil potrzeb, lead gminy i rozmowy są przypięte
+ *  do sesji), żeby zobaczyć serwis oczami nowej osoby. */
+export async function becomeVisitor() {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  const jar = await cookies()
+  for (const name of ["mostin_sid", "mostin_lead"]) jar.delete(name)
+  redirect("/")
 }
 
 export async function signOut() {

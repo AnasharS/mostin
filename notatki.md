@@ -1,470 +1,197 @@
-# MOSTIN - notatki techniczne do pitcha
+# MostIn - notatki
 
-> Dziennik decyzji: **co** zbudowaliśmy, **jak** działa i **dlaczego** tak. Uzupełniany na bieżąco w trakcie hackathonu.
-> Na koniec: pełny opis każdej funkcji + odpowiedzi na trudne pytania jury.
+Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak. Zadanie UMWM / ROPS Kraków (Małopolski Hub Innowacji Społecznych), HackYeah 2026, praca solo.
 
 ---
 
-## 1. Wybór zadania
-
-- **Decyzja:** wyzwanie UMWM / ROPS Kraków (Małopolski Hub Innowacji Społecznych), praca solo.
-- **Dlaczego:** punktacja nagradza liczbę działających modułów (+5% za każdy ponad obowiązkowy matchmaking), a mój stack (Next.js, Supabase, Claude) pozwala dowozić moduły szybko. ROPS deklaruje dalsze wdrożenie zwycięskiego prototypu.
-
-## 2. Stack
-
-| Warstwa | Wybór | Dlaczego |
-|---|---|---|
-| Frontend + API | Next.js 16 (App Router), TypeScript, Tailwind 4, shadcn/ui (Base UI) | Szybkie budowanie; Base UI daje ARIA i obsługę klawiatury → WCAG |
-| Baza | Supabase: Postgres + pgvector + RLS + Auth + Storage + Realtime | Jeden dostawca dla danych, wektorów, uprawnień i plików; region UE |
-| LLM tekst | Claude Opus 5.5 (ocena dopasowań, uzasadnienia, ingestion) + Claude Sonnet 5.5 (analiza zapytania) | Opus tam, gdzie liczy się jakość osądu; Sonnet na ścieżce krytycznej czasu odpowiedzi |
-| Embeddingi | OpenAI `text-embedding-3-small` | Anthropic nie ma endpointu embeddingów; koszt ~$0.02 / 1M tokenów |
-| Obrazy / głos | OpenAI Images, STT (`gpt-4o-mini-transcribe` ~$0.003/min), TTS | Wizualizacja pomysłów, sterowanie głosem dla seniorów |
-| Hosting | Netlify (frontend) + Supabase (baza, docelowo Edge Functions dla długich zadań AI) | Netlify ucina funkcje strumieniujące po 10 s, a zwykłe po 30 s, więc długie zadania AI idą do Supabase |
-
-## 3. Model danych i bezpieczeństwo
-
-- **RLS na każdej tabeli.** Wiedza jest publiczna do odczytu, a zapisuje ją tylko admin. Potrzeby i pomysły widzi autor, ekspert i admin. Rozmowy widzą tylko członkowie wątku.
-- **Funkcje `security definer`** (`is_admin`, `match_needs`) zwracają tylko zanonimizowane dane. Podobne przypadki innych osób są widoczne bez autora i bez surowego tekstu.
-- **Panel ROPS zapisuje przez sesję admina, a nie kluczem serwisowym.** Uprawnienia egzekwuje baza, nie tylko interfejs.
-- **Pliki** idą z przeglądarki prosto do Supabase Storage (polityka RLS: tylko admin). Omija to limity rozmiaru żądań Next i Netlify.
-- **Brak prawdziwych danych osobowych** (wymóg regulaminu). Dane osobowe w zapytaniach są maskowane przed wysłaniem do AI.
-
-## 4. Dwa mechanizmy AI - świadomie różne
-
-### A. Innovation Matchmaker (ingestion, nie klasyczny RAG)
-- **Jak:** każda innowacja przy imporcie przechodzi przez LLM, który zamienia luźny opis na strukturę: problem, rozwiązanie, potrzeby, kategorie, grupy docelowe, lokalizacja, etap, wymagania wdrożeniowe, zasoby, dla kogo. Do tego powstaje **`search_text`**: akapit pisany językiem, jakim mieszkaniec opisałby problem („babcia nie umie zadzwonić do wnuków przez wideo”). Embedding liczymy z `search_text`, a nie z surowego opisu.
-- **Dlaczego:** matchmaking działa na lokalnej, uporządkowanej wiedzy, a nie próbuje za każdym razem zrozumieć strony ROPS. Jest szybciej, stabilniej i trafniej, bo zgłaszający i katalog mówią „tym samym językiem”.
-- **Wspólna taksonomia** (`lib/ai/taxonomy.ts`): 18 kategorii i 16 grup docelowych. Innowacje i zapytania są klasyfikowane do tych samych wartości, więc filtry metadanych trafiają.
-
-### B. Knowledge RAG (dokumenty)
-- **Jak:** PDF → tekst per strona → fragmenty ~1400 znaków z zakładką i **zakresem stron** → embeddingi → `document_chunks`. Wyszukiwanie hybrydowe (wektor + pełnotekstowe), łączone metodą RRF.
-- **Dlaczego:** dokument urzędowy trzeba cytować. Mostek odpowiada w stylu „Według raportu X… - źródło: Raport X, s. 27”.
-
-## 5. Przepływ matchmakingu (obowiązkowy moduł)
-
-```
-opis problemu
- → guard (budżet, limit dzienny, wulgaryzmy/obelgi, moderacja OpenAI, maskowanie danych osobowych)
- → analiza LLM (Sonnet 5.5): struktura problemu + search_text + pytanie doprecyzowujące + on_topic
- → embedding
- → hybrydowe wyszukiwanie w Postgres: 0.65 wektor + 0.20 pełnotekstowe (OR słów) + 0.15 zgodność kategorii/grup → top 15
- → rerank i uzasadnienie (Opus 5.5): fit 0-100, „dlaczego pasuje”, „co dostosować”, „pierwszy krok”, ocena pokrycia i luki
- → walidacja: model nie może wskazać innowacji spoza kandydatów (sprawdzanie ID)
- → zapis potrzeby (zasila podobne przypadki i trendy w panelu ROPS)
-```
-
-- **Uczciwe wyniki:** model może pokazać 2 trafne zamiast 5 naciąganych. Pole `coverage` mówi, czy katalog pokrywa problem, a `gap` opisuje, czego brakuje. To jest most do **Kreatora pomysłów**: „nie ma rozwiązania → stwórz je”.
-- **Przejrzystość:** pod każdym wynikiem „Jak liczymy dopasowanie?” pokazuje składowe (znaczenie, słowa kluczowe, kategorie). Zawsze jest też link do źródła ROPS.
-- **Poprawka FTS:** `websearch_to_tsquery` wymagał wszystkich słów naraz, więc długie opisy dawały 0 trafień. Własna funkcja `or_tsquery` łączy słowa przez OR.
-- **Polski w Postgresie:** Supabase nie ma polskiego słownika, więc FTS działa jako `simple` + `unaccent` (ignoruje polskie znaki, nie odmienia słów). Odmianę rekompensują embeddingi, które rozumieją znaczenie.
-- **Wydajność:** analiza na Sonnet 5.5 skróciła czas z ~28 s do ~23 s. Prompty systemowe są cache'owane (prompt caching), co obniża koszt i opóźnienie przy powtarzających się zapytaniach.
-
-## 6. Import i synchronizacja Biblioteki Innowacji ROPS
-
-- **Rozpoznanie:** strona ROPS jest renderowana serwerowo. 115 innowacji w 9 kategoriach, bez paginacji, każda ma 6 stałych sekcji (rozwiązanie, problem, grupa docelowa, kto może skorzystać, czy to działa, autorzy) oraz film, PDF i paczkę ZIP. Brak robots.txt i zabezpieczeń anty-botowych. Licencja CC BY 4.0, więc źródło podajemy przy każdej innowacji.
-- **Importer** (`pnpm ingest`, przycisk „Synchronizuj teraz” w panelu): pobranie → **hash SHA-256 treści merytorycznej** → bez zmian: pomiń | nowa/zmieniona: zapis + LLM + embedding. Każdy przebieg trafia do `sync_runs`.
-- **Dlaczego hash:** ROPS nie musi niczego wpisywać ręcznie, a ponowna synchronizacja kosztuje tylko tyle, ile zmieniło się treści. Zmiany kosmetyczne strony nie uruchamiają LLM.
-- **Docelowo:** Supabase Cron + Edge Function uruchamiane raz dziennie. Kolumny `source_type`, `source_hash`, `source_updated_at`, `last_synced_at` są już w bazie dla wszystkich typów treści.
-- **Koszt importu:** cała biblioteka przez API kosztowałaby ~$3. Zrobiliśmy 69 rekordów przez API ($2.11), a 46 przez ekstrakcję offline z tym samym schematem walidacji (`pnpm apply-structured`).
-
-## 7. „Kaganiec” AI - ROPS decyduje
-
-- **Tabela `ai_policy`** z przełącznikami: blokuj wulgaryzmy / obelgi, maskuj dane osobowe, tylko dozwolone źródła, bez porad medycznych / prawnych / polityki / religii / tematów spoza polityki społecznej, własna lista zakazanych tematów, własny komunikat odmowy, obrazy i głos wł./wył.
-- **Warstwy obrony:**
-  1. Filtr deterministyczny (rdzenie wulgaryzmów PL i ich odmiany, obelgi, PESEL, telefon, e-mail, nr konta). Działa natychmiast i bez kosztu.
-  2. OpenAI Moderation (bezpłatne). Przy treściach o samookaleczeniu pokazujemy telefony zaufania 116 123 / 116 111 / 112 zamiast zwykłej odmowy.
-  3. Prompt systemowy budowany z polityki ROPS: odpowiedzi wyłącznie z narzędzi MOSTIN, brak źródła → „nie wiem, przekażę do ROPS”, a instrukcje w treści dokumentów nie zmieniają zasad (ochrona przed prompt injection).
-  4. Walidacja wyjścia: ID innowacji muszą istnieć w wynikach, a wulgaryzmy w odpowiedzi są maskowane.
-- **Dziennik `ai_moderation_events`:** ROPS widzi, co i dlaczego zostało zablokowane (bez danych osobowych).
-- **Zmiana przełącznika działa po ~15 s** (krótki cache polityki), bez wdrożenia.
-
-## 8. Kontrola kosztów
-
-- Każde wywołanie AI zapisuje tokeny i koszt w `ai_usage` (cennik per model w `lib/ai/usage.ts`).
-- W `ai_policy` ustawiamy miesięczny budżet, próg alertu (80%), twarde zatrzymanie lub tryb oszczędny po przekroczeniu budżetu oraz dzienne limity na użytkownika (zapytania, obrazy, minuty głosu).
-- Anonimowi odwiedzający mają stabilny klucz sesji w ciasteczku, więc limity działają bez logowania.
-- Panel „Koszty AI” (podział na funkcje, dzień, miesiąc, prognoza) jest do zrobienia.
-
-## 9. Brak login walla - persony demo
-
-- **Zasada hackathonu:** demo bez logowania.
-- **Rozwiązanie:** publiczne moduły działają anonimowo, a ekran „Wejdź jako…” ma persony (mieszkanka, fundacja, gmina, ekspert, koordynatorka ROPS).
-- **Pod spodem:** anonimowa sesja Supabase z rolą nadaną serwerowo. RLS działa jak przy prawdziwym koncie, a nikt nie wpisuje hasła.
-- **Bezpieczeństwo:** persona admina jest dostępna tylko przy `DEMO_MODE=true`, na produkcji jest wyłączona. Logowanie e-mailem zostało jako opcja.
-
-## 10. CMS (Panel ROPS)
-
-- **Deklaratywny** (`lib/cms/resources.ts`): jedna definicja daje listę, wyszukiwarkę, formularz, walidację i zapis. Nowy typ treści to jeden obiekt w konfiguracji.
-- **„Przetwórz AI”** przy innowacji lub dokumencie uruchamia ingestion. Pola uzupełnione przez AI są oznaczone i można je poprawić ręcznie, a zmiana treści oznacza rekord do ponownego przetworzenia.
-- Pulpit pokazuje liczniki zgłoszeń, pomysłów, rozmów i kosztów AI oraz historię synchronizacji.
-
-## 11. Dostępność (WCAG 2.1 AA) - od pierwszego ekranu
-
-- **Kontrasty sprawdzone w tokenach motywu:** tekst 15.9:1, primary 10.6:1, tekst pomocniczy 7.0:1.
-- **Krój Atkinson Hyperlegible Next**, zaprojektowany przez Braille Institute dla osób słabowidzących, z polskimi znakami.
-- **Pasek dostępności na każdej stronie:** tekst 100/125/150%, wysoki kontrast (czarno-żółty), prosty język (przekazywany do AI), wyłączenie animacji. Ustawienia są zapamiętywane i nakładane przed pierwszym renderem, więc strona nie „mruga”.
-- **Struktura i komunikaty:** skip-link, landmarki, widoczny fokus 3 px, etykiety i opisy pól, statusy zawsze tekstem (nie tylko kolorem), wyniki i postęp w regionach `aria-live`, a fokus po wyszukiwaniu przechodzi na nagłówek wyników.
-- **Plan:** sterowanie głosem „Powiedz Mostkowi” (push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności obsługiwane lokalnie bez LLM).
-
-## 11a. Marka i paleta
-
-- **Nazwa MostIn** (camel case): **Most** jest czarny, **In** pomarańczowy. „Most” łączy problem z rozwiązaniem, „In” to wejście do świata innowacji.
-- **Paleta:** ciepły pomarańcz `#E85D2A` + krem `#F7F4EE` + prawie czerń `#181816`. Bez gradientów i prawie bez cieni, styl editorial/civic, który odcina się od typowego „purple gradient AI dashboard”.
-- **Pomarańcz jest akcentem, nie tłem:** CTA, linki, linia mostu pod hasłem, paski dopasowania, fokus.
-- **Mostek nie jest maskotką.** Oznacza go pomarańczowy węzeł ● jako punkt łączący elementy systemu.
-- **Decyzja WCAG:** biały tekst na `#E85D2A` ma tylko 3.48:1, czyli poniżej AA. Przyciski dostały pomarańcz przyciemniony do `#C54415` (4.99:1 z białym), linki w tekście `#A83B18` (5.79:1). Czysty `#E85D2A` zostaje tam, gdzie obowiązuje próg 3:1 dla grafiki (znak, linie, paski, fokus 3.17:1). Obramowania pól mają `#8C877D` (3.26:1, WCAG 1.4.11).
-
-## 13. Middleman Innowacji - „Dostosuj z Mostkiem”
-
-- **Wejście:** przycisk na każdej karcie wyniku matchmakingu i na stronie innowacji. Opis problemu przechodzi z wyszukiwania, a typ i nazwa instytucji z persony.
-- **Formularz zamiast czatu:** typ instytucji, miejscowość, odbiorcy, ludzie do dyspozycji, budżet (przedziały), czas, ograniczenia. Dlaczego formularz: szybszy, dostępny z klawiatury i czytnika, nie wymaga umiejętności „rozmawiania z AI” (seniorzy, urzędnicy). Mostek w czacie będzie drugą drogą do tej samej funkcji.
-- **Wynik (structured output, Opus 5.5):**
-  - tytuł planu i **ocena wykonalności 0-100** ze szczerym komentarzem;
-  - tabela **„W oryginale / U Ciebie”**, czyli co i dlaczego zmienić;
-  - etapy z rolami i czasem, budżet orientacyjny w PLN, partnerzy lokalni, ryzyka z zapobieganiem, wskaźniki sukcesu, **pierwszy tydzień**;
-  - **założenia** przyjęte z braku danych do sprawdzenia przez użytkownika.
-- **Ugruntowanie:** plan opiera się na opisie innowacji z Biblioteki ROPS i danych z formularza. Czego nie wiadomo (np. ceny gry), model oznacza jako założenie zamiast zgadywać. Formularz przechodzi przez ten sam guard co zapytania (wulgaryzmy, moderacja, dane osobowe, budżet).
-- **Wydajność:** jeden plan na Opus trwał ~38 s, czyli powyżej limitu Netlify. Generujemy go jako **dwie równoległe części** z tymi samymi danymi wejściowymi (ocena, zmiany, etapy + budżet, partnerzy, ryzyka, wskaźniki, pierwszy tydzień), co daje ~25 s. Docelowo trasy AI idą do Supabase Edge Functions (limit liczony w minutach).
-- **Wyjście:** „Drukuj / zapisz PDF” (style druku ukrywają nawigację), „Skonsultuj plan z ekspertem ROPS” (most do modułu komunikacji). Plan zapisuje się w `adaptation_plans`, więc ROPS widzi, jakie innowacje gminy chcą wdrażać, a to sygnał do upowszechniania.
-
-## 14. Baza wiedzy ROPS (Knowledge RAG) - stan
-
-- **Źródła wskazane przez ROPS:** Mapa Wyzwań Społecznych, Social Innovation Canvas (INNO AGH), raporty z badań, Obserwator Statystyk, publikacje.
-- **W bazie:** 10 dokumentów (Mapa, Kanwa i 8 raportów z lat 2015-2026, w tym diagnoza usług społecznych, piecza zastępcza, DPS, mieszkania wspomagane, sektor opiekuńczy) → **~1600 fragmentów z numerami stron**. Koszt embeddingów ~1 cent.
-- **Decyzja: nie kopiujemy PDF-ów do Storage.** Raporty mają po kilkanaście MB. Trzymamy link do źródła i fragmenty, a cytat prowadzi do oryginału ROPS. Brak duplikacji i zawsze aktualna wersja.
-- **Synchronizacja dokumentów** (`pnpm ingest:docs`): hash SHA-256 pliku → bez zmian: pomiń | zmiana: ponowny chunking. Przebieg zapisuje się w `sync_runs`.
-- **Filtr spisów treści:** fragmenty typu „Rozdział 3 ……… 27” zaśmiecały wyniki, więc pomijamy je przy dzieleniu na fragmenty.
-- **Mapa Wyzwań → dane strukturalne:** 8 obszarów, 51 kluczowych wyzwań, 47 faktów ze źródłami (GUS, NIK…). Wyzwania trafiły do tabeli `challenges` z embeddingami i linkiem do konkretnej strony PDF (`#page=N`), a obszary do słownika `areas`. Ekstrakcja offline (agent w sesji), bez kosztu API. Dane źródłowe są w repo: `data/rops/mapa-wyzwan.json`.
-- Mapa zawiera **dane ogólnopolskie** (zastrzeżenie z dokumentu), a raporty ROPS **małopolskie**. Mostek musi to rozróżniać przy cytowaniu.
-
-## 15. Biblioteka innowacji (przegląd klasyczny)
-
-- `/innowacje`: wszystkie 115 innowacji z filtrami: szukaj, obszar, dla kogo, etap. Filtry działają na tej samej taksonomii co matchmaking.
-- Dlaczego osobno od matchmakingu: wymóg „wszystkie moduły dostępne klasycznie z UI”. Część użytkowników (urzędnicy JST) chce przeglądać katalog, a nie opisywać problem.
-
-## 16. Osobowość Mostka - archetypy marki (tone of voice)
-
-- **ROPS wybiera archetyp jednym kliknięciem** w Panelu → Ustawienia AI. Każda karta pokazuje przykładową wypowiedź.
-  - **Opiekun** (domyślny): ciepły i cierpliwy, dla mieszkańców w trudnej sytuacji.
-  - **Mędrzec:** rzeczowy, z danymi i źródłami, dla urzędników i JST.
-  - **Towarzysz:** swojski i prosty, dla seniorów i osób o niskich kompetencjach cyfrowych.
-  - **Przewodnik:** krok po kroku, dla osób zgłaszających pierwszy raz.
-  - **Twórca:** inspiruje, łączy innowacje w nowe pomysły, dla Kreatora.
-  - **Bohater:** mobilizuje do działania, dla organizacji gotowych wdrażać.
-- **Dlaczego archetypy:** to język znany z brandingu, więc ROPS nie musi pisać promptów. Zmienia się tylko sposób mówienia, **a kaganiec merytoryczny (źródła, tematy, moderacja) jest zawsze nadrzędny**.
-- **Do tego:** forma zwracania się (auto / Pan-Pani / Ty), długość odpowiedzi, prosty język domyślnie (plus preferencja użytkownika z paska dostępności), emoji wł./wył., dodatkowe wytyczne ROPS.
-- **Implementacja:**
-  - `lib/ai/persona.ts` zawiera definicje archetypów.
-  - `tonePrompt()` buduje fragment promptu `<styl>` doklejany obok `<zasady_rops>` w każdej funkcji AI (uzasadnienia dopasowań, plany adaptacji, Mostek).
-  - Zapis idzie przez sesję admina (RLS), a cache polityki jest unieważniany od razu.
-- **Na tej samej stronie:** wszystkie przełączniki kagańca, limity kosztów i podgląd ostatnich zdarzeń moderacji.
-
-## 17. Mostek - agent AI nad całą platformą
-
-- **Nie jest dymkiem czatu w rogu, tylko warstwą nad serwisem:**
-  - przycisk **● Zapytaj Mostka** w nagłówku każdej strony (panel boczny, skrót **Alt+M**);
-  - pełny ekran `/mostek`;
-  - wejście ze strony głównej.
-  Mostek zna kontekst strony, na której jest użytkownik. Wszystkie moduły są też dostępne klasycznie.
-- **Narzędzia** (Claude tool use, `strict`):
-  - `search_innovations`: wyszukiwanie hybrydowe w Bibliotece;
-  - `get_innovation`: szczegóły innowacji;
-  - `search_documents`: RAG po raportach ROPS z numerami stron;
-  - `search_challenges`: Mapa Wyzwań;
-  - `propose_action`: przycisk następnego kroku (dostosuj / kreator / rozmowa z ROPS / dopasuj / otwórz sekcję).
-- **Bezpieczeństwo działań:**
-  - narzędzia tylko czytają bazę, a jedyne „działanie” to przycisk, który klika człowiek;
-  - „dostosuj” wolno zaproponować tylko dla innowacji, którą Mostek faktycznie widział w wynikach narzędzi (walidacja ID).
-- **Ugruntowanie:**
-  - każda informacja ma cytat w formacie pola `zrodlo` z narzędzia (np. „[Piecza zastępcza w Małopolsce (2024), s. 70-71]”), wyświetlany jako znacznik źródła;
-  - pod odpowiedzią jest lista **zacytowanych** źródeł z linkami do konkretnej strony PDF;
-  - dane z Mapy Wyzwań są oznaczone jako ogólnopolskie, z raportów jako małopolskie;
-  - test: na pytanie o liczbę samotnych seniorów Mostek odpowiedział, że materiały ROPS jej nie zawierają, i nie zgadywał.
-- **Kaganiec:** każda wiadomość przechodzi przez guard (wulgaryzmy, moderacja, dane osobowe, budżet, limit dzienny). Prompt zawiera `<zasady_rops>` i `<styl>` (archetyp) z panelu ROPS, a wyjście jest dodatkowo filtrowane z wulgaryzmów.
-- **Decyzje techniczne:**
-  - **Historia rozmowy po stronie serwera, tylko z dopisywaniem** (`consultant_sessions`). Opus 5.5 odrzuca historię, z której wycięto wcześniejsze wywołania narzędzi lub bloki myślenia, więc klient wysyła tylko nową wiadomość, a serwer dokleja ją do pełnego zapisu. Dostęp do sesji wymaga klucza sesji z ciasteczka httpOnly.
-  - **Pułapka Opus 5.5:** tekst pisany *między* wywołaniami narzędzi wraca jako ukryte bloki myślenia, a nie jako odpowiedź. Rozwiązanie w prompcie: najpierw wszystkie narzędzia (łącznie z `propose_action`), potem jedna końcowa odpowiedź.
-  - **Strumieniowanie (SSE):** tekst pojawia się na bieżąco, a statusy narzędzi („Przeszukuję raporty ROPS…”) pokazują, co się dzieje.
-  - **Równoległe narzędzia:** wszystkie wyniki trafiają w jednej wiadomości. Limit 6 kroków na odpowiedź. Prompt caching dla promptu systemowego i definicji narzędzi.
-  - **Dostępność:** natywny `<dialog>` (fokus w środku, Esc zamyka). Odpowiedź jest ogłaszana czytnikowi ekranu raz, po zakończeniu, a nie fragment po fragmencie. Rola `log`, Enter wysyła, Shift+Enter dodaje nową linię, a preferencja „prosty język” z paska dostępności trafia do Mostka.
-
-## 18. Strojenie trafności - scenariusz „mama dziecka ze spastycznością”
-
-- **Test:** „mój syn ma spastyczność rąk, jest ograniczony ruchowo, nie stać mnie na rehabilitację - co mogę zrobić w domu?”. Oczekiwane: **Edki - kredki terapeutyczne** (dla dzieci ze spastycznością ręki). Na początku Mostek ich nie proponował.
-- **Diagnoza i poprawki, krok po kroku:**
-  1. **Brak odmiany w Postgresie.** „spastyczność” i „spastycznością” to dla niego różne słowa (Supabase nie ma polskiego słownika). **Prosty stemming prefiksowy** w zapytaniu FTS: rdzeń słowa + `:*` (`spastyczn:*`) oraz lista polskich słów pospolitych do pominięcia.
-  2. **Przycięta leksyka.** Wynik słów kluczowych był ucinany do 1, więc wiele innowacji miało 1.0. Normalizacja względem najlepszego kandydata w puli.
-  3. **Pula kandydatów z obu rankingów** (60 semantycznych + 30 leksykalnych), żeby trafienie po rzadkim słowie nie wypadało z puli.
-  4. **Próba RRF** (fuzja po pozycji) wypadła gorzej przy długich opisach, bo ranking leksykalny zdominowały słowa pospolite. Świadomie wróciliśmy do średniej ważonej.
-  5. **Mostek uogólniał zapytanie** („spastyczność rąk” → „rehabilitacja ruchowa”) i gubił kluczowe słowo. Narzędzie wyszukuje teraz **dwa razy równolegle**: po zapytaniu Mostka i po dosłownych słowach użytkownika.
-  6. **Sygnał „nazywa problem użytkownika”.** Rdzenie znaczących słów użytkownika są wyszukiwane w opisach kandydatów i **ważone rzadkością (IDF w obrębie wyników)**, więc „spastyczność” w jednej innowacji waży więcej niż „rehabilitacja” w sześciu. Model dostaje to pole i instrukcję, by takie innowacje wymieniać jako pierwsze.
-- **Efekt:** Edki są pierwszą propozycją z trafnym opisem. Scenariusze kontrolne (seniorzy → Senior CUDER, gmina z rodzinami z Ukrainy → Mój pomocny Virtual World) nadal działają.
-- **Na pitch:** jakość dopasowania sprawdzaliśmy na realnych scenariuszach użytkowników i poprawialiśmy mierzalnie (pozycja oczekiwanej innowacji w rankingu: #8 → #1 w odpowiedzi Mostka).
-
-## 19. Profil potrzeb → Testuj (lista oczekujących) + Przęsła
-
-- **Jeden opcjonalny profil potrzeb zasila trzy funkcje:** listę oczekujących na testy, Przęsła i (docelowo) rekomendacje wydarzeń. Zawiera obszary (wspólna taksonomia), grupy, krótki opis sytuacji, dzielnicę lub gminę, pseudonim i **dwie osobne zgody** (powiadomienia o testach / widoczność w Przęsłach).
-- **Prywatność z założenia:**
-  - **dane kontaktowe są w osobnej tabeli `profile_contacts`, nigdy nie trafiają do modeli AI** i widzi je tylko ROPS;
-  - Mostek proponuje zapis przyciskiem z gotowymi kategoriami, a kontakt człowiek wpisuje sam w formularzu;
-  - opis sytuacji jest maskowany z danych osobowych i filtrowany z wulgaryzmów, zanim trafi do embeddingu;
-  - do działania wystarczą obszary, bez diagnoz (zgodnie z wytycznymi: nie wymagamy informacji o niepełnosprawności).
-- **Lista oczekujących:** ROPS w panelu zmienia status testu na „open”, a system dopasowuje profile ze zgodą (kategorie i grupy) i tworzy **zaproszenia** (`test_invitations`). Użytkownik widzi je jako powiadomienia na stronie Testuj („Chcę testować / Nie teraz”). Wysyłka maili lub SMS to kolejny krok (kolumna `preferred` jest już w bazie).
-- **Przęsła** (przęsło łączy dwa brzegi mostu, stąd nazwa) to kręgi wsparcia osób w podobnej sytuacji:
-  - **anonimowe liczby** („4 osoby w okolicy Nowa Huta, 5 w Małopolsce”) z funkcji `przesla_similar`, która nie zwraca tożsamości, liczy tylko zgody i porównuje kategorie oraz embedding;
-  - rozmowy **pod pseudonimem**, każda wiadomość przez filtr wulgaryzmów, moderację i maskowanie danych osobowych;
-  - **propozycja spotkania** na żywo, tylko gdy grupa chce;
-  - zasady kręgu: bez oceniania i bez porad medycznych.
-- **Mostek** ma narzędzie `przesla_stats` i akcje `lista_testow` / `przesla`. W scenariuszu mamy dziecka ze spastycznością z Nowej Huty mówi: „Nie jest Pani sama. W Nowej Hucie działa krąg »Rodzice dzieci ze spastycznością« (4 osoby)” i proponuje dołączenie.
-- **Dane demo** (`pnpm seed:demo`) są **syntetyczne**: 10 profili, 3 testy (Edki do otwarcia w demo, Senior CUDER i Virtual World otwarte), 3 kręgi z rozmowami.
-- **Scenariusz demo:** ROPS otwiera test Edek w panelu → rodziny z listy dostają zaproszenia → mama widzi powiadomienie.
-
-## 20. Rozmowy z ROPS - szybkość komunikacji użytkownik ↔ administrator
-
-- **Kryterium ROPS** brzmi: „jak system powiadamia administratora o nowym zgłoszeniu i jak wygląda ścieżka odpowiedzi do autora”.
-- **Ścieżka użytkownika (bez konta):**
-  1. Formularz „Napisz do ROPS” (pytanie / ekspert / partnerstwo / pomysł / testy) albo **przekazanie z Mostka z gotowym podsumowaniem sprawy**.
-  2. **Natychmiastowe potwierdzenie** w rozmowie, z informacją o czasie odpowiedzi.
-  3. Odpowiedź ROPS pojawia się w wątku (odświeżanie co kilka sekund), a lista rozmów oznacza nową odpowiedź kropką.
-- **Ścieżka ROPS:**
-  - nowa sprawa tworzy **powiadomienie dla każdego administratora** i licznik na pulpicie;
-  - po wysłaniu odpowiedzi do użytkownika, **w tle (`after()` z Next.js)** rusza **triaż AI** (Sonnet 5.5, tani i szybki): kategoria, priorytet (pilne na górze skrzynki), 1-2-zdaniowe streszczenie i **szkic odpowiedzi** odwołujący się do pasujących innowacji z bazy;
-  - pracownik edytuje szkic. Fragmenty, których AI nie wie, są oznaczone **[DO UZUPEŁNIENIA: …]**, a system **nie pozwoli wysłać odpowiedzi z niewypełnionym znacznikiem**. **Odpowiedź zawsze zatwierdza człowiek.**
-  - można odpowiedzieć jako zespół ROPS albo jako ekspert, zmienić status i odświeżyć triaż;
-  - **mierzymy średni czas pierwszej odpowiedzi** (`first_response_at`), widoczny w skrzynce.
-- **Prywatność:** treść jest zapisywana z zamaskowanymi danymi osobowymi. Kontakt (opcjonalny) jest w osobnej tabeli i widzi go tylko ROPS. Wulgaryzmy są blokowane przy wysłaniu.
-- **Dlaczego triaż w tle:** użytkownik nie czeka na AI (odpowiedź „wysłano” przychodzi od razu), a pracownik ROPS dostaje sprawę już uporządkowaną. To realne skrócenie czasu obsługi, a nie chatbot udający urzędnika.
-
-## 21. Kreator pomysłów - od problemu do wniosku grantowego
-
-- **Oparty na materiałach ROPS:** Social Innovation Canvas (ROPS / INNO AGH) i **prawdziwy wzór formularza aplikacyjnego naboru „Inkubator Włączenia Społecznego 2.0”** (zał. nr 3, FERS 2021-2027, Działanie 5.1).
-- **5 kroków po kanwie z pytaniami pomocniczymi i opcjami do zaznaczenia** zamiast pustych pól, czyli przystępnie dla osób, które nigdy nie pisały wniosku:
-  1. Problem (intensywność, częstotliwość, skala, odbiorcy).
-  2. Rozwiązanie (typ, gotowość, zrozumiałość).
-  3. Ludzie i wartość (kto wspiera / utrudnia, wartości emocjonalne i funkcjonalne, płatnik, decydent).
-  4. Koszty stałe i zmienne.
-  5. Ocena Mostka.
-  - Wejście z matchmakingu przenosi opis problemu i „lukę”.
-- **Ocena Mostka** (archetyp Twórcy, Opus 5.5):
-  - **sprawdzenie unikalności względem 115 innowacji ROPS** (wyszukiwanie hybrydowe + werdykt „unikalny / częściowo podobny / powiela” z uzasadnieniem). Regulamin naboru wymaga, by innowacja **nie powielała już inkubowanych**, więc to sprawdzenie ma realną wartość;
-  - mocne strony, luki z pytaniami pomocniczymi, nieoczywiste usprawnienia łączące pomysł z innowacjami z biblioteki (oznaczone jako propozycja), propozycja tytułu i następny krok.
-  - Test: wypożyczalnia pomocy terapeutycznych w bibliotece → „częściowo podobny: korzysta z Edek, ale ich nie powiela; nowością jest model wypożyczalni + warsztaty”.
-- **Wizualizacja pomysłu** (OpenAI `gpt-image-1`, 1024×1024, jakość low, **~$0.011 za obraz**):
-  - ciepła ilustracja w palecie marki, bez tekstu i stygmatyzacji, zapisana w Supabase Storage;
-  - przełącznik ROPS i **dzienny limit na osobę** (domyślnie 5), w trybie oszczędnym wyłączona;
-  - dla osób bez środków na grafika czy projekt.
-- **Fiszka → „Wyślij do ROPS”:** zapis pomysłu (`ideas`), wątek w Rozmowach z pełną kanwą i wizualizacją, powiadomienie administratorów i triaż AI. ROPS odpowiada w tej samej skrzynce.
-- **Generator wniosku IWS 2.0:**
-  - sekcje merytoryczne 1, 3-11 według wzoru formularza;
-  - **sekcja 5 (diagnoza)** korzysta z RAG: fragmenty raportów ROPS z numerami stron i wyzwania z Mapy Wyzwań (z zaznaczeniem, że to dane ogólnopolskie);
-  - **sekcja 4 (innowacyjność)** porównuje z konkretnymi innowacjami z biblioteki;
-  - pilnuje wymogów naboru (okres przygotowawczy max 3 mies., testowanie max 9 mies. w fazie I i II, bez opłat od testujących);
-  - kwot i zespołu nie zmyśla, tylko oznacza je **[DO UZUPEŁNIENIA]**;
-  - **sekcje 2 (dane pomysłodawcy) i 12 (oświadczenia) świadomie poza AI** (dane osobowe i odpowiedzialność karna);
-  - kopiowanie sekcji, druk / PDF, lista źródeł.
-- **Wydajność:** cały wniosek w jednym wywołaniu trwał ~40 s, podział na 2-3 części po stronie serwera nadal ~38 s. Rozwiązanie: **przeglądarka wysyła 6 równoległych żądań po 1-3 sekcje** (każde < 25 s, mieści się w limicie hostingu), a sekcje pojawiają się w miarę gotowości. Szkic wniosku zapisuje się w `applications` (jeden na pomysł i nabór).
-
-## 22. Strefa JST - asystent grantowy („Pani Marysia z gminy”)
-
-- **Wskazanie ROPS:** głównym użytkownikiem będą JST. Ich problem: grant (np. **do 600 000 zł** na wdrożenie innowacji w naborze „Usługa Wrażliwa”, FEM 2021-2027, Działanie 6.23) oznacza dziesiątki stron regulaminu, ZIP-y z modelami i ryzyko, że po godzinie czytania okaże się, że czegoś brakuje (np. kadry).
-- **Strona główna** ma jasny podział odbiorców: **gmina / OPS / powiat (główna ścieżka)**, mieszkaniec, organizacja, **pracownik ROPS (panel jednym kliknięciem, bez logowania)**. Do tego **powitanie Mostka** przy pierwszej wizycie („Hej! Powiedz mi, kim jesteś”) z tymi samymi ścieżkami. Powitanie nie przejmuje fokusu i nie blokuje strony.
-- **`/dla-gmin`:**
-  1. **Kontakt na starcie** (instytucja, e-mail / telefon, zgoda). Nawet jeśli gmina przerwie, przestraszona dokumentami, ROPS ma leada i może oddzwonić. Kontakt nie trafia do AI.
-  2. **Mostek w trybie grantowym:** wyszukuje tylko w dokumentach naboru (regulamin 103 s., opisy tur I i II, instrukcje), zadaje maks. 3 pytania naraz (problem / innowacja, odbiorcy, zasoby), porównuje wymagania z zasobami, przy brakach proponuje rozwiązania zgodne z dokumentami (partnerstwo z NGO, łączenie zadań, finansowanie personelu z grantu, jeśli regulamin pozwala) i kończy blokami „Co już macie / Czego brakuje i jak uzupełnić / 3 następne kroki”. Ton ma zachęcać, a nie przerażać.
-  3. **Panel ROPS → Leady gmin:** kontakt, **podsumowanie rozmowy, gotowość, bariery, zainteresowanie i „następny krok dla ROPS”**, aktualizowane przez AI (Sonnet 5.5) w tle po każdej odpowiedzi, plus ostatnie pytania gminy i statusy (kontakt ROPS / wniosek / zamknięty).
-- **Nie zgadujemy liczb (zasada projektu, zapisana w CLAUDE.md):**
-  - Test na liczbach wykazał, że kwotę 600 000 zł Mostek podał poprawnie, ale **przeoczył „Wkład własny nie jest wymagany”** (regulamin s. 25), bo wyszukiwanie nie wyłowiło tego fragmentu.
-  - Rozwiązanie: **`lib/jst/facts.ts`** zawiera 9 kluczowych faktów naboru z **dosłownym cytatem i numerem strony** (kwota, brak wkładu własnego, 18 / 12 miesięcy, kto może aplikować, jedna innowacja na kategorię, plan wdrożenia z ROPS, wsparcie ekspertów, punktacja, termin i forma). **`pnpm verify:facts` automatycznie sprawdza, że każdy cytat występuje w dokumencie ROPS.**
-  - Mostek dostaje te fakty jako potwierdzone. Wszystko poza nimi i poza fragmentami z wyszukiwania jest „niepotwierdzone”, więc nie zgaduje progów kadrowych, kosztów ani terminów, tylko kieruje pytanie do ROPS.
-  - Retest: kwota, brak wkładu, 18 i 12 miesięcy są poprawne, z cytatami. O minimalnej kadrze: „nie znalazłem wymogu, nie mogę tego wykluczyć, potwierdźmy w ROPS”.
-
-## 23. Pomysły wg kategorii i powiadomienia o naborach
-
-- Mostek przy ocenie pomysłu w Kreatorze **przypisuje 1-3 kategorie** (wspólna taksonomia), które zapisują się z fiszką.
-- **Panel ROPS → Pomysły wg kategorii:** wykres liczby pomysłów per obszar (kliknięcie filtruje), sortowanie, status, miniatura wizualizacji, link do rozmowy z autorem. Odpowiada na potrzebę „w przypadku grantu wiedzieć, do kogo uderzyć”.
-- **Ogłoszenie naboru:** zapis aktywnego naboru z obszarami (Treści → Nabory grantowe) **automatycznie powiadamia autorów pomysłów z pasujących kategorii** wiadomością w ich rozmowie z ROPS („ROPS ogłosił nabór X, który pasuje do Twojego pomysłu Y - przygotuj wniosek w Kreatorze”). Każdy autor dostaje jedno powiadomienie na nabór (`call_notifications`).
-- Demo: 7 syntetycznych pomysłów i nieaktywny „[DEMO] Nabór 2027: przeciwdziałanie samotności seniorów”. Aktywacja w panelu wysyła powiadomienia do autorów pomysłów z obszarów seniorzy / samotność.
-
-## 24. Typografia i ikony
-
-- **Zasada: żadnych długich pauz ani półpauz** w całym projekcie (UI, prompty, dane, dokumentacja). Zawsze zwykły łącznik „-”.
-  - Kod i treści zostały zamienione masowo (85 plików).
-  - Modele AI mają zakaz w prompcie, a każde ich wyjście przechodzi przez `noDashes()` (strumień Mostka i structured outputs).
-  - Dane już zapisane w bazie oczyściła migracja.
-  - Reguła jest w CLAUDE.md z poleceniem kontrolnym.
-- **Ikony:** jednokolorowe SVG (lucide-react) zamiast emoji. Dziedziczą kolor tekstu, więc działają też w trybie wysokiego kontrastu, i są spójne z editorialowym stylem marki.
-
-## 25. Tryb głosowy - „Powiedz to Mostkowi”
-
-- **Dla kogo:** mieszkańcy, szczególnie osoby niewidome, słabowidzące, seniorzy i osoby z trudnościami w pisaniu. **Domyślnie włączony** na stronach mieszkańców (strona główna, Mostek, biblioteka, Testuj, Przęsła, Rozmowy), **wyłączony** w Strefie JST, Kreatorze i panelu ROPS (optymalizacja kosztów, zgodnie ze wskazaniem).
-- **Jak działa:**
-  - mikrofon w czacie Mostka: kliknij, mów (maks. 60 s), kliknij ponownie;
-  - **mowa → tekst:** OpenAI `gpt-4o-mini-transcribe` (język polski, ~$0.003/min). **Rozpoznany tekst trafia do pola wiadomości** i jest widoczny i edytowalny przed wysłaniem (czytnik ekranu ogłasza „Rozpoznano: …, naciśnij Enter”);
-  - **tekst → mowa:** `gpt-4o-mini-tts` (~$0.015/min), przycisk „Odsłuchaj” przy każdej odpowiedzi, opcjonalnie automatyczne czytanie; znaczniki źródeł i formatowanie są pomijane przy czytaniu.
-  - Test w obie strony: synteza zdania „Mój syn ma spastyczność rąk…” i jego rozpoznanie wróciły **słowo w słowo**.
-- **Panel ROPS → Ustawienia AI → Tryb głosowy:**
-  - **przełącznik dla każdej podstrony**;
-  - **wybór głosu** (13 głosów) z **odsłuchem próbki przed zapisaniem**;
-  - **instrukcja sposobu mówienia** (domyślnie: ciepło, wyraźnie, w tempie dla osoby starszej lub słabowidzącej);
-  - automatyczne czytanie wł./wył.;
-  - **licznik kosztów w bieżącym miesiącu** (minuty rozpoznawania, minuty czytania, kwota) z przykładem skali (1000 rozmów × 2 min mówienia + 3 min odsłuchu ≈ $51/mies.).
-- **Kontrola kosztów:** globalny przełącznik, przełączniki podstron, **dzienny limit minut głosu na osobę** (wspólny licznik w `ai_usage`, `units` = minuty), tryb oszczędny po przekroczeniu budżetu.
-- **Prywatność:** nagranie nie jest zapisywane, przechodzi tylko przez rozpoznawanie. Dalej obowiązuje ten sam guard co przy pisaniu (wulgaryzmy, moderacja, dane osobowe).
-
-## 26. Dokumentacja modeli innowacji (paczki ZIP ROPS) w RAG
-
-- **Co jest w paczkach:** instrukcje, specyfikacje i modele pracy (PDF i DOCX, często w obu formatach), czasem kod źródłowy aplikacji.
-- **Pipeline** (`pnpm ingest:zips`, `--all` dla całej biblioteki):
-  - pobranie paczki i rozpakowanie w pamięci (`fflate`);
-  - **PDF ma pierwszeństwo, DOCX tylko bez odpowiednika PDF** (`mammoth`); pomijamy kod, grafiki, wideo i zagnieżdżone ZIP-y;
-  - tekst z numerami stron, fragmenty, embeddingi;
-  - **każdy dokument przypięty do swojej innowacji** (`documents.innovation_id`);
-  - hash każdego pliku, więc ponowna synchronizacja przetwarza tylko zmiany;
-  - skany bez tekstu są oznaczane jako błąd (do OCR).
-- **Dlaczego RAG, a nie normalizacja:** gmina potrzebuje **dokładnych zapisów z modelu z cytatem i stroną** (kadra, sprzęt, czas, sposób działania), a nie streszczenia.
-- **Dlaczego przypięcie do innowacji:** Mostek ma w `search_documents` parametr `innovation_id` i szuka **w dokumentacji tej jednej innowacji**, bez mieszania modeli. Strona innowacji pokazuje listę „Dokumentacja modelu (przeszukiwalna przez Mostka)”.
-- **Kolejność:** najpierw **10 innowacji z dwóch tur naboru „Usługa Wrażliwa”** (wykrywane automatycznie z treści stron tur). Ich dokumenty mają prefiks `uw:zip:`, więc **asystent grantowy widzi je razem z regulaminem** („ile osób potrzeba do Terapeuty przestrzeni?”). Reszta biblioteki to `--all` w tle.
-- **Koszt:** embeddingi grosze. Pobieranie jest jednorazowe (1-2 GB dla całej biblioteki). Plików nie przechowujemy, link prowadzi do paczki ROPS (CC BY 4.0).
-
-## 27. Radar naborów, test kwalifikacji, przedwstępny wniosek, aktualności
-
-- **Cel:** zaskoczyć pomysłowością, która jest użyteczna. Zamiast „pogody na portalu”: **„Do 600 000 zł, bez wkładu własnego, zostało 12 dni. Sprawdź w 60 sekund, czy się kwalifikujecie”**.
-- **Radar naborów** (Strefa JST, Aktualności):
-  - aktywne nabory dla gmin z **odliczaniem dni**, kwotą i informacją o braku wkładu, **każda liczba ze źródłem** (regulamin, s. 6 i s. 25);
-  - przycisk **„Dodaj termin do kalendarza”**: plik .ics z przypomnieniem 7 dni i 1 dzień przed końcem naboru. Drobiazg, który urzędnik naprawdę doceni.
-- **Test kwalifikacji (4 pytania tak / nie):** każde pytanie zbudowane **wyłącznie ze zweryfikowanych faktów regulaminu** (`lib/jst/eligibility.ts` → `lib/jst/facts.ts`, sprawdzane przez `pnpm verify:facts`) i podpisane cytatem strony. Przy „nie” zamiast odmowy jest konkretna podpowiedź (np. partnerstwo z organizacją przy wymogu 12 miesięcy usługi). Na końcu zastrzeżenie: „wstępna orientacja, nie decyzja - ocenia ROPS”.
-- **Przedwstępny wniosek:** instytucja, innowacja z listy naboru (10 z tur I i II), odbiorcy, zespół, partnerzy, potrzeba i wyniki testu. **Trafia do ROPS (Panel → Leady gmin → Przedwstępne wnioski)** z oznaczeniem, które warunki są do wyjaśnienia. Kontakt jest zbierany, nawet jeśli gmina nie przejdzie dalej.
-- **Aktualności:** moduł CMS (rodzaj: nabór / wyniki / wydarzenie / innowacja / informacja; odbiorcy: wszyscy / JST / organizacje / mieszkańcy; przypinanie). Strona `/aktualnosci`, widżet na stronie głównej i sekcja „Najnowsze dla samorządów” w Strefie JST.
-- **Uczciwość danych:**
-  - prawdziwego terminu kolejnego naboru nie ma w dokumentach ROPS (tura II jest rozstrzygnięta), więc **termin w demo jest wyraźnie oznaczony jako przykładowy**;
-  - aktualności o wynikach tur I i II mają **prawdziwe źródła** (strony ROPS), a wpisy demonstracyjne mają etykietę „dane przykładowe”;
-  - przy okazji wykryłem i usunąłem własne niepotwierdzone daty naboru IWS 2.0 (wcześniej wpisane bez źródła).
-
-## 28. Nowy system wizualny i architektura menu („civic”, nie „AI look”)
-
-- **Problem:** pierwszy interfejs miał wszystkie znamiona generowanego UI: zaokrąglone karty w siatce, ikona w każdej karcie, kolorowe pigułki, „pudełka w pudełkach”, wiele równorzędnych przycisków.
-- **Kierunek** (inspiracja projektem v7 właściciela, nie kopia 1:1), styl serwisów publicznych (GOV.UK, gov.pl), który budzi zaufanie urzędników:
-  - **zero zaokrągleń, bez cieni** (tokeny `--radius: 0`, globalna reguła);
-  - **linie i listy numerowane 01 / 02 / 03 zamiast kart z ikonami**;
-  - **jedno główne działanie** na ekranie, duży nagłówek, krótkie wprowadzenie;
-  - **przyciski: pomarańcz marki `#E85D2A` z ciemnym tekstem `#181816` (5.11:1, AA)**, wzorem v7 (ciemny tekst zamiast białego rozwiązał problem kontrastu pomarańczu);
-  - aktywna zakładka oznaczona pomarańczową linią u dołu;
-  - krój Atkinson Hyperlegible zostaje (czytelność dla osób słabowidzących).
-- **Nowa architektura menu** (`lib/site/nav.ts`), zamiast 9 równorzędnych pozycji:
-  1. **Pasek narzędzi:** dostępność oraz „Wejdź jako… / Panel ROPS”.
-  2. **Zakładki odbiorców:** **Dla gmin i instytucji** (domyślna, wskazanie ROPS) · Dla organizacji i innowatorów · Dla mieszkańców · Baza wiedzy, obok przycisk „Zapytaj Mostka”.
-  3. **Pasek modułów wybranej grupy**, np. dla gmin: Radar naborów · Asystent grantowy · Innowacje do wdrożenia · Sprawdź kwalifikację · Kontakt z ROPS.
-  - Na stronie głównej nawigacją są **zakładki hero** (wzorzec ARIA tabs, strzałki zmieniają zakładkę), więc menu się nie dubluje. Każda zakładka ma własny nagłówek, jedno główne działanie i trzy numerowane wejścia.
-- **Nowe strony:** `/dla-mieszkancow` (dopasowanie, Przęsła, Testuj, Mostek) i **`/wiedza` - Baza wiedzy**: liczniki (115 innowacji, 51 wyzwań, 280+ dokumentów, ~7500 fragmentów), Mapa Wyzwań z rozwijanymi obszarami i linkami do stron PDF, lista raportów. Wcześniej link „Wiedza” prowadził do 404.
-
-## 12. Do opisania na koniec (w miarę postępu)
-
-- [x] Mostek - agent z narzędziami (sekcja 17)
-- [x] Middleman - „Dostosuj z Mostkiem” (sekcja 13)
-- [x] Knowledge RAG w praktyce (sekcje 14 i 17)
-- [x] Kreator pomysłów + generator wniosków + wizualizacja (sekcja 21)
-- [x] **Wizualizacja pomysłu (obraz z opisu):** osoba z pomysłem, ale bez środków na projekt czy grafika, generuje obraz innowacji (np. przedmiotu, miejsca, usługi) z opisu w Kreatorze i może wysłać fiszkę z wizualizacją do ROPS do wglądu. Obniża próg wejścia dla oddolnych innowatorów. Koszt kontrolowany limitem obrazów na użytkownika i przełącznikiem w ustawieniach AI.
-- [x] Tester innowacji + **lista oczekujących na testy** (sekcja 19): zapis przez checkboxy, czat lub głos z Mostkiem → kategorie problemu + kontakt. Kontakt wpisuje się w formularzu i nie trafia do LLM. Gdy ROPS oznaczy innowację jako „gotową do testów”, system dopasowuje listę (kategorie + embedding) i tworzy powiadomienia (demo bez wysyłki maili).
-- [x] Rozmowy z ROPS (sekcja 20)
-- [ ] Panel kosztów i ustawień AI (kaganiec + **tone of voice przez archetypy marki**)
-- [x] **Tryb głosowy** (sekcja 25). Pierwotny plan: (jeśli wystarczy czasu): „Powiedz Mostkowi”, push-to-talk → STT → Mostek z narzędziem `navigate`; komendy dostępności lokalnie bez LLM. Dla seniorów i osób z niepełnosprawnościami ruchowymi lub wzroku.
-- [ ] Deploy i koszt utrzymania
-
-## Trudne pytania jury - szkic odpowiedzi
-
-- **„Czy AI nie zmyśla innowacji?”** Nie może. Wybiera wyłącznie spośród kandydatów z bazy, a serwer sprawdza każde ID. Każda karta ma link do źródła ROPS.
-- **„Co jeśli ROPS zmieni treści na stronie?”** Synchronizacja z hashem wykrywa zmiany i przetwarza ponownie tylko je.
-- **„Ile to kosztuje w utrzymaniu?”** Import całej biblioteki to ~$3 jednorazowo, a jedno dopasowanie to kilka centów. Budżet i limity ustawia ROPS w panelu, a po przekroczeniu włącza się tryb oszczędny.
-- **„Czy można go zmusić do przeklinania lub tematów politycznych?”** Cztery warstwy obrony (filtr, moderacja, polityka w prompcie, walidacja wyjścia), przełączniki ROPS i dziennik zdarzeń.
-- **„Dlaczego nie zwykły chatbot?”** Matchmaking działa na ustrukturyzowanej wiedzy, a Mostek jest agentem, który wykonuje akcje (zgłoszenie, fiszka, plan wdrożenia, przekazanie do ROPS), a nie tylko odpowiada.
-- **„ROPS mówi o ~200 innowacjach, a w MOSTIN jest 115?”** Publiczna Biblioteka Innowacji ROPS (9 kategorii) zawiera dokładnie 115 opisanych innowacji i wszystkie są w MOSTIN. Liczba ~200 to dorobek wszystkich inkubatorów z 10 lat: na przykład Małopolski Inkubator Innowacji Społecznych (do 2019: 42 innowacje w teście, 39 zakończyło test) i Inkubator Włączenia Społecznego (60 pomysłów). Część z nich nie ma podstron w bibliotece, tylko opisy w publikacjach i raportach. Architektura jest na to gotowa: CMS, importer z `source_type` i ekstrakcja AI z PDF/CSV pozwalają dołączyć resztę bez zmian w kodzie.
-
-### 28a. Listy z liniami zamiast kart (wszystkie ekrany)
-- Listy elementów (innowacje, testy, kręgi, leady, pomysły, rozmowy, aktualności, persony): linia nad listą + linia pod każdym wierszem, bez tła i ramek. Biblioteka innowacji: wiersz z opisem po lewej i kategoriami po prawej, wygodny do skanowania wzrokiem.
-- Formularze i panele: gruba linia u góry zamiast ramki.
-- Rzeczy ważne (radar naborów, start dla gminy, profil testera, luka w ofercie): pomarańczowa linia po lewej.
-- Siatki kafelków (pulpit ROPS, archetypy Mostka, funkcje dla gmin): wspólne linie siatki, jak w tabeli urzędowej.
-- Ramki zostały tylko tam, gdzie oznaczają element interaktywny: pola formularzy, okno czatu Mostka, powitanie.
-- Dlaczego: karty z zaokrągleniami i cieniami to typowy wygląd szablonów generowanych przez AI. Linie to język druków i serwisów publicznych (gov.uk, biznes.gov.pl), czytelniejszy przy powiększeniu tekstu (WCAG 1.4.4, 1.4.10).
-
-### 28b. Podpis autora w stopce
-- Jedna linia w stopce: „Projekt i realizacja: Maciej Senderowski · HackYeah 2026”. Dyskretnie, bez logo i linków sprzedażowych - serwis ma wyglądać jak usługa ROPS. Do sprawdzenia: regulamin HackYeah (anonimowość zgłoszeń).
-
-### 28c. Favicon i nagłówek hero
-- Favicon: sygnet z logo (sam łuk mostu) jako `app/icon.svg`; ikona iOS generowana z tego samego wektora (`app/apple-icon.tsx`, next/og).
-- Hero: wróciliśmy do dwóch wierszy z pierwszej wersji - pierwszy pomarańczowy (pytanie), drugi z odręczną, nieregularną kreską (odpowiedź). Jeden ludzki akcent przełamuje urzędową siatkę linii. Kreska jest tłem z `box-decoration-break: clone`, więc przy zawijaniu podkreśla każdą linijkę; w trybie wymuszonych kolorów zamienia się na zwykłe podkreślenie.
-
-### 29. Mostek na każdej stronie, także w panelu ROPS
-- Publicznie: przycisk „Zapytaj Mostka” w nagłówku; po przewinięciu w rogu pojawia się pływający „Mostek” (nie zasłania powitania na stronie głównej). Alt+M działa wszędzie.
-- Panel ROPS: pływający „Zapytaj Mostka” na każdej stronie panelu, tryb `rops` (sprawdzany po stronie serwera rolą admin): krótkie, rzeczowe odpowiedzi jak od współpracownika, wskazywanie stron panelu (leady, rozmowy, nabory, budżet AI), bez proponowania Przęseł czy Kreatora.
-- Szybkie przejścia bez AI: mapa serwisu (`lib/site/sitemap.ts`, słowa kluczowe z polską odmianą) dopasowywana w przeglądarce. Pod polem czatu „Przejdź od razu: …” już podczas pisania, a nad odpowiedzią „Od razu możesz przejść: …” zanim AI skończy. Zero kosztu, zero opóźnienia - AI dopowiada kontekst i źródła.
-- Ta sama mapa trafia do promptu Mostka: przycisk „otworz” może wskazać każdą stronę (strony panelu tylko w trybie ROPS - walidacja w narzędziu). Pytania nawigacyjne: 1-2 zdania + przycisk, bez wyszukiwania.
-- Kliknięcie linku w odpowiedzi zamyka panel, rozmowa zostaje w sesji.
-
-### 30. Kolejność odbiorców, przyciski, lżejszy Kreator
-- Zakładki: Dla mieszkańców → Dla gmin → Dla organizacji. Strona zaczyna od otwartości na każdego; urzędnik i tak kliknie swoją zakładkę. Strona główna podświetla ścieżkę mieszkańców.
-- Przyciski: ciemniejszy pomarańcz #c2410c z białym tekstem (5.18:1, AA). Czarny tekst na jasnym pomarańczu był słabo czytelny w praktyce, mimo spełnionego progu. Hover przyciemnia (#a83b18), zamiast rozjaśniać.
-- Kreator: na start widać tylko „problem” i „gdzie”, potem „pomysł” i nazwę. Skala, częstotliwość, odbiorcy, rodzaj i gotowość są zwinięte jako opcjonalne. Po kroku 2 od razu „Poproś Mostka o ocenę” - kroki „Ludzie i wartość” i „Koszty” dla chętnych.
-- Wniosek przestał być celem ścieżki organizacji. Hasło: „Masz pomysł na innowację? Sprawdźmy go i rozwińmy razem.” Główne działanie po ocenie: fiszka do ROPS (pomysł dojrzewa w inkubatorze, zanim trafi do wniosku). Szkic wniosku zostaje jako podgląd („Zobacz, jak wyglądałby szkic wniosku”) i jako krok po ogłoszeniu naboru - zapisane pomysły dostają powiadomienie.
-
-### 31. Mostek jako czat w rogu, przyklejone menu, Dostępność na telefonie
-- Nowa osoba nie wie, kim jest Mostek, więc nie ma go w nagłówku. Na każdej stronie w prawym dolnym rogu jest okrągła ikona czatu (dymek) z podpisem „Masz pytanie? Zapytaj asystenta Mostka”. Po kliknięciu rozwija się okno: na komputerze w rogu, na telefonie na cały ekran. Mostek dalej pojawia się jako pomocnik w treści (asystent grantowy, dopasowanie).
-- Telefon: okno czatu dopasowuje się do klawiatury ekranowej (visualViewport na iOS, `interactive-widget=resizes-content` na Androidzie), więc pole wpisywania nie chowa się pod klawiaturą.
-- Nagłówek z menu jest przyklejony na komputerze i telefonie; na telefonie niższy (mniejsze logo, moduły w jednym przewijanym wierszu), kotwice mają `scroll-padding-top`.
-- Telefon: wyraźny przycisk „Dostępność” przy logu rozwija pełny panel (wielkość tekstu, kontrast, prosty język, bez animacji). Na komputerze panel jest zawsze widoczny nad logo.
-
-### 32. Fiszka pomysłu a wniosek - rozdzielone zgodnie z zadaniem ROPS
-- Slajd „Kreator pomysłów” w prezentacji ROPS ma trzy punkty: zgłaszanie pomysłów i prowadzenie przez kreowanie innowacji, prezentacja dobrych praktyk, **„funkcja generatora wniosków w trakcie naborów”**.
-- Na stronie Kreatora trzy jasno nazwane ścieżki:
-  1. **Fiszka pomysłu** - zawsze otwarta: problem + pomysł, ocena Mostka (czy podobne już istnieje = dobre praktyki z Biblioteki), wysyłka do ROPS.
-  2. **Wniosek do naboru pomysłów** - tylko gdy trwa nabór z formularzem (dziś: IWS 2.0, 10 sekcji wg wzoru formularza aplikacyjnego). Szkic powstaje z fiszki, z oznaczeniem „trwa nabór”. Bez naboru: zapis fiszki i powiadomienie, gdy nabór ruszy.
-  3. **Grant na wdrożenie gotowej innowacji** - osobny nabór (Usługa Wrażliwa) dla gmin i organizacji, w Strefie JST z testem kwalifikacji i przedwstępnym wnioskiem.
-
-### 33. Wyniki dopasowania i oznaczenie elementów demo
-- Wynik dopasowania nie jest już ścianą tekstu. Po lewej duży numer z pomarańczowym ukośnikiem („1/”, „2/”) i stopień dopasowania w procentach z opisem („Bardzo dobre dopasowanie”) oraz paskiem. Pierwszy wynik ma etykietę „Najlepsze dopasowanie”.
-- Treść ma hierarchię: tytuł → krótki opis → wyróżnione „Dlaczego pasuje do Twojej sytuacji” (większy tekst, pomarańczowa linia) → dwie kolumny „Co dostosować” / „Pierwszy krok” → przyciski.
-- Wszystkie przykłady do kliknięcia (opisy sytuacji w dopasowaniu, pytania startowe Mostka, asystenta grantowego i panelu ROPS) są w jednej ramce z przerywaną linią, etykietą „DEMO” i dopiskiem, że to dane na potrzeby prezentacji, których w docelowej wersji nie będzie (`components/site/demo-examples.tsx`). Jury od razu odróżnia element pokazu od usługi.
-
-### 34. Przęsła: anonimowość domyślnie, bliskość z wyboru
-- „Moderacja” brzmiała jak nadzór, a krąg wsparcia musi pozwalać się wygadać. Rozdzieliliśmy to na cztery rzeczy:
-  1. **Treść jest wolna.** Przekleństwa z frustracji przechodzą. Blokujemy tylko obrażanie innych osób z kręgu („ty debilu”, „jesteś idiotą”) oraz groźby i nienawiść (kategorie threatening/hate w moderacji OpenAI). Samookaleczenie celowo nie blokuje wiadomości.
-  2. **Dane kontaktowe w grupie są ukrywane** (telefon, e-mail, PESEL, konto) - ochrona przed podaniem za dużo w kryzysie i przed oszustami. Po ukryciu system podpowiada „Poproś o kontakt”.
-  3. **Kontakt prywatny po obopólnej zgodzie:** „Poproś o kontakt” przy pseudonimie, prośba z własnym kontaktem; adresat widzi go dopiero, gdy się zgodzi i poda swój. Kontakty widzą tylko te dwie osoby (`circle_contact_requests`).
-  4. **ROPS nie czyta rozmów.** Wiadomości widzą tylko członkowie kręgu. ROPS widzi wyłącznie wiadomości zgłoszone przyciskiem „Zgłoś” (Panel → Zgłoszenia z Przęseł) i może je ukryć albo uznać zgłoszenie za bezzasadne.
-- **Kryzys:** treść o myślach samobójczych (słowa kluczowe + kategoria self-harm) nie jest blokowana - pod wiadomością pojawia się ramka z telefonami 116 123, 800 70 2222, 116 111 i 112. Numery zweryfikowane na gov.pl (Ministerstwo Zdrowia).
-
-### 35. Głos w czacie Mostka: naprawy
-- **Rozpoznawanie mowy nie działało na iPhonie/Safari:** przeglądarka nagrywa w mp4, a plik był wysyłany jako „nagranie.webm” - API odrzucało go po rozszerzeniu (odtworzone testem: ten sam plik jako .m4a rozpoznany poprawnie, jako .webm błąd). Teraz format nagrania jest wybierany z obsługiwanych przez przeglądarkę, a nazwa pliku pasuje do formatu. Zbyt krótkie nagranie dostaje czytelny komunikat.
-- **Rozpoznany tekst od razu trafia do Mostka** (widać go w rozmowie jako pytanie) - wcześniej lądował w polu i czekał na Enter, co wyglądało, jakby Mostek nie usłyszał.
-- **Odtwarzanie:** jeden odtwarzacz na stronę. Nowa odpowiedź zatrzymuje poprzednią, kliknięcie w trakcie przygotowywania przerywa pobieranie, nowe pytanie, mikrofon, „Nowa rozmowa” i zamknięcie czatu zatrzymują czytanie. Odpowiedzi nie nakładają się na siebie.
-
-### 36. Przęsła w demo: persona w kręgu i szybkie dołączanie
-- Persona „Anna, mieszkanka Nowego Targu” (opiekuje się mamą po udarze) przy wejściu dostaje profil z pseudonimem Anna_NowyTarg i miejsce w nowym kręgu „Opiekunowie bliskich po udarze - Małopolska” (syntetyczne osoby i rozmowa, `lib/demo/circles.ts`, także w `pnpm seed:demo`). Jury od razu widzi rozmowę, „Zgłoś” i „Poproś o kontakt”.
-- „Dołącz do kręgu” bez profilu nie odsyła już do Testuj z błędem. Prowadzi do krótkiego kroku `/przesla/dolacz`: pseudonim + zgoda i od razu wejście do kręgu. Obok ramka DEMO „Dołącz jako przykładowa osoba” - wylosowany pseudonim i jedno kliknięcie.
-
-### 37. Dane demo do pokazu i panel po polsku
-- Kręgi Przęseł mają dłuższe przykładowe rozmowy (wszystkie 4). Widać w nich zasady: ukryty numer i podpowiedź „Poproś o kontakt”, rozmowę o zmęczeniu bez oceniania, umawianie spotkania (`EXTRA_MESSAGES` w `lib/demo/circles.ts`, także w `pnpm seed:demo`).
-- `pnpm seed:demo-extra` (idempotentne, session_key `demo-extra`) uzupełnia panel ROPS:
-  - 5 leadów gmin z historią pytań do asystenta grantowego (różna gotowość i statusy),
-  - 3 przedwstępne wnioski (jeden komplet, dwa z warunkami do wyjaśnienia),
-  - 3 pytania gmin w Rozmowach z ROPS (jedno pilne, jedno z odpowiedzią),
-  - zgłoszenia z Przęseł: reklama suplementu zgłoszona przez dwie osoby i jedno zgłoszenie z nieporozumienia,
-  - 4 aktualności i 3 zdarzenia w dzienniku moderacji (fragmenty zamaskowane).
-- Zgłoszenia tej samej wiadomości są grupowane (liczba zgłoszeń + lista powodów).
-- CMS po polsku: rodzaje dokumentów i materiałów (Raport, Regulamin, Mapa wyzwań, Poradnik, Zasady naboru, Model innowacji, Kurs…) w formularzach i na listach; statusy i etapy też przez słownik etykiet.
-
-### 38. Domknięcie wymagań: trendy, Tester, „co wiemy o problemie”, nabory w Mostku
-- **Trendy potrzeb (tylko ROPS, `/admin/trendy`):** zgłoszenia z wyszukiwarki rozwiązań i profili potrzeb agregowane po obszarach i tygodniach (8 tygodni). Mapa tygodniowa z liczbami (nie tylko kolor), zmiana 4 tygodnie do 4 poprzednich, kogo dotyczą, skąd są zgłoszenia, ostatnie anonimowe streszczenia. **Popyt a podaż:** obok liczby zgłoszeń liczba innowacji w Bibliotece; „Sygnały dla Hubu” wskazują najwyżej 3 obszary, gdzie potrzeb przybywa, a rozwiązań jest mało - kandydaci na nabór lub inkubację. Matchmaking zapisuje teraz kategorie, grupy i miejsce potrzeby.
-- **Tester - ocena i informacja zwrotna:** na stronie każdej innowacji ocena 1-5, „skąd znasz rozwiązanie” (test w MostIn / korzystam / wdrażam / z opisu), co działa, propozycja usprawnienia. Dane osobowe maskowane, wulgaryzmy odrzucane. Panel ROPS: „Opinie z testów” - średnie per innowacja i lista propozycji usprawnień do przekazania autorom.
-- **„Co wiemy o tym problemie” w wyszukiwarce rozwiązań:** bez dodatkowego wywołania AI, równolegle z wyszukiwaniem: liczba podobnych zgłoszeń w MostIn ze wspólnym obszarem i 2 anonimowe streszczenia, 2 fakty z Mapy Wyzwań dobrane po zgodności słów z opisem (ze stroną i oznaczeniem „dane ogólnopolskie”), fragment raportu ROPS ze stroną (tylko raporty, nie dokumentacja modeli; oczyszczony z dzielenia wyrazów i nagłówków).
-- **Mostek a dofinansowania:** nowe narzędzie `search_calls` - Radar naborów (kwota, termin, dla kogo, test kwalifikacji) + zweryfikowane warunki regulaminu z cytatem strony. Wcześniej zwykły czat nie widział naborów i uczciwie odmawiał podania kwot; teraz odpowiada konkretnie (do 600 000 zł, bez wkładu własnego, 18 miesięcy) i oznacza termin przykładowy jako przykładowy.
-
-### 39. Materiały edukacyjne i Panel mentora
-- **Materiały edukacyjne (Baza wiedzy → „Materiały edukacyjne”):** tylko prawdziwe publikacje ROPS, z linkami do PDF na rops.krakow.pl (sekcja „Publikacje ze świata innowacji”) i zgodnie ze slajdem 27 prezentacji ROPS („plansze Canvy Innowacji Społecznych”, „materiały opisujące doświadczenia ROPS”):
-  - „Zacznij tworzyć innowację”: plansza Social Innovation Canvas (INNO AGH) i wzór formularza aplikacyjnego IWS 2.0 (z materiałów hackathonu, sprawdzony: pusty wzór, 16 stron),
-  - „Poradniki i doświadczenia ROPS”: Przewodnik po innowacjach społecznych (2019), Połącz kropki (2023), Innowacje społeczne dla dostępności (2022), Guide to social innovations (ENG), Mapa Wyzwań, Innowacje w Małopolskich Modelach Usług Społecznych.
-  - Materiały są w tabeli `materials` (edycja w CMS → Materiały edukacyjne), `scripts/seed-materials.ts`.
-  - Trzy publikacje (przewodnik, Połącz kropki, dostępność) trafiły też do bazy wiedzy Mostka (+217 fragmentów) - Mostek podpowiada, jak budować innowację, z cytatem strony.
-- **Filmy o innowacjach:** 26 innowacji ma film; w Bazie wiedzy siatka miniatur prowadzi do filmu na stronie innowacji.
-- **Kreator:** pod wyborem ścieżki linki „Materiały do prototypowania” (kanwa, wzór formularza, więcej materiałów).
-- **Panel mentora (`/mentor`):** persona „dr Marek, ekspert” po wejściu trafia do panelu z prośbami o mentora i propozycjami partnerstwa (tylko te sprawy, nie cała skrzynka ROPS). Zakładki „Czekają na odpowiedź” / „Wszystkie”, odpowiedź trafia do rozmowy autora jako „Mentor”, ROPS widzi całą korespondencję. W demo 3 sprawy (w tym pilna i jedna z odpowiedzią eksperta).
+## 1. Założenia
+
+- **Dlaczego to zadanie.** Punktacja nagradza liczbę działających modułów (matchmaking 10%, każdy kolejny +5%), a ROPS chce dalej rozwijać zwycięski prototyp. Zrobiłem wszystkie siedem modułów i jednego asystenta nad nimi.
+- **Stack.** Next.js 16 (TypeScript, Tailwind 4, Base UI), Supabase (Postgres + pgvector, RLS, Auth, Storage), Claude Opus 5.5 i Sonnet 5.5, OpenAI do embeddingów, obrazów, mowy i moderacji. Hosting Netlify + Supabase w UE.
+- **Trzy zasady:**
+  1. AI nie zgaduje. Liczby, kwoty, terminy i warunki tylko ze źródła ROPS, z cytatem i numerem strony. Jak źródła brak, Mostek mówi to wprost i kieruje do człowieka.
+  2. Dostępność od pierwszego ekranu, nie na koniec.
+  3. Bez ściany logowania. Mieszkaniec korzysta bez konta, pod pseudonimem.
+
+## 2. Moduły
+
+### I. Matchmaking społeczny (obowiązkowy) - „Znajdź rozwiązanie”
+- Opisujesz problem własnymi słowami (pisząc albo głosem), dostajesz innowacje z oceną 0-100, „dlaczego pasuje”, „co dostosować” i „pierwszy krok”.
+- Obok: „Co wiemy o tym problemie” - podobne zgłoszenia z MostIn (anonimowo), fakty z Mapy Wyzwań i fragment raportu ROPS ze stroną. To jest „wyszukuje podobne przypadki i informacje o kwestii” z zadania.
+- Pod spodem: analiza opisu (Sonnet) → embedding → wyszukiwanie hybrydowe w Postgresie (0.65 znaczenie, 0.20 słowa kluczowe, 0.15 zgodność kategorii) → ocena i uzasadnienie (Opus) → serwer sprawdza, że model wskazał tylko innowacje z puli kandydatów.
+- Decyzje:
+  - Każda innowacja przy imporcie dostaje `search_text`, czyli opis językiem mieszkańca („babcia nie umie zadzwonić do wnuków przez wideo”). Embedding liczę z niego, nie z urzędowego opisu.
+  - Wspólna taksonomia (18 obszarów, 16 grup) dla innowacji i zapytań, więc filtry trafiają.
+  - Lepiej 2 trafne niż 5 naciąganych. Gdy katalog nie pokrywa problemu, system to mówi i prowadzi do Kreatora („nie ma rozwiązania, stwórz je”).
+  - Supabase nie ma polskiego słownika, więc pełnotekstowe szuka po rdzeniach słów (`spastyczn:*`) i bez polskich znaków. Resztę odmiany łapią embeddingi.
+- Strojenie na prawdziwym scenariuszu: „syn ma spastyczność rąk, nie stać mnie na rehabilitację” powinno dać Edki (kredki terapeutyczne). Na starcie 8. miejsce, po poprawkach (rdzenie słów, pula z obu rankingów, waga rzadkich słów użytkownika, drugie wyszukiwanie po dosłownych słowach) pierwsze. Scenariusze kontrolne (seniorzy, rodziny z Ukrainy) dalej działają.
+
+### II. Zasobnik wiedzy - Baza wiedzy
+- **Biblioteka innowacji**: 115 innowacji, wyszukiwanie i filtry na żywo (obszar, dla kogo, etap). Tagi na stronie innowacji prowadzą do Biblioteki z tym filtrem.
+- **Strona innowacji**: problem, rozwiązanie, wymagania, film (26 innowacji ma film), materiały, autorzy, nabór testów jeśli trwa, opinie testerów.
+- **Mapa Wyzwań i raporty**: 8 obszarów, 51 wyzwań z linkiem do strony PDF, raporty ROPS. Mapa to dane ogólnopolskie, raporty małopolskie, Mostek to rozróżnia.
+- **Materiały edukacyjne**: kanwa innowacji, wzór formularza, poradniki ROPS, wszystkie filmy.
+- **Trendy potrzeb** (tylko ROPS): zgłoszenia po obszarach i tygodniach, popyt obok liczby innowacji w Bibliotece, „Sygnały dla Hubu” - gdzie potrzeb przybywa, a rozwiązań jest mało.
+- Decyzje:
+  - W bazie wiedzy Mostka jest 285 dokumentów (w tym 266 z paczek ZIP z dokumentacją modeli) i 7708 fragmentów z numerami stron. PDF-ów nie kopiuję - trzymam link do źródła ROPS i fragmenty, więc wersja jest zawsze aktualna.
+  - Synchronizacja z Biblioteką ROPS liczy skrót treści (SHA-256) i przez AI przepuszcza tylko nowe i zmienione innowacje. Pełny import ok. 3 USD, kolejne grosze.
+  - Dokumentacja modelu jest przypięta do swojej innowacji, więc pytanie o konkretną innowację przeszukuje tylko jej dokumenty.
+
+### III. Kreator pomysłów
+- **Fiszka pomysłu**, zawsze otwarta. Na start dwa pola (problem i pomysł), reszta kanwy (Social Innovation Canvas ROPS / INNO AGH) opcjonalnie, z opcjami do zaznaczenia.
+- **Ocena Mostka**: czy pomysł nie powiela innowacji już inkubowanych (wymóg naboru) - „unikalny / częściowo podobny / powiela” z najbliższymi innowacjami, do tego mocne strony, luki z pytaniami, usprawnienia, następny krok i 1-3 obszary.
+- **Obraz pomysłu**: własne zdjęcie lub szkic (do 5 MB) albo ilustracja AI z własnego opisu.
+- **Wyślij do ROPS** jednym kliknięciem - rozmowa w skrzynce ROPS z pełną kanwą.
+- **Generator wniosku** - tylko gdy trwa nabór z formularzem (dziś „Inkubator Włączenia Społecznego 2.0”, 10 sekcji według prawdziwego wzoru). Diagnoza bierze dane z raportów ROPS i Mapy Wyzwań. Kwot i zespołu nie wymyśla, wstawia [DO UZUPEŁNIENIA]. Szkic do pobrania jako .docx i .odt, do skopiowania albo druku.
+- Decyzje:
+  - Sekcje 2 (dane pomysłodawcy) i 12 (oświadczenia) świadomie bez AI: dane osobowe i odpowiedzialność karna.
+  - Cały wniosek w jednym wywołaniu to ok. 40 s, a Netlify ucina po 30 s. Przeglądarka wysyła 6 równoległych żądań po 1-3 sekcje i sekcje pojawiają się po kolei.
+  - .docx i .odt składam w przeglądarce (to zipy z XML-em), bez dużych bibliotek.
+  - Gdy ROPS ogłasza nabór z obszarami, autorzy fiszek z tych obszarów dostają wiadomość (raz na nabór).
+
+### IV. Tester innowacji - „Testuj”
+- Lista testów z „Zgłoś się do testu” albo „Powiadom mnie o starcie”. Ten sam przycisk jest na stronie innowacji, jeśli trwa nabór.
+- Profil potrzeb (obszary, pseudonim, zgody): przy pierwszym zgłoszeniu krótki formularz z obszarami testu już zaznaczonymi, potem zgłoszenie jednym kliknięciem. Edycja w „Mój profil”.
+- Lista oczekujących: kiedy ROPS otwiera test, osoby z pasującym profilem i zgodą dostają zaproszenie.
+- Ocena innowacji (1-5), „co działa”, propozycja usprawnienia. ROPS widzi to w „Opiniach z testów”.
+
+### V. Platforma aktywnej komunikacji - Rozmowy z ROPS, Panel mentora
+- „Napisz do ROPS”: pytanie, prośba o eksperta, partnerstwo, pomysł, testy. Bez konta. Potwierdzenie od razu, odpowiedź w tym samym wątku. Mostek może przekazać sprawę z gotowym podsumowaniem.
+- Po stronie ROPS: powiadomienie, triaż AI w tle (kategoria, priorytet, streszczenie, szkic odpowiedzi z pasującymi innowacjami), pilne na górze, średni czas pierwszej odpowiedzi.
+- **Panel mentora** dla ekspertów: tylko prośby o mentora i partnerstwa, odpowiedź idzie do rozmowy autora jako „Mentor”.
+- Decyzje:
+  - Odpowiedź zawsze zatwierdza człowiek. Szkicu z niewypełnionym [DO UZUPEŁNIENIA] nie da się wysłać.
+  - Triaż rusza po odpowiedzi do użytkownika (`after()`), więc nikt nie czeka na AI.
+- To moja odpowiedź na kryterium „szybkość komunikacji”: ROPS dostaje powiadomienie i uporządkowaną sprawę, autor widzi odpowiedź u siebie.
+
+### VI. Panel administratora (ROPS)
+- Pulpit „Do zrobienia”: rozmowy do odpowiedzi (z pilnymi), gminy czekające na kontakt, zgłoszenia z Przęseł, nowe pomysły. Niżej stan Hubu i koszt AI w miesiącu z paskiem budżetu.
+- CMS: jedna definicja typu treści daje listę, filtry, sortowanie, formularz i zapis. Urzędnik nie widzi JSON-a - materiały, fakty i zasady naboru edytuje polami, innowację wybiera wyszukiwaniem po nazwie.
+- „Przetwórz AI” przy innowacji i dokumencie, synchronizacja z Biblioteką ROPS.
+- Leady gmin, Rozmowy, Pomysły (karta pomysłu, zmiana etapu), Trendy, Zgłoszenia z Przęseł, Opinie z testów, Ustawienia AI, Moje konto.
+
+### VII. Middleman Innowacji - „Dostosuj z Mostkiem”
+- Formularz: typ instytucji, miejscowość, odbiorcy, ludzie, budżet, czas, ograniczenia. Wynik: wykonalność 0-100, tabela „w oryginale / u Ciebie”, etapy z rolami, budżet orientacyjny, partnerzy, ryzyka, wskaźniki, pierwszy tydzień i założenia do sprawdzenia.
+- Wejście z wyników dopasowania, ze strony innowacji i z Mostka.
+- Formularz zamiast czatu: szybszy, działa z klawiatury i czytnikiem, nie wymaga umiejętności „rozmawiania z AI”. Plan generuję w dwóch równoległych częściach, żeby zmieścić się w limicie hostingu.
+
+### Strefa JST - dla gmin (wskazanie ROPS)
+- Radar naborów z odliczaniem dni, kwotą i warunkami - każda liczba z cytatem strony regulaminu. Termin w demo jest oznaczony jako przykładowy.
+- Termin do kalendarza: Google, Outlook albo plik .ics z przypomnieniami.
+- Test kwalifikacji w 60 sekund (4 pytania tylko z faktów regulaminu) i przedwstępny wniosek, który od razu trafia do ROPS.
+- Asystent grantowy: Mostek przeprowadza przez regulamin „Usługi Wrażliwej” i dokumentację modeli, porównuje wymagania z zasobami gminy i podpowiada, jak uzupełnić braki.
+- Kontakt zbieram na starcie, więc ROPS ma leada z podsumowaniem AI (gotowość, bariery, następny krok), nawet jeśli gmina przerwie.
+- Kluczowe fakty naboru są w `lib/jst/facts.ts` z dosłownym cytatem, a `pnpm verify:facts` sprawdza, czy cytat jest w dokumencie. Test na liczbach pokazał, że Mostek przeoczył „wkład własny nie jest wymagany”. Po poprawce podaje to z cytatem.
+
+### Przęsła - kręgi wsparcia
+- Osoby w podobnej sytuacji rozmawiają pod pseudonimem. Mostek podaje anonimową liczbę („12 osób w Małopolsce, 3 w okolicy”) i prowadzi do pasującego kręgu.
+- Rozmowa jest swobodna, ale obelgi, groźby i nienawiść są blokowane. Dane kontaktowe w grupie są ukrywane, kontakt prywatny tylko za zgodą obu stron.
+- ROPS nie czyta rozmów. Widzi tylko wiadomości zgłoszone przez uczestników i może je ukryć, przywrócić albo uznać zgłoszenie za bezzasadne.
+- Przy treściach o kryzysie wiadomość nie jest blokowana, tylko pod nią pokazuję telefony zaufania (sprawdzone na gov.pl).
+
+### Mostek - asystent nad całym serwisem
+- Czat w rogu każdej strony (Alt+M) i pełny ekran `/mostek`. Wie, na jakiej stronie i ścieżce jest użytkownik, więc nie pyta „kim jesteś”.
+- Narzędzia: wyszukiwanie innowacji, szczegóły innowacji, raporty i dokumentacja modeli, Mapa Wyzwań, nabory, Przęsła, przyciski następnego kroku. W panelu ROPS dodatkowo koszty AI.
+- Każda informacja z cytatem i listą źródeł z linkiem do strony PDF.
+- Tryb głosowy (mów i słuchaj) dla osób, którym trudno pisać lub czytać. ROPS włącza go per podstrona i wybiera głos.
+- Decyzje:
+  - Historia rozmowy jest na serwerze i tylko dopisywana. Opus odrzuca historię z wyciętymi wywołaniami narzędzi, więc klient wysyła tylko nową wiadomość.
+  - Narzędzia tylko czytają. Jedyne „działanie” to przycisk, który klika człowiek, i może on wskazać tylko innowację albo krąg, które Mostek naprawdę dostał z narzędzia w tej rozmowie.
+
+## 3. AI pod kontrolą ROPS
+
+- Przełączniki w panelu: tylko dozwolone źródła, tylko polityka społeczna, bez porad medycznych, prawnych, polityki i religii, własne tematy wyłączone, blokada wulgaryzmów i obelg, maskowanie danych osobowych. Zmiana działa po kilkunastu sekundach, bez wdrożenia.
+- Cztery warstwy: filtr słownikowy (od razu i za darmo) → moderacja OpenAI → zasady w prompcie (treść dokumentów to dane, nie polecenia, czyli ochrona przed prompt injection) → sprawdzenie odpowiedzi (identyfikatory innowacji, wulgaryzmy).
+- Ton Mostka z 6 archetypów marki (Opiekun, Mędrzec, Towarzysz, Przewodnik, Twórca, Bohater). ROPS wybiera kliknięciem, nie pisze promptów. Ton nigdy nie zmienia zakresu merytorycznego.
+- „Prosty język” z paska dostępności zmienia wszystkie odpowiedzi AI dla mieszkańców (czat, uzasadnienia, ocena w Kreatorze, plan wdrożenia). Szkic wniosku zostaje formalny.
+- Dziennik automatycznej moderacji po polsku: co, gdzie i dlaczego zablokowano, bez danych osobowych.
+- Budżet miesięczny, próg alertu, dzienne limity na osobę (zapytania, obrazy, minuty głosu). Po przekroczeniu tryb oszczędny albo zatrzymanie.
+
+## 4. Bezpieczeństwo i prywatność
+
+- **RLS na każdej tabeli.** Wiedza publiczna do odczytu, zapis tylko dla administratora. CMS zapisuje treści przez sesję administratora, więc uprawnienia pilnuje sama baza.
+- **Klucz serwisowy tylko na serwerze.** Skrzynki ROPS, rozmowy, Przęsła i trasy AI korzystają z niego wyłącznie w kodzie serwerowym (`server-only`) i dopiero po sprawdzeniu uprawnień: rola administratora albo klucz sesji z ciasteczka. Przeglądarka nigdy go nie dostaje.
+- **Dane kontaktowe w osobnych tabelach.** Nigdy nie trafiają do AI, widzi je tylko ROPS.
+- **Maskowanie danych osobowych** (PESEL, telefon, e-mail, numer konta), zanim tekst trafi do AI i do bazy.
+- **Nie pytam o niepełnosprawność ani diagnozy.** Do dopasowania wystarczą obszary potrzeb.
+- **Bez konta**: anonimowa sesja z kluczem w ciasteczku httpOnly. Profil potrzeb i lead gminy są przypięte do sesji.
+- **Persona administratora tylko w trybie demo** (`DEMO_MODE=true`). Tryb panelu w Mostku sprawdzam na serwerze rolą administratora, a narzędzie kosztów odmawia poza tym trybem.
+- **Pliki od użytkowników**: typ sprawdzany po zawartości pliku, limit rozmiaru i dzienny, moderacja obrazu przed zapisem, zapis przez serwer (kosz w Storage przyjmuje zapis tylko od administratora).
+- **Nagrania głosu** nie są zapisywane, idą tylko do rozpoznania mowy.
+- **Bez analityki i śledzenia.** Tylko ciasteczka niezbędne (sesja, ustawienia dostępności), więc baner zgód nie jest potrzebny.
+- **Dane osób w demo są syntetyczne.** Innowacje, dokumenty i Mapa Wyzwań pochodzą z publicznych źródeł ROPS (Biblioteka Innowacji na licencji CC BY 4.0, źródło przy każdej pozycji).
+
+## 5. Dostępność (WCAG 2.1 AA)
+
+- Krój Atkinson Hyperlegible (Braille Institute, z myślą o osobach słabowidzących).
+- Pasek dostępności na każdej stronie: tekst 100 / 125 / 150%, wysoki kontrast, prosty język (zmienia odpowiedzi AI), bez animacji (wyłącza też płynne przewijanie). Ustawienia zapamiętane i nakładane przed pierwszym renderem.
+- Kolory marki sprawdzone pod kontrast: przyciski `#c2410c` z białym tekstem, linki w tekście `#a83b18` z podkreśleniem, czysty pomarańcz `#e85d2a` tylko tam, gdzie wystarcza 3:1 (grafika, fokus).
+- Klawiatura wszędzie, widoczny fokus, „Przejdź do treści”, landmarki, okruszki, etykiety pól, komunikaty dla czytnika, statusy zawsze tekstem.
+- Formularze z opcjami do zaznaczenia zamiast pustych pól, z myślą o seniorach.
+- **Test axe-core (WCAG 2.0 / 2.1 A i AA): 0 naruszeń na 16 stronach publicznych i 6 w widoku telefonu.** Przed poprawkami były 4 rodzaje problemów (kontrast „In” w haśle, link w grupie zakładek, linki odróżnione tylko kolorem, lista w makiecie konta).
+- Uczciwie: to test automatyczny. Pełny audyt (klawiatura, NVDA, panel ROPS) jeszcze przede mną. PDF-y ROPS i filmy na YouTube są poza moją kontrolą.
+
+## 6. Interfejs
+
+- **Styl serwisu publicznego, nie „AI look”.** Pierwsza wersja wyglądała jak typowy generowany UI: zaokrąglone karty, ikona w każdej karcie, kolorowe pigułki. Przeszedłem na ostre krawędzie, linie i listy 01 / 02 / 03 - bliżej gov.uk i biznes.gov.pl. Urzędnik ufa temu bardziej, a układ lepiej znosi powiększony tekst.
+- **Jedno główne działanie na ekranie**, duży nagłówek, krótki wstęp.
+- **Zakładki odbiorców**: Dla Mieszkańców (wielka litera celowo), Dla gmin i instytucji, Dla organizacji i innowatorów, Baza wiedzy. Okruszki na każdej podstronie.
+- **Nagłówek chowa się przy przewijaniu w dół** i wraca przy ruchu w górę.
+- **Telefon**: menu ☰, czat na cały ekran, okno czatu dopasowane do klawiatury ekranowej.
+- **Bez zdjęć stockowych**: na stronie głównej kadry z filmów ROPS o innowacjach.
+- **Czekanie na AI jest widoczne**: w czacie i Kreatorze etapy („Szukam podobnych rozwiązań…”), licznik sekund i typowy czas. Każdy przycisk wysyłający pokazuje, że akcja trwa.
+- **Wszystko, co jest pokazem, ma ramkę DEMO** (przykładowe pytania, logowanie e-mailem, ustawienia konta), żeby było jasne, co jest demo, a co usługą.
+
+## 7. Demo
+
+- **Przełącznik DEMO** nad nagłówkiem: Niezalogowany / Mieszkanka Anna / Mentor (dr Marek) / Koordynatorka ROPS. Bez kont i haseł, na anonimowych sesjach z rolą nadaną na serwerze.
+- **Anna** opiekuje się mamą po udarze, ma profil potrzeb i krąg w Przęsłach. **dr Marek** ma Panel mentora z trzema sprawami. **Koordynatorka** widzi pełny panel z przykładowymi leadami, wnioskami, rozmowami, zgłoszeniami i opiniami.
+- **Logowanie i rejestracja** w demo to podgląd, a „zarejestruj się automatycznie jako mieszkaniec / specjalista” wpuszcza jako przykładowa osoba. W wersji docelowej logowanie e-mailem.
+- Dane przykładowe: `pnpm seed:demo` i `pnpm seed:demo-extra` (można puszczać wiele razy).
+
+## 8. Koszty i utrzymanie
+
+- Infrastruktura: Supabase Pro ok. 25 USD / mies., Netlify Pro ok. 19 USD / mies.
+- AI, zmierzone na prototypie: dopasowanie ok. 0,07 USD, odpowiedź Mostka 0,05-0,10 USD, plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,01 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD.
+- Głos: rozpoznawanie ok. 0,003 USD / min, czytanie ok. 0,015 USD / min. 1000 rozmów głosowych (2 min mówienia + 3 min słuchania) to ok. 51 USD / mies.
+- Przykład dla regionu: 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie to ok. 150-200 USD / mies. za AI. Budżet i limity ustawia ROPS.
+- Każde wywołanie AI zapisuje tokeny i koszt. Koszt miesiąca jest na pulpicie, a Mostek w panelu odpowiada na „ile wydaliśmy na AI” liczbami z dziennika.
+- Treści: synchronizacja z Biblioteką ROPS (docelowo raz dziennie), CMS dla pracowników, import PDF jednym kliknięciem.
+
+## 9. Zgodność z zadaniem
+
+| Wymaganie | Gdzie w MostIn |
+|---|---|
+| I. Matchmaking społeczny (obowiązkowy) | „Znajdź rozwiązanie”, Mostek, „Co wiemy o tym problemie” |
+| II. Zasobnik wiedzy, trendy tylko dla administratora | Biblioteka, Mapa wyzwań i raporty, Materiały edukacyjne, Trendy potrzeb |
+| III. Kreator: fiszka zawsze, generator w naborze, kanwa, asystent, wizualizacja | Fiszka, ocena Mostka, obraz pomysłu, generator wniosku IWS 2.0 |
+| IV. Tester innowacji | Testuj: zgłoszenia, lista oczekujących, oceny i usprawnienia |
+| V. Platforma aktywnej komunikacji, mentorzy, partnerstwa | Rozmowy z ROPS, triaż, Panel mentora, Przęsła |
+| VI. Panel administratora | Panel ROPS: CMS, synchronizacja, skrzynki, trendy, ustawienia AI |
+| VII. Middleman Innowacji | „Dostosuj z Mostkiem” |
+| Powiadomienia o pomysłach i naborach | Powiadomienia dla ROPS o nowych sprawach i pomysłach, wiadomość do autorów fiszek przy nowym naborze |
+| WCAG 2.1 AA | Pasek dostępności, 0 naruszeń axe na 16 stronach |
+| Bez prawdziwych danych osobowych | Osoby w demo są syntetyczne |
+
+## 10. Czego jeszcze nie ma
+
+- Powiadomienia e-mail i SMS (dziś w serwisie, kolumna preferowanego kontaktu już jest).
+- Automatyczna synchronizacja z harmonogramu (dziś przycisk w panelu).
+- Długie zadania AI w Supabase Edge Functions zamiast funkcji Netlify.
+- Pełny audyt WCAG z czytnikiem ekranu, także panelu ROPS.
+- Integracja z bazą grantową ROPS i prawdziwe logowanie e-mailem.
+
+## 11. Trudne pytania jury
+
+- **Czy AI nie zmyśla innowacji?** Nie może. Wybiera tylko spośród kandydatów z bazy, serwer sprawdza każde ID, każda karta ma link do źródła ROPS.
+- **A liczby w naborach?** Tylko z regulaminu, z dosłownym cytatem i automatycznym sprawdzeniem (`pnpm verify:facts`). Czego nie ma w źródle, Mostek nie podaje.
+- **Co, jeśli ROPS zmieni treści na stronie?** Synchronizacja po skrócie treści wykrywa zmiany i przetwarza tylko je.
+- **Ile to kosztuje?** Ok. 150-200 USD / mies. za AI dla regionu plus ok. 45 USD infrastruktury. Budżet i limity ustawia ROPS.
+- **Da się go zmusić do przeklinania albo polityki?** Cztery warstwy, przełączniki ROPS i dziennik zdarzeń.
+- **Dlaczego nie zwykły chatbot?** Matchmaking działa na uporządkowanej wiedzy, a Mostek prowadzi do działania (zgłoszenie, fiszka, plan, krąg, rozmowa z ROPS), które zawsze zatwierdza człowiek.
+- **ROPS mówi o ok. 200 innowacjach, a tu jest 115?** Publiczna Biblioteka ROPS ma dokładnie 115 opisanych innowacji i wszystkie są w MostIn. Pozostałe są tylko w publikacjach - CMS i importer pozwalają je dodać bez zmian w kodzie.
+- **Czy to spełnia WCAG?** Projektowane pod WCAG 2.1 AA, 0 naruszeń w automatycznym teście axe na 16 stronach. Pełny audyt z czytnikiem w planach.
+
+## 12. AI przy budowie
+
+Kod pisałem z asystentem Claude Code. Część danych (struktura 46 innowacji, Mapa Wyzwań) przygotowałem ekstrakcją offline z tym samym schematem walidacji co produkcyjny import. Architektura jest opisana w `ARCHITECTURE.md`.

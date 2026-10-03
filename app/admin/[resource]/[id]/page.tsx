@@ -3,11 +3,11 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getResource } from "@/lib/cms/resources"
-import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { FieldInput } from "@/components/admin/record-form"
 import { saveRecord, deleteRecord, runIngest } from "@/app/admin/actions"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 export default async function EditRecord({
   params,
@@ -23,11 +23,13 @@ export default async function EditRecord({
   const isNew = id === "nowy"
 
   const supabase = await createClient()
-  const [{ data: record }, { data: areas }] = await Promise.all([
+  const needsInnovations = resource.fields.some((f) => f.type === "innovation")
+  const [{ data: record }, { data: areas }, { data: innovations }] = await Promise.all([
     isNew
       ? Promise.resolve({ data: null })
       : supabase.from(resource.table).select("*").eq("id", id).single(),
     supabase.from("areas").select("id, name").order("name"),
+    needsInnovations ? supabase.from("innovations").select("id, title").order("title") : Promise.resolve({ data: [] }),
   ])
   if (!isNew && !record) notFound()
   const values = (record ?? { published: true, active: true }) as Record<string, unknown>
@@ -49,7 +51,7 @@ export default async function EditRecord({
           <div className="flex items-center gap-3">
             <StatusBadge status={String(values.ingest_status)} />
             <form action={runIngest.bind(null, slug, id)}>
-              <Button type="submit" variant="outline"><Sparkles aria-hidden="true" className="size-4 text-brand" /> Przetwórz AI</Button>
+              <SubmitButton variant="outline" pendingText="Przetwarzam przez AI… (do 30 s)"><Sparkles aria-hidden="true" className="size-4 text-brand" /> Przetwórz AI</SubmitButton>
             </form>
           </div>
         )}
@@ -60,7 +62,7 @@ export default async function EditRecord({
       <form action={save} className="grid max-w-3xl gap-6">
         <section className="grid gap-5" aria-labelledby="sekcja-dane">
           <h2 id="sekcja-dane" className="sr-only">Dane podstawowe</h2>
-          {manualFields.map((f) => <FieldInput key={f.name} field={f} value={values[f.name]} areas={areas ?? []} />)}
+          {manualFields.map((f) => <FieldInput key={f.name} field={f} value={values[f.name]} areas={areas ?? []} innovations={innovations ?? []} />)}
         </section>
 
         {aiFields.length > 0 && (
@@ -71,7 +73,7 @@ export default async function EditRecord({
                 Pola uzupełnia AI po kliknięciu „Przetwórz AI”. Możesz je poprawić ręcznie - zmiany treści oznaczą rekord do ponownego przetworzenia.
               </p>
             </div>
-            {aiFields.map((f) => <FieldInput key={f.name} field={f} value={values[f.name]} areas={areas ?? []} />)}
+            {aiFields.map((f) => <FieldInput key={f.name} field={f} value={values[f.name]} areas={areas ?? []} innovations={innovations ?? []} />)}
             {typeof values.search_text === "string" && (
               <details className="text-sm">
                 <summary className="cursor-pointer font-medium">Tekst wyszukiwania (search_text)</summary>
@@ -82,14 +84,14 @@ export default async function EditRecord({
         )}
 
         <div className="flex gap-2">
-          <Button type="submit">Zapisz</Button>
+          <SubmitButton>Zapisz</SubmitButton>
           <Link href={`/admin/${slug}`} className="inline-flex items-center px-3 text-sm underline underline-offset-2">Anuluj</Link>
         </div>
       </form>
 
       {!isNew && (
         <form action={deleteRecord.bind(null, slug, id)} className="mt-10 border-t pt-6">
-          <Button type="submit" variant="destructive">Usuń</Button>
+          <SubmitButton variant="destructive">Usuń</SubmitButton>
         </form>
       )}
     </>

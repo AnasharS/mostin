@@ -2,6 +2,8 @@ import Link from "next/link"
 import { requireMentor } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { KIND_LABELS } from "@/lib/rozmowy"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { AccountMock } from "@/components/site/account-mock"
 
 export const metadata = { title: "Panel mentora · MostIn" }
 
@@ -18,7 +20,8 @@ export default async function MentorPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <p className="text-sm text-muted-foreground">Zalogowano jako: <strong>{me.display_name}</strong></p>
+      <Breadcrumbs section={null} items={[{ label: "Panel mentora" }]} />
+      <p className="mt-3 text-sm text-muted-foreground">Zalogowano jako: <strong>{me.display_name}</strong></p>
       <h1 className="mt-1 text-3xl font-bold tracking-tight">Panel mentora</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Prośby o wsparcie eksperta i propozycje partnerstwa od mieszkańców, organizacji i gmin. Twoja odpowiedź trafi do rozmowy autora, a zespół ROPS widzi całą korespondencję.
@@ -40,6 +43,7 @@ export default async function MentorPage({ searchParams }: { searchParams: Promi
         ))}
         {!list.length && <li className="border-b py-6 text-muted-foreground">Brak spraw w tym widoku.</li>}
       </ul>
+      <AccountMock className="mt-12" email="m***@przyklad.pl" note="Docelowo konto eksperta z logowaniem e-mailem." />
     </div>
   )
 }

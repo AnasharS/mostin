@@ -3,9 +3,9 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { THREAD_CATEGORIES } from "@/lib/rozmowy/triage"
 import { KIND_LABELS } from "@/lib/rozmowy"
-import { Button } from "@/components/ui/button"
 import { Flash } from "@/components/admin/flash"
 import { replyAsRops, setThreadStatus, rerunTriage } from "../actions"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 export default async function AdminThread({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: string; blad?: string }> }) {
   const { id } = await params
@@ -47,14 +47,14 @@ export default async function AdminThread({ params, searchParams }: { params: Pr
               <div><dt className="inline text-muted-foreground">Priorytet: </dt><dd className="inline font-semibold">{t.priority}</dd></div>
               <div><dt className="text-muted-foreground">Streszczenie:</dt><dd>{t.ai_summary ?? "w toku…"}</dd></div>
             </dl>
-            <form action={rerunTriage.bind(null, t.id)} className="mt-3"><Button type="submit" variant="outline" size="sm">Odśwież triaż</Button></form>
+            <form action={rerunTriage.bind(null, t.id)} className="mt-3"><SubmitButton variant="outline" size="sm">Odśwież triaż</SubmitButton></form>
           </div>
           <div className="border-t-2 border-foreground pt-3">
             <h2 className="font-semibold">Status</h2>
             <div className="mt-2 flex flex-wrap gap-2">
               {(["open", "answered", "closed"] as const).map((s) => (
                 <form key={s} action={setThreadStatus.bind(null, t.id, s)}>
-                  <Button type="submit" size="sm" variant={t.status === s ? "default" : "outline"}>{({ open: "Otwarta", answered: "Odpowiedziana", closed: "Zamknięta" })[s]}</Button>
+                  <SubmitButton size="sm" variant={t.status === s ? "default" : "outline"}>{({ open: "Otwarta", answered: "Odpowiedziana", closed: "Zamknięta" })[s]}</SubmitButton>
                 </form>
               ))}
             </div>
@@ -69,7 +69,7 @@ export default async function AdminThread({ params, searchParams }: { params: Pr
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm"><input type="radio" name="as" value="rops" defaultChecked className="size-4" /> jako zespół ROPS</label>
           <label className="flex items-center gap-2 text-sm"><input type="radio" name="as" value="expert" className="size-4" /> jako ekspert</label>
-          <Button type="submit" size="lg" className="ml-auto h-10 px-5">Wyślij odpowiedź</Button>
+          <SubmitButton size="lg" className="ml-auto h-10 px-5">Wyślij odpowiedź</SubmitButton>
         </div>
       </form>
     </div>

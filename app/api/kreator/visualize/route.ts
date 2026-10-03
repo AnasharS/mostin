@@ -1,12 +1,17 @@
 import { prepare } from "@/lib/kreator/route-helpers"
 import { visualizeIdea } from "@/lib/kreator/ai"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { isDemoMode } from "@/lib/demo/personas"
 
 export const maxDuration = 60
 
 export async function POST(req: Request) {
   const p = await prepare(req, "kreator.visualize")
   if ("error" in p) return p.error
+  // docelowo tylko dla zalogowanych (koszt obrazu); w wersji demo HackYeah dostępne od razu
+  if (!p.user && !isDemoMode()) {
+    return Response.json({ ok: false, message: "Generowanie ilustracji jest dostępne po zalogowaniu." }, { status: 401 })
+  }
   if (!p.policy.images_enabled || p.economy) {
     return Response.json({ ok: false, message: "Wizualizacje są chwilowo wyłączone przez ROPS." }, { status: 403 })
   }

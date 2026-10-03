@@ -6,6 +6,8 @@ import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { embedOne, toPgVector } from "@/lib/ai/embeddings"
 import { CATEGORIES, TARGET_GROUPS } from "@/lib/ai/taxonomy"
+import { getPolicy } from "@/lib/ai/policy"
+import { routeLabel } from "@/lib/ai/labels"
 
 // Narzędzia Mostka. Zasada: narzędzia tylko CZYTAJĄ bazę MostIn; jedyne „działanie” to propose_action,
 // które zwraca kartę z przyciskiem - wykonanie zawsze zatwierdza człowiek kliknięciem.
@@ -23,6 +25,8 @@ export type ToolContext = {
   sources: Source[]
   actions: ActionCard[]
   seenInnovations: Set<number>
+  /** kręgi Przęseł zwrócone przez przesla_stats - tylko do nich wolno prowadzić przyciskiem */
+  seenCircles: Set<number>
 }
 
 const SearchInnovations = z.object({
@@ -40,6 +44,7 @@ const ProposeAction = z.object({
   target_groups: z.array(z.enum(TARGET_GROUPS)).optional(),
   label: z.string().min(2).max(80),
   innovation_id: z.number().int().optional(),
+  circle_id: z.number().int().optional(),
   text: z.string().max(1500).optional(),
   path: z.string().refine((v) => ALL_PATHS.includes(v)).optional(),
 })
@@ -124,7 +129,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
       "dopasuj - pełne dopasowanie innowacji do opisu problemu (text = opis problemu); " +
       "otworz - przejście do strony serwisu (path z mapy serwisu); " +
       "lista_testow - zapis na listę oczekujących na testy nowych innowacji (categories, target_groups, text = krótki opis sytuacji BEZ danych osobowych; kontakt użytkownik poda sam w formularzu); " +
-      "przesla - dołączenie do Przęseł, kręgów wsparcia osób w podobnej sytuacji. Proponuj 1-2 akcje na odpowiedź, gdy to naprawdę pomaga.",
+      "przesla - dołączenie do Przęseł, kręgów wsparcia osób w podobnej sytuacji; gdy przesla_stats zwróciło krąg pasujący do sytuacji użytkownika, podaj jego circle_id (krag_id z wyniku) i nazwę kręgu w label - przycisk zaprowadzi prosto do tego kręgu; bez pasującego kręgu pomiń circle_id (przycisk prowadzi do listy kręgów). Proponuj 1-2 akcje na odpowiedź, gdy to naprawdę pomaga.",
     input_schema: {
       type: "object",
       properties: {
@@ -133,6 +138,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
         target_groups: { type: "array", items: { type: "string", enum: [...TARGET_GROUPS] } },
         label: { type: "string", description: "Krótki napis na przycisku, np. „Dostosuj Senior CUDER do fundacji”" },
         innovation_id: { type: "integer" },
+        circle_id: { type: "integer", description: "krag_id z wyniku przesla_stats (tylko dla kind=przesla)" },
         text: { type: "string" },
         path: { type: "string", enum: ALL_PATHS },
       },
@@ -144,7 +150,21 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   },
 ]
 
+/** Narzędzia tylko dla zespołu ROPS (tryb „rops”, rola admina sprawdzana na serwerze). */
+export const ROPS_TOOLS: Anthropic.Beta.BetaTool[] = [
+  {
+    name: "koszty_ai",
+    description:
+      "Koszty AI w MostIn z dziennika ai_usage: wydatki w bieżącym miesiącu i dziś, budżet miesięczny i jego wykorzystanie, próg alertu, " +
+      "podział na funkcje (dopasowanie, Mostek, plany, wnioski, głos…). Używaj przy pytaniach o koszty, wydatki, budżet i limity AI.",
+    input_schema: { type: "object", properties: {}, additionalProperties: false },
+    strict: true,
+  },
+]
+
+
 export const TOOL_LABELS: Record<string, string> = {
+  koszty_ai: "Sprawdzam koszty AI",
   search_innovations: "Szukam w Bibliotece Innowacji",
   get_innovation: "Czytam opis innowacji",
   search_documents: "Przeszukuję raporty ROPS",
@@ -305,13 +325,16 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
       const [{ count: region }, local, { data: circles }] = await Promise.all([
         base(),
         p.data.district ? base().ilike("district", `%${p.data.district}%`) : Promise.resolve({ count: null }),
-        db.from("circles").select("title, region_label, circle_members(count)").overlaps("categories", p.data.categories).limit(5),
+        db.from("circles").select("id, title, region_label, circle_members(count)").overlaps("categories", p.data.categories).limit(5),
       ])
       return {
         content: JSON.stringify({
           osoby_w_malopolsce: region ?? 0,
           ...(p.data.district ? { osoby_w_okolicy: local.count ?? 0 } : {}),
-          kregi: (circles ?? []).map((c) => ({ nazwa: c.title, gdzie: c.region_label, osob: (c.circle_members as unknown as { count: number }[])[0]?.count ?? 0 })),
+          kregi: (circles ?? []).map((c) => {
+            ctx.seenCircles.add(c.id)
+            return { krag_id: c.id, nazwa: c.title, gdzie: c.region_label, osob: (c.circle_members as unknown as { count: number }[])[0]?.count ?? 0 }
+          }),
           uwaga: "Tylko liczby - tożsamość osób jest chroniona. Kontakt wyłącznie za zgodą, pod pseudonimem.",
           zrodlo: "[Przęsła MostIn]",
         }),
@@ -348,7 +371,8 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
           break
         }
         case "przesla":
-          href = "/przesla"
+          // prosto do pasującego kręgu (walidacja: tylko krąg z wyniku przesla_stats), inaczej lista kręgów
+          href = a.circle_id && ctx.seenCircles.has(a.circle_id) ? `/przesla/${a.circle_id}` : "/przesla"
           break
         default:
           // strony panelu ROPS tylko w trybie ROPS
@@ -357,6 +381,42 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
       }
       if (!ctx.actions.some((x) => x.href === href)) ctx.actions.push({ kind: a.kind, label: a.label, href })
       return { content: "Przycisk pokazany użytkownikowi. Nie powtarzaj linku w tekście." }
+    }
+    case "koszty_ai": {
+      if (!ctx.admin) return { content: "Koszty AI są dostępne tylko dla zespołu ROPS.", isError: true }
+      const now = new Date()
+      const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+      const [policy, { data: rows }] = await Promise.all([
+        getPolicy(),
+        db.from("ai_usage").select("route, cost_usd, created_at").gte("created_at", month.toISOString()),
+      ])
+      const usd = (n: number) => Math.round(n * 100) / 100
+      let total = 0, today = 0
+      const byFn = new Map<string, { koszt: number; wywolan: number }>()
+      for (const r of rows ?? []) {
+        const c = Number(r.cost_usd)
+        total += c
+        if (new Date(r.created_at) >= day) today += c
+        const k = routeLabel(r.route)
+        const e = byFn.get(k) ?? { koszt: 0, wywolan: 0 }
+        e.koszt += c; e.wywolan++
+        byFn.set(k, e)
+      }
+      return {
+        content: JSON.stringify({
+          miesiac: month.toISOString().slice(0, 7),
+          wydano_w_miesiacu_usd: usd(total),
+          wydano_dzis_usd: usd(today),
+          budzet_miesieczny_usd: policy.monthly_budget_usd,
+          wykorzystanie_budzetu_proc: policy.monthly_budget_usd > 0 ? Math.round((total / policy.monthly_budget_usd) * 100) : null,
+          prog_alertu_proc: policy.alert_threshold_pct,
+          po_przekroczeniu: policy.hard_stop ? "twarde zatrzymanie funkcji AI" : "tryb oszczędny",
+          wedlug_funkcji: [...byFn.entries()].sort((a, b) => b[1].koszt - a[1].koszt).map(([funkcja, e]) => ({ funkcja, koszt_usd: usd(e.koszt), wywolan: e.wywolan })),
+          gdzie_zmienic: "/admin/ustawienia-ai (budżet, próg alertu, limity dzienne)",
+          zrodlo: "[Dziennik kosztów AI MostIn]",
+        }),
+      }
     }
     default:
       return { content: `Nieznane narzędzie ${name}`, isError: true }

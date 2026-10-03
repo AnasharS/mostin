@@ -18,3 +18,10 @@ export async function dismissReport(messageId: number) {
   await createAdminClient().from("circle_reports").update({ status: "handled" }).eq("message_id", messageId)
   revalidatePath("/admin/przesla")
 }
+
+/** Cofnięcie ukrycia (pomyłka): wiadomość znów widoczna w kręgu, zgłoszenie zostaje rozpatrzone, więc trafia do „bezzasadnych”. */
+export async function restoreReported(messageId: number) {
+  await requireAdmin()
+  await createAdminClient().from("circle_messages").update({ hidden: false }).eq("id", messageId)
+  revalidatePath("/admin/przesla")
+}

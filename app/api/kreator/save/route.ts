@@ -24,6 +24,8 @@ export async function POST(req: Request) {
     categories: Array.isArray(p.body?.assessment?.categories) ? p.body.assessment.categories.filter((x: unknown) => typeof x === "string").slice(0, 3) : [],
     assessment: p.body?.assessment ?? null,
     visual_url: typeof p.body?.visual_url === "string" ? p.body.visual_url : null,
+    // opis dla AI tylko przy ilustracji wygenerowanej - po nim panel ROPS odróżnia ją od zdjęcia dołączonego przez autora
+    visual_prompt: typeof p.body?.visual_prompt === "string" ? p.body.visual_prompt.slice(0, 2000) : null,
     status: send ? "submitted" : "draft",
     updated_at: new Date().toISOString(),
   }

@@ -15,9 +15,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         Przejdź do treści
       </a>
       <aside className="border-b bg-muted/40 p-4 md:border-b-0 md:border-r">
-        <Link href="/admin" className="mb-6 block text-lg font-semibold">
-          <Logo /> <span className="font-normal text-muted-foreground">· Panel ROPS</span>
-        </Link>
+        {/* logo prowadzi do serwisu, „Administracja” pod kreską - do pulpitu */}
+        <div className="mb-6">
+          <Link href="/" className="flex text-[1.4rem] leading-none" aria-label="MostIn - strona główna serwisu"><Logo /></Link>
+          <Link href="/admin" className="mt-3 block border-t-2 border-border pt-2 text-base font-semibold text-foreground! no-underline hover:underline">Administracja</Link>
+        </div>
         <nav aria-label="Panel administratora">
           <ul className="space-y-1 text-sm">
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin">Pulpit</Link></li>
@@ -28,6 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/przesla">Zgłoszenia z Przęseł</Link></li>
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/opinie">Opinie z testów</Link></li>
             <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/ustawienia-ai"><span aria-hidden="true" className="mr-1.5 inline-block size-2 rounded-full bg-brand" />Ustawienia AI</Link></li>
+            <li><Link className="block rounded px-2 py-1.5 hover:bg-muted" href="/admin/konto">Moje konto</Link></li>
             <li className="px-2 pt-4 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Treści</li>
             {RESOURCES.map((r) => (
               <li key={r.slug}>

@@ -3,7 +3,7 @@ import { noDashesDeep } from "@/lib/text"
 import { z } from "zod"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
-import { policyPrompt, tonePrompt, type AiPolicy } from "@/lib/ai/policy"
+import { policyPrompt, tonePrompt, prefersPlain, type AiPolicy } from "@/lib/ai/policy"
 import type { ProblemStructure } from "./analyze"
 
 export type Candidate = {
@@ -55,7 +55,7 @@ Piszesz po polsku, prosto i życzliwie, zwracając się do zgłaszającego na �
 Uczciwie oceniasz dopasowanie - lepiej pokazać 2 trafne rozwiązania niż 5 naciąganych.`,
         cache_control: { type: "ephemeral" },
       },
-      { type: "text", text: policyPrompt(policy) + "\n" + tonePrompt(policy) },
+      { type: "text", text: policyPrompt(policy) + "\n" + tonePrompt(policy, { plain: await prefersPlain() }) },
     ],
     messages: [{
       role: "user",
