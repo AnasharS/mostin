@@ -188,6 +188,19 @@ opis problemu
   - **Równoległe narzędzia:** wszystkie wyniki trafiają w jednej wiadomości. Limit 6 kroków na odpowiedź. Prompt caching dla promptu systemowego i definicji narzędzi.
   - **Dostępność:** natywny `<dialog>` (fokus w środku, Esc zamyka). Odpowiedź jest ogłaszana czytnikowi ekranu raz, po zakończeniu, a nie fragment po fragmencie. Rola `log`, Enter wysyła, Shift+Enter dodaje nową linię, a preferencja „prosty język” z paska dostępności trafia do Mostka.
 
+## 18. Strojenie trafności — scenariusz „mama dziecka ze spastycznością”
+
+- **Test:** „mój syn ma spastyczność rąk, jest ograniczony ruchowo, nie stać mnie na rehabilitację — co mogę zrobić w domu?”. Oczekiwane: **Edki — kredki terapeutyczne** (dla dzieci ze spastycznością ręki). Na początku Mostek ich nie proponował.
+- **Diagnoza i poprawki, krok po kroku:**
+  1. **Brak odmiany w Postgresie.** „spastyczność” i „spastycznością” to dla niego różne słowa (Supabase nie ma polskiego słownika). **Prosty stemming prefiksowy** w zapytaniu FTS: rdzeń słowa + `:*` (`spastyczn:*`) oraz lista polskich słów pospolitych do pominięcia.
+  2. **Przycięta leksyka.** Wynik słów kluczowych był ucinany do 1, więc wiele innowacji miało 1.0. Normalizacja względem najlepszego kandydata w puli.
+  3. **Pula kandydatów z obu rankingów** (60 semantycznych + 30 leksykalnych), żeby trafienie po rzadkim słowie nie wypadało z puli.
+  4. **Próba RRF** (fuzja po pozycji) wypadła gorzej przy długich opisach, bo ranking leksykalny zdominowały słowa pospolite. Świadomie wróciliśmy do średniej ważonej.
+  5. **Mostek uogólniał zapytanie** („spastyczność rąk” → „rehabilitacja ruchowa”) i gubił kluczowe słowo. Narzędzie wyszukuje teraz **dwa razy równolegle**: po zapytaniu Mostka i po dosłownych słowach użytkownika.
+  6. **Sygnał „nazywa problem użytkownika”.** Rdzenie znaczących słów użytkownika są wyszukiwane w opisach kandydatów i **ważone rzadkością (IDF w obrębie wyników)**, więc „spastyczność” w jednej innowacji waży więcej niż „rehabilitacja” w sześciu. Model dostaje to pole i instrukcję, by takie innowacje wymieniać jako pierwsze.
+- **Efekt:** Edki są pierwszą propozycją z trafnym opisem. Scenariusze kontrolne (seniorzy → Senior CUDER, gmina z rodzinami z Ukrainy → Mój pomocny Virtual World) nadal działają.
+- **Na pitch:** jakość dopasowania sprawdzaliśmy na realnych scenariuszach użytkowników i poprawialiśmy mierzalnie (pozycja oczekiwanej innowacji w rankingu: #8 → #1 w odpowiedzi Mostka).
+
 ## 12. Do opisania na koniec (w miarę postępu)
 
 - [x] Mostek — agent z narzędziami (sekcja 17)

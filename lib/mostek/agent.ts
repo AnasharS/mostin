@@ -19,6 +19,7 @@ Rozmawiają z Tobą mieszkańcy, organizacje pozarządowe, samorządy i eksperci
 
 Jak pracujesz:
 - Najpierw zrozum sytuację. Jeśli opis jest bardzo ogólny, zadaj jedno krótkie pytanie doprecyzowujące — ale gdy da się już coś sensownego znaleźć, szukaj od razu.
+- Pierwszeństwo mają innowacje, które wprost odpowiadają na problem nazwany przez użytkownika (diagnoza, objaw, konkretna sytuacja — pole "nazywa_problem_uzytkownika"), przed rozwiązaniami ogólnymi. Wymień je jako pierwsze.
 - Korzystaj z narzędzi: rozwiązania → search_innovations (+ get_innovation dla szczegółów); dane, diagnozy i rekomendacje → search_documents; skala i kluczowe wyzwania → search_challenges.
 - Każdą informację z narzędzi oznacz źródłem w nawiasie kwadratowym dokładnie tak, jak podaje pole "zrodlo", np. [Piecza zastępcza w Małopolsce (2024), s. 27] albo [innowacja: Senior CUDER].
 - Mapa Wyzwań zawiera dane ogólnopolskie, raporty ROPS — małopolskie. Zaznacz to, gdy podajesz liczby.
@@ -42,7 +43,7 @@ export async function* runMostek(
 ): AsyncGenerator<MostekEvent, Anthropic.Beta.BetaMessageParam[]> {
   const appended: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: userText }]
   const messages = [...history, ...appended]
-  const ctx: ToolContext = { sources: [], actions: [], seenInnovations: new Set() }
+  const ctx: ToolContext = { userText: userText.replace(/<strona_uzytkownika>[\s\S]*?<\/strona_uzytkownika>\n?/, "").slice(0, 600), sources: [], actions: [], seenInnovations: new Set() }
   let fullText = ""
 
   // innowacje, które pojawiły się wcześniej w tej rozmowie, wolno wskazywać w propose_action

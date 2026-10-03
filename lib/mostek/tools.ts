@@ -12,6 +12,8 @@ export type Source = { id: string; kind: "innowacja" | "dokument" | "wyzwanie"; 
 export type ActionCard = { kind: "dostosuj" | "kreator" | "rozmowa_rops" | "dopasuj" | "otworz"; label: string; href: string; description?: string }
 
 export type ToolContext = {
+  /** ostatnia wypowiedź użytkownika — dołączana do wyszukiwania, żeby nie zgubić jego kluczowych słów (np. „spastyczność”) */
+  userText?: string
   sources: Source[]
   actions: ActionCard[]
   seenInnovations: Set<number>
@@ -110,6 +112,14 @@ export const TOOL_LABELS: Record<string, string> = {
   propose_action: "Przygotowuję następny krok",
 }
 
+const STOP = new Set("jest moze mozna mamy mama ktory ktora ktore tego taki takie bardzo przez kiedy gdzie dodatkowo swoj moje mojego nasze sobie szukam chcemy prowadze zrobic potrzebuje pomoc pomocy czyli wiele ograniczony".split(" "))
+const fold = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l")
+/** Rdzenie znaczących słów użytkownika (np. „spastyczność” → „spasty”) — do wykrycia innowacji, które nazywają ten sam problem. */
+function userStems(text?: string) {
+  if (!text) return []
+  return [...new Set(fold(text).split(/[^a-z0-9]+/).filter((w) => w.length >= 6 && !STOP.has(w)).map((w) => w.slice(0, 6)))]
+}
+
 const clip = (s: string | null | undefined, n: number) => (s ? (s.length > n ? s.slice(0, n) + "…" : s) : "")
 
 export async function runTool(name: string, input: unknown, ctx: ToolContext): Promise<{ content: string; isError?: boolean }> {
@@ -118,15 +128,39 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
     case "search_innovations": {
       const p = SearchInnovations.safeParse(input)
       if (!p.success) return { content: "Nieprawidłowe parametry wyszukiwania", isError: true }
-      const { data, error } = await db.rpc("match_innovations", {
-        query_embedding: toPgVector(await embedOne(p.data.query)),
-        query_text: p.data.query,
-        filter_categories: p.data.categories?.length ? p.data.categories : null,
-        filter_target_groups: p.data.target_groups?.length ? p.data.target_groups : null,
-        match_count: 6,
+      // dwa wyszukiwania równolegle: zapytanie Mostka (język katalogu) + dosłowne słowa użytkownika
+      // (Mostek potrafi uogólnić „spastyczność rąk” do „rehabilitacji ruchowej” i zgubić kluczową innowację)
+      const search = async (q: string) =>
+        db.rpc("match_innovations", {
+          query_embedding: toPgVector(await embedOne(q)),
+          query_text: q,
+          filter_categories: p.data.categories?.length ? p.data.categories : null,
+          filter_target_groups: p.data.target_groups?.length ? p.data.target_groups : null,
+          match_count: 8,
+        })
+      const [a, b] = await Promise.all([search(p.data.query), ctx.userText ? search(ctx.userText) : Promise.resolve({ data: [], error: null })])
+      const error = a.error ?? b.error
+      const best = new Map<number, Record<string, unknown> & { id: number; score: number }>()
+      for (const r of [...(a.data ?? []), ...(b.data ?? [])] as (Record<string, unknown> & { id: number; score: number })[]) {
+        const prev = best.get(r.id)
+        if (!prev || r.score > prev.score) best.set(r.id, r)
+      }
+      // sygnał dla modelu: które słowa użytkownika (rdzenie) występują w opisie innowacji
+      const stems = userStems(ctx.userText)
+      const cands = [...best.values()].map((r) => {
+        const hay = fold(`${r.title} ${r.summary} ${r.problem ?? ""}`)
+        return { ...r, hits: stems.filter((st) => hay.includes(st)) }
       })
+      // waga rzadkości (IDF w obrębie wyników): „spastyczność” w 1 innowacji > „rehabilitacja” w 6
+      const df = new Map(stems.map((st) => [st, cands.filter((c) => c.hits.includes(st)).length]))
+      const withHits = cands.map((c) => ({
+        ...c,
+        hits: c.hits.filter((h) => (df.get(h) ?? 0) <= 3),
+        rank: c.score + 0.12 * c.hits.reduce((sum, h) => sum + 1 / (df.get(h) || 1), 0),
+      }))
+      const data = withHits.sort((x, y) => y.rank - x.rank).slice(0, 10)
       if (error) return { content: error.message, isError: true }
-      const rows = (data ?? []) as { id: number; title: string; summary: string; problem: string | null; target_groups: string[]; score: number }[]
+      const rows = (data ?? []) as unknown as { id: number; title: string; summary: string; problem: string | null; target_groups: string[]; score: number; hits: string[] }[]
       rows.forEach((r) => {
         ctx.seenInnovations.add(r.id)
         addSource(ctx, { id: `i${r.id}`, kind: "innowacja", title: r.title, url: `/innowacje/${r.id}` })
@@ -135,7 +169,9 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
       return {
         content: JSON.stringify(rows.map((r) => ({
           innovation_id: r.id, tytul: r.title, opis: clip(r.summary, 300), problem: clip(r.problem, 300),
-          odbiorcy: r.target_groups, trafnosc: Math.round(r.score * 100), zrodlo: `[innowacja: ${r.title}]`,
+          odbiorcy: r.target_groups, trafnosc: Math.round(r.score * 100),
+          ...(r.hits.length ? { nazywa_problem_uzytkownika: r.hits.map((h) => h + "…") } : {}),
+          zrodlo: `[innowacja: ${r.title}]`,
         }))),
       }
     }
@@ -154,9 +190,10 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
     case "search_documents": {
       const p = SearchDocuments.safeParse(input)
       if (!p.success) return { content: "Nieprawidłowe zapytanie", isError: true }
+      const qd = ctx.userText ? `${p.data.query}. ${ctx.userText}` : p.data.query
       const { data, error } = await db.rpc("match_chunks", {
-        query_embedding: toPgVector(await embedOne(p.data.query)),
-        query_text: p.data.query,
+        query_embedding: toPgVector(await embedOne(qd)),
+        query_text: qd,
         match_count: 6,
       })
       if (error) return { content: error.message, isError: true }
