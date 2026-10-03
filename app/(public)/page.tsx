@@ -1,5 +1,6 @@
 import { MatchFlow } from "@/components/match/match-flow"
 import { MostekMark } from "@/components/site/logo"
+import { Tagline } from "@/components/site/tagline"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export default async function Home() {
@@ -10,8 +11,10 @@ export default async function Home() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 md:py-16">
-      <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-        MostIn <span aria-hidden="true" className="text-brand">/</span> Hub Innowacji Społecznych Małopolski
+      <p className="text-base text-muted-foreground md:text-lg">
+        <Tagline />
+        <span aria-hidden="true" className="mx-2 text-brand">/</span>
+        <span className="text-sm font-semibold uppercase tracking-[0.12em]">Hub Innowacji Społecznych Małopolski</span>
       </p>
       <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight md:text-5xl">
         {/* duży tekst (≥ 24 px) — próg AA 3:1; brand/bg = 3.17:1 */}

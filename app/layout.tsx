@@ -9,7 +9,7 @@ const atkinson = Atkinson_Hyperlegible_Next({
 })
 
 export const metadata: Metadata = {
-  title: "MostIn — Hub Innowacji Społecznych Małopolski",
+  title: "MostIn — Twój Most do Innowacji Społecznych",
   description:
     "Małopolski Hub Innowacji Społecznych: opisz problem, a MostIn znajdzie sprawdzone innowacje, wiedzę ROPS i ludzi, którzy pomogą.",
 }

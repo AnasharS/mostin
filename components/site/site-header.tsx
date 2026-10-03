@@ -2,6 +2,7 @@ import Link from "next/link"
 import { getCurrentProfile } from "@/lib/auth"
 import { Logo } from "./logo"
 import { A11yToolbar } from "./a11y-toolbar"
+import { Tagline } from "./tagline"
 
 const NAV = [
   { href: "/", label: "Znajdź rozwiązanie" },
@@ -36,9 +37,12 @@ export async function SiteHeader() {
         </div>
       </div>
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="text-[2rem] leading-none" aria-label="MostIn — strona główna">
-          <Logo />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/" className="text-[2rem] leading-none" aria-label="MostIn — strona główna">
+            <Logo />
+          </Link>
+          <Tagline className="hidden border-l pl-3 text-sm leading-tight text-muted-foreground 2xl:inline" />
+        </div>
         <nav aria-label="Główna">
           <ul className="flex flex-wrap gap-x-1 gap-y-1 text-[0.95rem]">
             {NAV.map((n) => (
@@ -57,7 +61,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t bg-card">
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-4 py-6 text-sm text-muted-foreground">
-        <p>MostIn — Małopolski Hub Innowacji Społecznych · prototyp HackYeah 2026</p>
+        <p>MostIn — <Tagline /> · Małopolski Hub Innowacji Społecznych · prototyp HackYeah 2026</p>
         <p>
           Dane innowacji: <a className="underline" href="https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie">Biblioteka Innowacji Społecznych ROPS Kraków</a> (CC BY 4.0)
         </p>
