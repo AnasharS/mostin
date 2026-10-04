@@ -30,6 +30,24 @@ const timeOf = (iso: string) => new Intl.DateTimeFormat("pl-PL", { timeZone: TZ,
 const dayLabel = (day: string) => new Intl.DateTimeFormat("pl-PL", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(new Date(`${day}T12:00:00Z`))
 const usd = (n: number) => `$${n.toFixed(n < 1 ? 3 : 2)}`
 
+/** Słupek godziny z dymkiem (najechanie myszą albo fokus z klawiatury): dzień, godzina, wywołania i koszt. */
+function HourBar({ hour, day, calls, cost, max, color, align }: { hour: number; day: string; calls: number; cost: number; max: number; color: string; align: "left" | "center" | "right" }) {
+  const hh = String(hour).padStart(2, "0")
+  const pos = align === "left" ? "left-0" : align === "right" ? "right-0" : "left-1/2 -translate-x-1/2"
+  return (
+    // obszar trafienia na całą wysokość kolumny - większy niż sam słupek
+    <div tabIndex={0} aria-label={`${dayLabel(day)}, ${hh}:00-${hh}:59: ${calls} wywołań, koszt ${usd(cost)}`}
+      className="group/bar relative flex h-full w-[45%] cursor-default items-end outline-none focus-visible:outline-3 focus-visible:outline-ring">
+      <div className="w-full rounded-t-[4px] group-hover/bar:opacity-80" style={{ background: color, height: `${(calls / max) * 100}%`, minHeight: calls ? 3 : 0 }} />
+      <span role="tooltip" className={`pointer-events-none absolute top-0 z-10 hidden whitespace-nowrap border bg-card px-2 py-1 text-xs text-foreground shadow-sm group-hover/bar:block group-focus-visible/bar:block ${pos}`}>
+        <span className="flex items-center gap-1.5"><span aria-hidden="true" className="inline-block size-2.5" style={{ background: color }} /><strong>{dayLabel(day)}</strong></span>
+        {hh}:00-{hh}:59<br />
+        {calls} {calls === 1 ? "wywołanie" : calls % 10 >= 2 && calls % 10 <= 4 && (calls % 100 < 10 || calls % 100 >= 20) ? "wywołania" : "wywołań"} · koszt <strong>{usd(cost)}</strong>
+      </span>
+    </div>
+  )
+}
+
 async function loadDay(day: string) {
   const { start, end } = dayRange(day)
   const db = createAdminClient()
@@ -122,13 +140,9 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         <div className="mt-3 overflow-x-auto">
           <div className="flex h-48 min-w-[640px] items-end gap-[2px] border-b border-muted-foreground/40" role="img" aria-label="Wykres wywołań AI co godzinę - liczby w tabeli poniżej">
             {a.hours.map((h, i) => (
-              <div key={i} className="group relative flex h-full flex-1 items-end justify-center gap-[2px]">
-                <div className="w-[45%] rounded-t-[4px] bg-[var(--chart-a)]" style={{ height: `${(h.calls / max) * 100}%`, minHeight: h.calls ? 3 : 0 }} />
-                <div className="w-[45%] rounded-t-[4px] bg-[var(--chart-b)]" style={{ height: `${(b.hours[i].calls / max) * 100}%`, minHeight: b.hours[i].calls ? 3 : 0 }} />
-                {/* podpowiedź po najechaniu */}
-                <span className="pointer-events-none absolute -top-14 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap border bg-card px-2 py-1 text-xs shadow-sm group-hover:block">
-                  <strong>{String(i).padStart(2, "0")}:00-{String(i).padStart(2, "0")}:59</strong><br />{h.calls} vs {b.hours[i].calls} wywołań
-                </span>
+              <div key={i} className="flex h-full flex-1 items-end justify-center gap-[2px]">
+                <HourBar hour={i} day={day} calls={h.calls} cost={h.cost} max={max} color="var(--chart-a)" align={i < 3 ? "left" : i > 20 ? "right" : "center"} />
+                <HourBar hour={i} day={cmp} calls={b.hours[i].calls} cost={b.hours[i].cost} max={max} color="var(--chart-b)" align={i < 3 ? "left" : i > 20 ? "right" : "center"} />
               </div>
             ))}
           </div>
