@@ -119,6 +119,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **Maskowanie danych osobowych** (PESEL, telefon, e-mail, numer konta), zanim tekst trafi do AI i do bazy.
 - **Nie pytam o niepełnosprawność ani diagnozy.** Do dopasowania wystarczą obszary potrzeb.
 - **Bez konta**: anonimowa sesja z kluczem w ciasteczku httpOnly. Profil potrzeb i lead gminy są przypięte do sesji.
+- **Przęsła bez konta - świadomie.** Nie weryfikuję, kim ktoś jest, tylko że to ta sama osoba (klucz sesji `mostin_sid`, 30 dni). Każda akcja w kręgu sprawdza na serwerze członkostwo, rozmowę czytają tylko członkowie. Chronię treść, nie tożsamość: moderacja każdej wiadomości, ukryte dane kontaktowe, kontakt prywatny za zgodą obu stron, zgłoszenia rozpatruje ROPS. Konto z e-mailem odstraszyłoby osoby, którym grupa wsparcia jest najbardziej potrzebna. Ograniczenia: dołączyć może każdy, po wyczyszczeniu ciasteczek ta sama osoba wraca jako nowa, a na innym urządzeniu nie ma dostępu do swojego kręgu.
 - **Persona administratora tylko w trybie demo** (`DEMO_MODE=true`). Tryb panelu w Mostku sprawdzam na serwerze rolą administratora, a narzędzie kosztów odmawia poza tym trybem.
 - **Pliki od użytkowników**: typ sprawdzany po zawartości pliku, limit rozmiaru i dzienny, moderacja obrazu przed zapisem, zapis przez serwer (kosz w Storage przyjmuje zapis tylko od administratora).
 - **Nagrania głosu** nie są zapisywane, idą tylko do rozpoznania mowy.
@@ -186,6 +187,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - Długie zadania AI w Supabase Edge Functions zamiast funkcji Netlify.
 - Pełny audyt WCAG z czytnikiem ekranu, także panelu ROPS.
 - Integracja z bazą grantową ROPS i prawdziwe logowanie e-mailem.
+- Przęsła: kręgi moderowane (w trudnych tematach dołączenie po akceptacji moderatora ROPS lub organizacji prowadzącej), opcjonalne konto przez link e-mail (krąg na kilku urządzeniach), limity dołączania i wiadomości na sesję i adres IP, wykluczenie uczestnika z kręgu.
 
 ## 11. Trudne pytania jury
 
@@ -196,6 +198,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **Da się go zmusić do przeklinania albo polityki?** Cztery warstwy, przełączniki ROPS i dziennik zdarzeń.
 - **Czym MostIn różni się od asystenta czatowego?** Matchmaking działa na uporządkowanej wiedzy, a Mostek prowadzi do działania (zgłoszenie, fiszka, plan, krąg, rozmowa z ROPS), które zawsze zatwierdza człowiek.
 - **ROPS mówi o ok. 200 innowacjach, a tu jest 115?** Publiczna Biblioteka ROPS ma dokładnie 115 opisanych innowacji i wszystkie są w MostIn. Pozostałe są tylko w publikacjach - CMS i importer pozwalają je dodać bez zmian w kodzie.
+- **Jak sprawdzacie, kto jest w kręgu, skoro bez konta?** Nie weryfikujemy tożsamości, tylko chronimy treść: rozmowy widzą wyłącznie członkowie kręgu, każda wiadomość jest moderowana, dane kontaktowe są ukrywane, a ROPS reaguje na zgłoszenia. We wdrożeniu dochodzą kręgi z akceptacją moderatora i opcjonalne konto.
 - **Czy to spełnia WCAG?** Projektowane pod WCAG 2.1 AA, 0 naruszeń w automatycznym teście axe na 16 stronach. Pełny audyt z czytnikiem w planach.
 
 ## 12. AI przy budowie
