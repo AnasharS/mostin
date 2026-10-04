@@ -6,7 +6,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 
 ## 1. Założenia
 
-- **Dlaczego to zadanie.** Punktacja nagradza liczbę działających modułów (matchmaking 10%, każdy kolejny +5%), a ROPS chce dalej rozwijać zwycięski prototyp. Zrobiłem wszystkie siedem modułów i jednego asystenta nad nimi.
+- **Zakres.** Kryteria zadania premiują liczbę działających modułów: w „stopniu spełnienia wyzwania” (40%) moduł obowiązkowy to 10%, każdy kolejny +5%. Zrobiłem wszystkie siedem modułów i jednego asystenta nad nimi.
 - **Stack.** Next.js 16 (TypeScript, Tailwind 4, Base UI), Supabase (Postgres + pgvector, RLS, Auth, Storage), Claude Opus 5.5 i Sonnet 5.5, OpenAI do embeddingów, obrazów, mowy i moderacji. Hosting Netlify + Supabase w UE.
 - **Trzy zasady:**
   1. AI nie zgaduje. Liczby, kwoty, terminy i warunki tylko ze źródła ROPS, z cytatem i numerem strony. Jak źródła brak, Mostek mówi to wprost i kieruje do człowieka.
@@ -140,7 +140,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 
 - **Styl serwisu publicznego.** Ostre krawędzie, linie i numerowane listy 01 / 02 / 03, w duchu gov.pl i biznes.gov.pl. Prosty układ pozostaje czytelny przy powiększonym tekście i w wysokim kontraście.
 - **Jedno główne działanie na ekranie**, duży nagłówek, krótki wstęp.
-- **Zakładki odbiorców**: Dla Mieszkańców (wielka litera celowo), Dla gmin i instytucji, Dla organizacji i innowatorów, Baza wiedzy. Okruszki na każdej podstronie.
+- **Zakładki odbiorców**: Dla Mieszkańców, Dla gmin i instytucji, Dla organizacji i innowatorów, Baza wiedzy. Okruszki na każdej podstronie.
 - **Nagłówek chowa się przy przewijaniu w dół** i wraca przy ruchu w górę.
 - **Telefon**: menu ☰, czat na cały ekran, okno czatu dopasowane do klawiatury ekranowej.
 - **Kadry z filmów ROPS** o innowacjach na stronie głównej.
@@ -162,7 +162,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - AI, zmierzone na prototypie: dopasowanie ok. 0,06 USD, odpowiedź Mostka ok. 0,08 USD (kolejne w tej samej rozmowie 0,015-0,03 USD), plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,04 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD.
 - Głos: rozpoznawanie ok. 0,003 USD / min, czytanie ok. 0,015 USD / min. 1000 rozmów głosowych (2 min mówienia + 3 min słuchania) to ok. 51 USD / mies.
 - Przykład dla regionu: 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie to ok. 130-170 USD / mies. za AI, w trybie oszczędnym ok. połowa. Budżet i limity ustawia ROPS.
-- Każde wywołanie AI zapisuje tokeny i koszt, z modelem, który faktycznie odpowiedział (także model zapasowy przy odmowie) i zapisem do cache. W panelu tabela kosztów według modeli, na pulpicie koszt miesiąca, a Mostek w panelu odpowiada na „ile wydaliśmy na AI”. Sprawdzone z rachunkiem Anthropic: Opus 3.10 - 7,53 USD w dzienniku, 7,54 USD w konsoli.
+- Każde wywołanie AI zapisuje tokeny i koszt, z modelem, który faktycznie odpowiedział (także model zapasowy przy odmowie) i zapisem do cache. W panelu tabela kosztów według modeli, na pulpicie koszt miesiąca, a Mostek w panelu odpowiada na „ile wydaliśmy na AI”. Sprawdzone z rachunkiem Anthropic za 3.10 (modele Opus): 7,53 USD w dzienniku MostIn, 7,54 USD w konsoli Anthropic.
 - Treści: synchronizacja z Biblioteką ROPS (docelowo raz dziennie), CMS dla pracowników, import PDF jednym kliknięciem.
 
 ## 9. Zgodność z zadaniem
@@ -182,7 +182,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 
 ## 10. Czego jeszcze nie ma
 
-- Powiadomienia e-mail i SMS (dziś w serwisie, kolumna preferowanego kontaktu już jest).
+- Powiadomienia e-mail i SMS (dziś powiadomienia są tylko w serwisie; pole preferowanego kontaktu jest już w bazie).
 - Automatyczna synchronizacja z harmonogramu (dziś przycisk w panelu).
 - Długie zadania AI w Supabase Edge Functions zamiast funkcji Netlify.
 - Pełny audyt WCAG z czytnikiem ekranu, także panelu ROPS.
@@ -195,7 +195,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **A liczby w naborach?** Tylko z regulaminu, z dosłownym cytatem i automatycznym sprawdzeniem (`pnpm verify:facts`). Czego nie ma w źródle, Mostek nie podaje.
 - **Co, jeśli ROPS zmieni treści na stronie?** Synchronizacja po skrócie treści wykrywa zmiany i przetwarza tylko je.
 - **Ile to kosztuje?** Ok. 130-170 USD / mies. za AI dla regionu (w trybie oszczędnym ok. połowa) plus ok. 45 USD infrastruktury. Budżet i limity ustawia ROPS.
-- **Da się go zmusić do przeklinania albo polityki?** Cztery warstwy, przełączniki ROPS i dziennik zdarzeń.
+- **Czy da się zmusić Mostka do przeklinania albo rozmowy o polityce?** Pilnują tego cztery warstwy (filtr słownikowy, moderacja, zasady w prompcie, kontrola odpowiedzi), przełączniki ROPS i dziennik zdarzeń.
 - **Czym MostIn różni się od asystenta czatowego?** Matchmaking działa na uporządkowanej wiedzy, a Mostek prowadzi do działania (zgłoszenie, fiszka, plan, krąg, rozmowa z ROPS), które zawsze zatwierdza człowiek.
 - **ROPS mówi o ok. 200 innowacjach, a tu jest 115?** Publiczna Biblioteka ROPS ma dokładnie 115 opisanych innowacji i wszystkie są w MostIn. Pozostałe są tylko w publikacjach - CMS i importer pozwalają je dodać bez zmian w kodzie.
 - **Jak sprawdzasz, kto jest w kręgu, skoro bez konta?** Nie weryfikuję tożsamości, chronię treść: rozmowy widzą wyłącznie członkowie kręgu, każda wiadomość jest moderowana, dane kontaktowe są ukrywane, a ROPS reaguje na zgłoszenia. We wdrożeniu dochodzą kręgi z akceptacją moderatora i opcjonalne konto.
@@ -203,4 +203,4 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 
 ## 12. AI przy budowie
 
-Kod pisałem z asystentem Claude Code. Część danych (struktura 46 innowacji, Mapa Wyzwań) przygotowałem ekstrakcją offline z tym samym schematem walidacji co produkcyjny import. Architektura jest opisana w `ARCHITECTURE.md`.
+Kod pisałem z asystentem Claude Code. Część danych (uporządkowanie opisów 46 innowacji i Mapa Wyzwań) przygotowałem z jego pomocą w trakcie pracy, bez osobnych wywołań API, i sprawdziłem tym samym schematem walidacji co produkcyjny import. Architektura jest opisana w `ARCHITECTURE.md`.

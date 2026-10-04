@@ -16,12 +16,12 @@ MostIn łączy problem społeczny ze sprawdzoną innowacją, wiedzą ROPS i lud�
 
 ## Problem
 
-ROPS ma ogromny zasób wiedzy: opracowane innowacje, raporty, diagnozy, Mapę Wyzwań Społecznych i sieć ekspertów. Ale, jak mówi sam ROPS, **„wszystko istnieje, ale ze sobą nie rozmawia”**. Mama dziecka ze spastycznością, gmina z rosnącą liczbą rodzin cudzoziemców czy fundacja walcząca z samotnością seniorów nie wiedzą, że rozwiązanie już istnieje, jak je u siebie wdrożyć ani kogo zapytać.
+ROPS ma ogromny zasób wiedzy: blisko 200 innowacji w portfolio, raporty, diagnozy, Mapę Wyzwań Społecznych i sieć ekspertów. Ale, jak mówi sam ROPS, **„wszystko istnieje, ale ze sobą nie rozmawia”**. Mama dziecka ze spastycznością, gmina z rosnącą liczbą rodzin cudzoziemców czy fundacja walcząca z samotnością seniorów nie wiedzą, że rozwiązanie już istnieje, jak je u siebie wdrożyć ani kogo zapytać.
 
 ## Rozwiązanie: 7 modułów i Mostek
 
 1. **Matchmaking społeczny** (moduł obowiązkowy). Opis problemu pisany albo mówiony → ranking innowacji z oceną 0-100, **„dlaczego pasuje”, „co dostosować” i „pierwszy krok”**. Obok podobne zgłoszenia innych osób (anonimowo), fakty z Mapy Wyzwań i fragment raportu ROPS ze stroną. Gdy dobrego rozwiązania brak, MostIn mówi to wprost i prowadzi do Kreatora. Dopasowanie jest dla każdego: osobne wejścia dla mieszkańców, gmin i organizacji, ten sam silnik. Rzadkie słowa z opisu (np. „spastyczność”) mają pierwszeństwo przed ogólnymi, więc trafna innowacja nie ginie wśród ogólnych dopasowań.
-2. **Zasobnik wiedzy (Baza wiedzy).** Biblioteka 115 innowacji z wyszukiwaniem i filtrami na żywo, filmy (26 innowacji), Mapa Wyzwań (8 obszarów, 51 wyzwań), raporty ROPS, materiały edukacyjne. Mostek przeszukuje 285 dokumentów (w tym dokumentację modeli innowacji z paczek ZIP), czyli 7708 fragmentów z numerami stron. **Trendy potrzeb** widzi tylko ROPS: gdzie potrzeb przybywa, a rozwiązań brakuje.
+2. **Zasobnik wiedzy (Baza wiedzy).** Biblioteka 115 innowacji z wyszukiwaniem i filtrami na żywo, filmy (26 innowacji), Mapa Wyzwań (8 obszarów, 51 wyzwań), raporty ROPS, materiały edukacyjne. Mostek przeszukuje 285 dokumentów (w tym dokumentację modeli innowacji z paczek ZIP), łącznie 7708 fragmentów z numerami stron. **Trendy potrzeb** widzi tylko ROPS: gdzie potrzeb przybywa, a rozwiązań brakuje.
 3. **Kreator pomysłów.** Fiszka pomysłu zawsze otwarta, oparta na kanwie innowacji społecznej ROPS / INNO AGH. Mostek sprawdza, czy pomysł **nie powiela innowacji już inkubowanych** (wymóg naboru), i wskazuje mocne strony, luki i następny krok. Obraz pomysłu: własne zdjęcie albo ilustracja AI. Fiszka trafia do ROPS jednym kliknięciem. W trakcie naboru **generator wniosku „Inkubator Włączenia Społecznego 2.0”** według prawdziwego wzoru, z diagnozą z raportów ROPS, do pobrania jako .docx i .odt.
 4. **Tester innowacji.** Zgłoszenie do testu jednym kliknięciem, też ze strony innowacji. Profil potrzeb (za zgodą) tworzy listę oczekujących: gdy ROPS otwiera test, pasujące osoby dostają zaproszenie. Oceny, „co działa” i propozycje usprawnień trafiają do ROPS.
 5. **Platforma aktywnej komunikacji.** „Napisz do ROPS” bez konta: pytanie, prośba o eksperta lub partnerstwo, także przekazanie sprawy przez Mostka z gotowym podsumowaniem. ROPS dostaje powiadomienie i **triaż AI** (kategoria, priorytet, streszczenie, szkic odpowiedzi do zatwierdzenia przez człowieka). Odpowiedź wraca do tego samego wątku, a czas pierwszej odpowiedzi jest mierzony. **Panel mentora** dla ekspertów.
@@ -84,7 +84,7 @@ Next.js 16 (TypeScript, Tailwind 4, Base UI), Supabase (PostgreSQL + pgvector, R
 ## Użycie AI
 
 - **W produkcie:** Claude Opus 5.5 i Sonnet 5.5 (Anthropic), OpenAI `text-embedding-3-small`, `gpt-image-1`, `omni-moderation-latest`, `gpt-4o-mini-transcribe`, `gpt-4o-mini-tts`.
-- **Przy budowie:** asystent kodowania Claude Code (Anthropic). Część danych (struktura 46 innowacji, Mapa Wyzwań) przygotowałem ekstrakcją offline z tym samym schematem walidacji co produkcyjny import.
+- **Przy budowie:** asystent kodowania Claude Code (Anthropic). Część danych (uporządkowanie opisów 46 innowacji i Mapa Wyzwań) przygotowałem z jego pomocą w trakcie pracy, bez osobnych wywołań API, i sprawdziłem tym samym schematem walidacji co produkcyjny import.
 - Decyzje techniczne i architektura: `notatki.md`, `ARCHITECTURE.md`.
 
 ## Co dalej

@@ -88,13 +88,13 @@ Synchronizacja z Biblioteką ROPS (`pnpm ingest`, przycisk w panelu) i dokument�
 
 ## 6. Mostek
 
-- Czat w panelu bocznym (Alt+M) i pełny ekran `/mostek`, odpowiedź strumieniowana (SSE) z trasy `api/mostek`.
+- Okno czatu w rogu każdej strony (Alt+M, na telefonie na cały ekran) i pełny ekran `/mostek`, odpowiedź strumieniowana (SSE) z trasy `api/mostek`.
 - Narzędzia (Claude tool use, tylko odczyt): `search_innovations`, `get_innovation`, `search_documents`, `search_challenges`, `search_calls`, `przesla_stats`, `propose_action`, a w panelu ROPS `koszty_ai`.
 - `propose_action` tworzy przycisk, który klika człowiek. Może wskazać tylko innowację lub krąg zwrócony wcześniej przez narzędzie w tej rozmowie.
 - Kontekst: bieżąca strona i ścieżka odbiorcy, tryb (mieszkańcy, gminy, panel ROPS), preferencja prostego języka.
 - Historia w `consultant_sessions`, tylko dopisywana. Klient wysyła tylko nową wiadomość, dostęp do sesji wymaga klucza z ciasteczka httpOnly.
 - Prompt caching: znaczniki cache na prompcie systemowym i na ostatnim bloku rozmowy (tylko w zapytaniu, nie w zapisanej historii), więc każdy krok z narzędziami i każde kolejne pytanie czyta dotychczasową rozmowę z cache.
-- Głos: `api/voice/transcribe` (mowa → tekst, tekst widoczny przed wysłaniem), `api/voice/speak` (czytanie odpowiedzi). Nagrania nie są zapisywane. ROPS włącza głos per podstrona.
+- Głos: `api/voice/transcribe` (mowa → tekst, rozpoznane pytanie od razu trafia do rozmowy i jest w niej widoczne), `api/voice/speak` (czytanie odpowiedzi). Nagrania nie są zapisywane. ROPS włącza głos per podstrona.
 
 ## 7. Warstwa bezpieczeństwa AI (`lib/ai/guard.ts`, `lib/ai/policy.ts`)
 

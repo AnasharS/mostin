@@ -43,3 +43,8 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# narzędzia i instrukcje asystenta AI (lokalnie, poza repozytorium)
+.claude/
+CLAUDE.md
+AGENTS.md
