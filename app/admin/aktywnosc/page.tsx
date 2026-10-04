@@ -31,13 +31,13 @@ const dayLabel = (day: string) => new Intl.DateTimeFormat("pl-PL", { timeZone: "
 const usd = (n: number) => `$${n.toFixed(n < 1 ? 3 : 2)}`
 
 /** Słupek godziny z dymkiem (najechanie myszą albo fokus z klawiatury): dzień, godzina, wywołania i koszt. */
-function HourBar({ hour, day, calls, cost, max, color, align }: { hour: number; day: string; calls: number; cost: number; max: number; color: string; align: "left" | "center" | "right" }) {
+function HourBar({ hour, day, calls, cost, max, color, align, wide = false }: { hour: number; day: string; calls: number; cost: number; max: number; color: string; align: "left" | "center" | "right"; wide?: boolean }) {
   const hh = String(hour).padStart(2, "0")
   const pos = align === "left" ? "left-0" : align === "right" ? "right-0" : "left-1/2 -translate-x-1/2"
   return (
     // obszar trafienia na całą wysokość kolumny - większy niż sam słupek
     <div tabIndex={0} aria-label={`${dayLabel(day)}, ${hh}:00-${hh}:59: ${calls} wywołań, koszt ${usd(cost)}`}
-      className="group/bar relative flex h-full w-[45%] cursor-default items-end outline-none focus-visible:outline-3 focus-visible:outline-ring">
+      className={`group/bar relative flex h-full ${wide ? "w-[80%]" : "w-[45%]"} cursor-default items-end outline-none focus-visible:outline-3 focus-visible:outline-ring`}>
       <div className="w-full rounded-t-[4px] group-hover/bar:opacity-80" style={{ background: color, height: `${(calls / max) * 100}%`, minHeight: calls ? 3 : 0 }} />
       <span role="tooltip" className={`pointer-events-none absolute top-0 z-10 hidden whitespace-nowrap border bg-card px-2 py-1 text-xs text-foreground shadow-sm group-hover/bar:block group-focus-visible/bar:block ${pos}`}>
         <span className="flex items-center gap-1.5"><span aria-hidden="true" className="inline-block size-2.5" style={{ background: color }} /><strong>{dayLabel(day)}</strong></span>
@@ -65,13 +65,15 @@ async function loadDay(day: string) {
 }
 
 /** Kto i kiedy korzystał z funkcji AI: wybrany dzień vs dzień porównawczy, godzina po godzinie, z podziałem na sesje. */
-export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ dzien?: string; porownaj?: string }> }) {
+export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ dzien?: string; porownaj?: string; tryb?: string }> }) {
   const me = await requireAdmin()
   const sp = await searchParams
   const valid = (d?: string) => (d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : undefined)
   const day = valid(sp.dzien) ?? todayPl()
   const cmp = valid(sp.porownaj) ?? shiftDay(day, -1)
-  const [a, b, mySession] = await Promise.all([loadDay(day), loadDay(cmp), getSessionKey(false)])
+  const single = sp.tryb === "jeden"
+  const [a, b, mySession] = await Promise.all([loadDay(day), single ? null : loadDay(cmp), getSessionKey(false)])
+  const peak = a.hours.reduce((best, h, i) => (h.calls > a.hours[best].calls ? i : best), 0)
 
   // kim jest sesja: Ty (ta przeglądarka), import / skrypt, gość lub persona demo
   const who = (r: Row) => (r.session_key && r.session_key === mySession) || (r.user_id && r.user_id === me.id) ? "ty"
@@ -92,7 +94,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
     e.calls++; e.cost += Number(r.cost_usd); if (who(r) === "gosc") e.guests++
     byRoute.set(routeLabel(r.route), e)
   }
-  const max = Math.max(1, ...a.hours.map((h) => h.calls), ...b.hours.map((h) => h.calls))
+  const max = Math.max(1, ...a.hours.map((h) => h.calls), ...(b ? b.hours.map((h) => h.calls) : []))
   const recent = [...a.rows].reverse().slice(0, 40)
 
   return (
@@ -109,7 +111,14 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           <input id="dzien" name="dzien" type="date" defaultValue={day} max={todayPl()} className="mt-1 h-10 border border-input bg-background px-2 text-base" />
         </div>
         <div>
-          <label htmlFor="porownaj" className="block text-sm font-medium">Porównaj z</label>
+          <label htmlFor="tryb" className="block text-sm font-medium">Widok</label>
+          <select id="tryb" name="tryb" defaultValue={single ? "jeden" : "porownanie"} className="mt-1 h-10 border border-input bg-background px-2 text-base">
+            <option value="porownanie">Porównanie dwóch dni</option>
+            <option value="jeden">Tylko jeden dzień</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="porownaj" className="block text-sm font-medium">Porównaj z <span className="font-normal text-muted-foreground">(w widoku porównania)</span></label>
           <input id="porownaj" name="porownaj" type="date" defaultValue={cmp} max={todayPl()} className="mt-1 h-10 border border-input bg-background px-2 text-base" />
         </div>
         <Button type="submit" size="lg" className="h-10 px-4">Pokaż</Button>
@@ -120,8 +129,9 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         {[
           [String(guests.length), guests.length === 1 ? "sesja gościa" : "sesji gości", "osoby inne niż Ty"],
           [String(a.rows.filter((r) => who(r) === "gosc").length), "wywołań gości", `wszystkich wywołań: ${a.rows.length}`],
-          [usd(a.cost), "koszt dnia", `porównanie: ${usd(b.cost)}`],
-          [String(b.rows.length), "wywołań w dniu porównawczym", dayLabel(cmp)],
+          [usd(a.cost), "koszt dnia", b ? `porównanie: ${usd(b.cost)}` : dayLabel(day)],
+          b ? [String(b.rows.length), "wywołań w dniu porównawczym", dayLabel(cmp)]
+            : [a.hours[peak].calls ? `${String(peak).padStart(2, "0")}:00` : "-", "najaktywniejsza godzina", a.hours[peak].calls ? `${a.hours[peak].calls} wywołań, ${usd(a.hours[peak].cost)}` : "brak wywołań"],
         ].map(([v, l, s]) => (
           <div key={l} className="border-b border-r p-4">
             <dt className="text-sm text-muted-foreground">{l}</dt>
@@ -135,14 +145,14 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         <h2 id="godziny" className="font-semibold">Wywołania co godzinę</h2>
         <p className="mt-1 flex flex-wrap gap-4 text-sm">
           <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="inline-block size-3 bg-[var(--chart-a)]" /> {dayLabel(day)}</span>
-          <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="inline-block size-3 bg-[var(--chart-b)]" /> {dayLabel(cmp)}</span>
+          {b && <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="inline-block size-3 bg-[var(--chart-b)]" /> {dayLabel(cmp)}</span>}
         </p>
         <div className="mt-3 overflow-x-auto">
           <div className="flex h-48 min-w-[640px] items-end gap-[2px] border-b border-muted-foreground/40" role="img" aria-label="Wykres wywołań AI co godzinę - liczby w tabeli poniżej">
             {a.hours.map((h, i) => (
               <div key={i} className="flex h-full flex-1 items-end justify-center gap-[2px]">
-                <HourBar hour={i} day={day} calls={h.calls} cost={h.cost} max={max} color="var(--chart-a)" align={i < 3 ? "left" : i > 20 ? "right" : "center"} />
-                <HourBar hour={i} day={cmp} calls={b.hours[i].calls} cost={b.hours[i].cost} max={max} color="var(--chart-b)" align={i < 3 ? "left" : i > 20 ? "right" : "center"} />
+                <HourBar hour={i} day={day} calls={h.calls} cost={h.cost} max={max} color="var(--chart-a)" align={i < 3 ? "left" : i > 20 ? "right" : "center"} wide={!b} />
+                {b && <HourBar hour={i} day={cmp} calls={b.hours[i].calls} cost={b.hours[i].cost} max={max} color="var(--chart-b)" align={i < 3 ? "left" : i > 20 ? "right" : "center"} />}
               </div>
             ))}
           </div>
@@ -154,10 +164,10 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           <summary className="cursor-pointer font-medium">Tabela godzinowa</summary>
           <table className="mt-2 w-full max-w-md">
             <caption className="sr-only">Liczba wywołań i koszt w każdej godzinie</caption>
-            <thead><tr className="border-b text-left"><th scope="col" className="py-1">Godzina</th><th scope="col" className="py-1 text-right">{day}</th><th scope="col" className="py-1 text-right">{cmp}</th><th scope="col" className="py-1 text-right">Koszt ({day})</th></tr></thead>
+            <thead><tr className="border-b text-left"><th scope="col" className="py-1">Godzina</th><th scope="col" className="py-1 text-right">{day}</th>{b && <th scope="col" className="py-1 text-right">{cmp}</th>}<th scope="col" className="py-1 text-right">Koszt ({day})</th></tr></thead>
             <tbody>
-              {a.hours.map((h, i) => (h.calls || b.hours[i].calls) ? (
-                <tr key={i} className="border-b"><th scope="row" className="py-1 text-left font-normal">{String(i).padStart(2, "0")}:00</th><td className="py-1 text-right tabular-nums">{h.calls}</td><td className="py-1 text-right tabular-nums">{b.hours[i].calls}</td><td className="py-1 text-right tabular-nums">{usd(h.cost)}</td></tr>
+              {a.hours.map((h, i) => (h.calls || b?.hours[i].calls) ? (
+                <tr key={i} className="border-b"><th scope="row" className="py-1 text-left font-normal">{String(i).padStart(2, "0")}:00</th><td className="py-1 text-right tabular-nums">{h.calls}</td>{b && <td className="py-1 text-right tabular-nums">{b.hours[i].calls}</td>}<td className="py-1 text-right tabular-nums">{usd(h.cost)}</td></tr>
               ) : null)}
             </tbody>
           </table>
