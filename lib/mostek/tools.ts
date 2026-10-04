@@ -5,6 +5,8 @@ import type Anthropic from "@anthropic-ai/sdk"
 import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { embedOne, toPgVector } from "@/lib/ai/embeddings"
+import { fold, userStems, rareStems as rareStems_ } from "@/lib/match/rare"
+import { usageSince, summarizeByModel, MODEL_INFO } from "@/lib/ai/usage"
 import { CATEGORIES, TARGET_GROUPS } from "@/lib/ai/taxonomy"
 import { getPolicy } from "@/lib/ai/policy"
 import { routeLabel } from "@/lib/ai/labels"
@@ -156,7 +158,7 @@ export const ROPS_TOOLS: Anthropic.Beta.BetaTool[] = [
     name: "koszty_ai",
     description:
       "Koszty AI w MostIn z dziennika ai_usage: wydatki w bieżącym miesiącu i dziś, budżet miesięczny i jego wykorzystanie, próg alertu, " +
-      "podział na funkcje (dopasowanie, Mostek, plany, wnioski, głos…). Używaj przy pytaniach o koszty, wydatki, budżet i limity AI.",
+      "podział na modele (Claude Opus, Sonnet, OpenAI: embeddingi, obrazy, mowa - z tokenami, minutami i obrazami) i na funkcje (dopasowanie, Mostek, plany, wnioski, głos…). Używaj przy pytaniach o koszty, wydatki, budżet i limity AI.",
     input_schema: { type: "object", properties: {}, additionalProperties: false },
     strict: true,
   },
@@ -172,14 +174,6 @@ export const TOOL_LABELS: Record<string, string> = {
   propose_action: "Przygotowuję następny krok",
   search_calls: "Sprawdzam Radar naborów",
   przesla_stats: "Sprawdzam, kto jest w podobnej sytuacji",
-}
-
-const STOP = new Set("jest moze mozna mamy mama ktory ktora ktore tego taki takie bardzo przez kiedy gdzie dodatkowo swoj moje mojego nasze sobie szukam chcemy prowadze zrobic potrzebuje pomoc pomocy czyli wiele ograniczony".split(" "))
-const fold = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l")
-/** Rdzenie znaczących słów użytkownika (np. „spastyczność” → „spasty”) - do wykrycia innowacji, które nazywają ten sam problem. */
-function userStems(text?: string) {
-  if (!text) return []
-  return [...new Set(fold(text).split(/[^a-z0-9]+/).filter((w) => w.length >= 6 && !STOP.has(w)).map((w) => w.slice(0, 6)))]
 }
 
 const clip = (s: string | null | undefined, n: number) => (s ? (s.length > n ? s.slice(0, n) + "…" : s) : "")
@@ -202,10 +196,7 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
         })
       // trzecie: tylko rzadkie słowa użytkownika (występujące w najwyżej 5 innowacjach całej Biblioteki) - w pytaniu „jakie macie
       // innowacje dla osób ze spastycznością” ogólne „innowacje” i „osoby” pasują do prawie wszystkiego i wypychały Edki poza pulę
-      const rareStems = (await Promise.all(userStems(ctx.userText).slice(0, 8).map(async (st) => {
-        const { count } = await db.from("innovations").select("id", { count: "exact", head: true }).eq("published", true).textSearch("fts", `${st}:*`, { config: "simple" })
-        return count && count <= 5 ? st : null
-      }))).filter((st): st is string => Boolean(st))
+      const rareStems = await rareStems_(db, ctx.userText)
       const [a, b, c] = await Promise.all([
         search(p.data.query),
         ctx.userText ? search(ctx.userText) : Promise.resolve({ data: [], error: null }),
@@ -398,10 +389,7 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
       const now = new Date()
       const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
       const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-      const [policy, { data: rows }] = await Promise.all([
-        getPolicy(),
-        db.from("ai_usage").select("route, cost_usd, created_at").gte("created_at", month.toISOString()),
-      ])
+      const [policy, rows] = await Promise.all([getPolicy(), usageSince(month)])
       const usd = (n: number) => Math.round(n * 100) / 100
       let total = 0, today = 0
       const byFn = new Map<string, { koszt: number; wywolan: number }>()
@@ -423,6 +411,11 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext): P
           wykorzystanie_budzetu_proc: policy.monthly_budget_usd > 0 ? Math.round((total / policy.monthly_budget_usd) * 100) : null,
           prog_alertu_proc: policy.alert_threshold_pct,
           po_przekroczeniu: policy.hard_stop ? "twarde zatrzymanie funkcji AI" : "tryb oszczędny",
+          wedlug_modeli: summarizeByModel(rows).map((m) => ({
+            model: MODEL_INFO[m.model]?.label ?? m.model, dostawca: MODEL_INFO[m.model]?.provider ?? null, koszt_usd: usd(m.cost), wywolan: m.calls,
+            ...(m.input || m.output ? { tokeny_wejsciowe: m.input, tokeny_wyjsciowe: m.output, tokeny_z_cache: m.cacheRead } : {}),
+            ...(MODEL_INFO[m.model]?.unit === "min" ? { minut: Math.round(m.units * 10) / 10 } : MODEL_INFO[m.model]?.unit === "obrazy" ? { obrazow: m.units } : {}),
+          })),
           wedlug_funkcji: [...byFn.entries()].sort((a, b) => b[1].koszt - a[1].koszt).map(([funkcja, e]) => ({ funkcja, koszt_usd: usd(e.koszt), wywolan: e.wywolan })),
           gdzie_zmienic: "/admin/ustawienia-ai (budżet, próg alertu, limity dzienne)",
           zrodlo: "[Dziennik kosztów AI MostIn]",

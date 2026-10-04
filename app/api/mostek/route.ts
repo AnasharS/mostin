@@ -77,8 +77,7 @@ export async function POST(req: Request) {
           plain,
           mode,
           onUsage: (u) => void logUsage({
-            route: "mostek", model: MODELS.text, input_tokens: u.input_tokens, output_tokens: u.output_tokens,
-            cache_read_tokens: u.cache_read_input_tokens ?? 0, user_id: user?.id, session_key: sessionKey,
+            route: "mostek", model: MODELS.text, usage: u, user_id: user?.id, session_key: sessionKey,
           }),
         })
         let r = await gen.next()

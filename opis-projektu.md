@@ -20,13 +20,13 @@ ROPS ma ogromny zasób wiedzy: opracowane innowacje, raporty, diagnozy, Mapę Wy
 
 ## Rozwiązanie: 7 modułów i Mostek
 
-1. **Matchmaking społeczny** (moduł obowiązkowy). Opis problemu pisany albo mówiony → ranking innowacji z oceną 0-100, **„dlaczego pasuje”, „co dostosować” i „pierwszy krok”**. Obok podobne zgłoszenia innych osób (anonimowo), fakty z Mapy Wyzwań i fragment raportu ROPS ze stroną. Gdy dobrego rozwiązania brak, MostIn mówi to wprost i prowadzi do Kreatora.
+1. **Matchmaking społeczny** (moduł obowiązkowy). Opis problemu pisany albo mówiony → ranking innowacji z oceną 0-100, **„dlaczego pasuje”, „co dostosować” i „pierwszy krok”**. Obok podobne zgłoszenia innych osób (anonimowo), fakty z Mapy Wyzwań i fragment raportu ROPS ze stroną. Gdy dobrego rozwiązania brak, MostIn mówi to wprost i prowadzi do Kreatora. Dopasowanie jest dla każdego: osobne wejścia dla mieszkańców, gmin i organizacji, ten sam silnik. Rzadkie słowa z opisu (np. „spastyczność”) mają pierwszeństwo przed ogólnymi, więc trafna innowacja nie ginie wśród ogólnych dopasowań.
 2. **Zasobnik wiedzy (Baza wiedzy).** Biblioteka 115 innowacji z wyszukiwaniem i filtrami na żywo, filmy (26 innowacji), Mapa Wyzwań (8 obszarów, 51 wyzwań), raporty ROPS, materiały edukacyjne. Mostek przeszukuje 285 dokumentów (w tym dokumentację modeli innowacji z paczek ZIP), czyli 7708 fragmentów z numerami stron. **Trendy potrzeb** widzi tylko ROPS: gdzie potrzeb przybywa, a rozwiązań brakuje.
 3. **Kreator pomysłów.** Fiszka pomysłu zawsze otwarta, oparta na kanwie innowacji społecznej ROPS / INNO AGH. Mostek sprawdza, czy pomysł **nie powiela innowacji już inkubowanych** (wymóg naboru), i wskazuje mocne strony, luki i następny krok. Obraz pomysłu: własne zdjęcie albo ilustracja AI. Fiszka trafia do ROPS jednym kliknięciem. W trakcie naboru **generator wniosku „Inkubator Włączenia Społecznego 2.0”** według prawdziwego wzoru, z diagnozą z raportów ROPS, do pobrania jako .docx i .odt.
 4. **Tester innowacji.** Zgłoszenie do testu jednym kliknięciem, też ze strony innowacji. Profil potrzeb (za zgodą) tworzy listę oczekujących: gdy ROPS otwiera test, pasujące osoby dostają zaproszenie. Oceny, „co działa” i propozycje usprawnień trafiają do ROPS.
 5. **Platforma aktywnej komunikacji.** „Napisz do ROPS” bez konta: pytanie, prośba o eksperta lub partnerstwo, także przekazanie sprawy przez Mostka z gotowym podsumowaniem. ROPS dostaje powiadomienie i **triaż AI** (kategoria, priorytet, streszczenie, szkic odpowiedzi do zatwierdzenia przez człowieka). Odpowiedź wraca do tego samego wątku, a czas pierwszej odpowiedzi jest mierzony. **Panel mentora** dla ekspertów.
 6. **Panel administratora (ROPS).** Pulpit „Do zrobienia”, CMS bez JSON-a z przetwarzaniem AI jednym kliknięciem, **synchronizacja z Biblioteką ROPS** (tylko zmienione treści), leady gmin, rozmowy, pomysły według obszarów, trendy, zgłoszenia z Przęseł, opinie z testów, **ustawienia AI** (osobowość, ograniczenia, budżet, limity) i koszt AI w miesiącu.
-7. **Middleman Innowacji: „Dostosuj z Mostkiem”.** Typ instytucji, odbiorcy, ludzie, budżet, czas i ograniczenia → plan wdrożenia: ocena wykonalności, tabela „w oryginale / u Ciebie”, etapy, budżet, partnerzy, ryzyka, wskaźniki, **pierwszy tydzień**, założenia do sprawdzenia.
+7. **Middleman Innowacji: „Dostosuj z Mostkiem”.** Typ instytucji, odbiorcy, ludzie, budżet, czas i ograniczenia → plan wdrożenia: ocena wykonalności, tabela „w oryginale / u Ciebie”, etapy, budżet, partnerzy, ryzyka, wskaźniki, **pierwszy tydzień**, założenia do sprawdzenia. Wejście przy wynikach dopasowania w ścieżkach gmin i organizacji oraz z Mostka.
 
 **Strefa dla gmin (wskazanie ROPS).**
 - **Radar naborów** z odliczaniem dni i warunkami, każda liczba z cytatem strony regulaminu. Termin do kalendarza Google, Outlook albo .ics.
@@ -40,7 +40,7 @@ ROPS ma ogromny zasób wiedzy: opracowane innowacje, raporty, diagnozy, Mapę Wy
 ## Co tworzy nową jakość
 
 - **Przęsła: kręgi wsparcia.** „W Twojej okolicy 3 osoby mają podobną sytuację.” Rozmowa pod pseudonimem, za zgodą, z możliwością spotkania. Kontakt prywatny tylko za zgodą obu stron. ROPS nie czyta rozmów, rozpatruje tylko zgłoszone wiadomości.
-- **AI pod kontrolą ROPS.** Przełączniki: tylko dozwolone źródła, bez porad medycznych, prawnych i politycznych, własne tematy wyłączone, blokada wulgaryzmów i obelg, maskowanie danych osobowych, budżet i limity. **Osobowość Mostka z 6 archetypów marki.** Dziennik moderacji po polsku.
+- **AI pod kontrolą ROPS.** Przełączniki: tylko dozwolone źródła, bez porad medycznych, prawnych i politycznych, własne tematy wyłączone, blokada wulgaryzmów i obelg, maskowanie danych osobowych, budżet i limity. **Osobowość Mostka z 6 archetypów marki.** Dziennik moderacji po polsku. **Koszty według modeli** (tokeny, minuty, obrazy) zgodne z rachunkiem dostawcy, a po przekroczeniu budżetu tryb oszczędny: tańszy model, bez ilustracji i głosu.
 - **AI, które nie zmyśla.** Wybiera tylko z bazy (sprawdzanie identyfikatorów), cytuje strony dokumentów, oznacza braki [DO UZUPEŁNIENIA], a gdy danych brak, mówi „nie wiem” i przekazuje sprawę człowiekowi.
 - **Liczby tylko ze źródła ROPS.** Kluczowe fakty naboru mają dosłowny cytat i automatyczne sprawdzenie w dokumencie (`pnpm verify:facts`).
 - **Synchronizacja zamiast przepisywania.** Importer Biblioteki ROPS przetwarza przez AI tylko to, co się zmieniło.
@@ -52,7 +52,7 @@ ROPS ma ogromny zasób wiedzy: opracowane innowacje, raporty, diagnozy, Mapę Wy
 - Krój **Atkinson Hyperlegible**, zaprojektowany dla osób słabowidzących. Kolory marki sprawdzone pod kontrast.
 - Pasek dostępności na każdej stronie: większy tekst, wysoki kontrast, **prosty język, który zmienia wszystkie odpowiedzi AI dla mieszkańców**, wyłączenie animacji.
 - Pełna obsługa klawiaturą, widoczny fokus, „Przejdź do treści”, okruszki, etykiety pól, komunikaty dla czytników ekranu.
-- Formularze z opcjami do zaznaczenia zamiast pustych pól i zamiast wymogu „rozmowy z AI”. Bez konta i bez hasła.
+- Formularze z opcjami do zaznaczenia, bez konieczności prowadzenia rozmowy. Bez konta i bez hasła.
 - **Automatyczny test axe-core: 0 naruszeń WCAG 2.0 / 2.1 A i AA na 16 stronach publicznych i 6 w widoku telefonu.** Pełny audyt z czytnikiem ekranu jest w planie.
 
 ## Bezpieczeństwo i dane
@@ -76,9 +76,9 @@ Next.js 16 (TypeScript, Tailwind 4, Base UI), Supabase (PostgreSQL + pgvector, R
 ## Wdrożenie i koszty utrzymania
 
 - **Infrastruktura:** Supabase Pro ok. 25 USD / mies., Netlify Pro ok. 19 USD / mies.
-- **AI, zmierzone na prototypie:** dopasowanie ok. 0,07 USD, odpowiedź Mostka 0,05-0,10 USD, plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,01 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD. **Import całej Biblioteki ROPS jednorazowo ok. 3 USD**, kolejne synchronizacje to grosze.
+- **AI, zmierzone na prototypie:** dopasowanie ok. 0,06 USD, odpowiedź Mostka ok. 0,08 USD (kolejne w rozmowie 0,015-0,03 USD dzięki cache), plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,01 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD. **Import całej Biblioteki ROPS jednorazowo ok. 3 USD**, kolejne synchronizacje to grosze.
 - **Głos:** 1000 rozmów głosowych miesięcznie to ok. 51 USD. ROPS włącza głos per podstrona.
-- **Przykład dla regionu:** 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie to **ok. 150-200 USD / mies. za AI**. Budżet, limity i tryb oszczędny ustawia ROPS, a koszt miesiąca widać na pulpicie panelu.
+- **Przykład dla regionu:** 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie to **ok. 130-170 USD / mies. za AI**, w trybie oszczędnym ok. połowa. Budżet, limity i tryb oszczędny ustawia ROPS, a koszt miesiąca widać na pulpicie panelu.
 - **Treści:** synchronizacja z Biblioteką ROPS, CMS dla pracowników, import dokumentów PDF jednym kliknięciem.
 
 ## Użycie AI

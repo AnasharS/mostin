@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getSessionKey } from "@/lib/session"
 import { getPolicy } from "@/lib/ai/policy"
+import { budgetState } from "@/lib/ai/guard"
 import { toFile } from "openai"
 import { openai } from "@/lib/ai/clients"
 import { voiceAllowed, VOICE_PRICES } from "@/lib/voice"
@@ -18,6 +19,8 @@ export async function POST(req: Request) {
   if (audio.size > 10 * 1024 * 1024) return Response.json({ ok: false, message: "Nagranie jest za długie (maks. 60 s)" }, { status: 413 })
   const policy = await getPolicy()
   if (!voiceAllowed(policy, page)) return Response.json({ ok: false, message: "Tryb głosowy jest wyłączony na tej stronie." }, { status: 403 })
+  // po przekroczeniu budżetu (tryb oszczędny lub twarde zatrzymanie) głos jest wyłączony
+  if ((await budgetState(policy)).over) return Response.json({ ok: false, message: "Tryb głosowy jest chwilowo wyłączony - wykorzystano miesięczny budżet AI. Mostek dalej odpowiada tekstem." }, { status: 403 })
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

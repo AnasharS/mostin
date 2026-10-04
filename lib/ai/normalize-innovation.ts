@@ -3,6 +3,7 @@ import { noDashesDeep } from "@/lib/text"
 import { z } from "zod"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import { anthropic, MODELS, FALLBACK } from "./clients"
+import { usageOf } from "./usage"
 import { CATEGORIES, TARGET_GROUPS } from "./taxonomy"
 
 export const InnovationStructure = z.object({
@@ -57,5 +58,5 @@ export async function normalizeInnovation(input: {
   if (res.stop_reason === "refusal" || !res.parsed_output) {
     throw new Error(`Model nie zwrócił struktury (stop_reason: ${res.stop_reason})`)
   }
-  return { data: noDashesDeep(res.parsed_output), usage: res.usage }
+  return { data: noDashesDeep(res.parsed_output), usage: usageOf(res) }
 }

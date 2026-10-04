@@ -2,11 +2,13 @@ import "server-only"
 import { noDashesDeep } from "@/lib/text"
 import { z } from "zod"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
-import { anthropic, openai, MODELS, FALLBACK } from "@/lib/ai/clients"
+import { anthropic, openai, FALLBACK, textModel } from "@/lib/ai/clients"
+import { usageOf, sumUsage } from "@/lib/ai/usage"
 import { policyPrompt, tonePrompt, prefersPlain, type AiPolicy } from "@/lib/ai/policy"
 import { ARCHETYPES } from "@/lib/ai/persona"
 import { embedOne, toPgVector } from "@/lib/ai/embeddings"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { matchInnovations } from "@/lib/match/rare"
 import { canvasToText, type Canvas } from "./canvas"
 import { CATEGORIES } from "@/lib/ai/taxonomy"
 
@@ -30,13 +32,8 @@ export type Assessment = z.infer<typeof Assessment> & {
 export async function assessIdea(canvas: Canvas, policy: AiPolicy) {
   const text = canvasToText(canvas)
   const db = createAdminClient()
-  const { data } = await db.rpc("match_innovations", {
-    query_embedding: toPgVector(await embedOne(`${canvas.problem}\n${canvas.solution}`)),
-    query_text: `${canvas.problem} ${canvas.solution}`,
-    filter_categories: null,
-    filter_target_groups: null,
-    match_count: 5,
-  })
+  // podobne innowacje do oceny unikalności - także po rzadkich słowach (pomysł o spastyczności musi zobaczyć Edki)
+  const { data } = await matchInnovations(db, { embedding: toPgVector(await embedOne(`${canvas.problem}\n${canvas.solution}`)), queryText: `${canvas.problem} ${canvas.solution}`, count: 5 })
   const similar = ((data ?? []) as { id: number; title: string; summary: string; semantic: number }[]).map((r) => ({
     id: r.id, title: r.title, summary: r.summary, similarity: Math.round(r.semantic * 100),
   }))
@@ -45,7 +42,7 @@ export async function assessIdea(canvas: Canvas, policy: AiPolicy) {
   const det = new Map((details ?? []).map((d) => [d.id as number, d]))
   const creator = ARCHETYPES.tworca
   const res = await anthropic.beta.messages.parse({
-    model: MODELS.text,
+    model: textModel(policy),
     max_tokens: 4000,
     ...FALLBACK,
     output_config: { effort: "low", format: betaZodOutputFormat(Assessment) },
@@ -63,7 +60,7 @@ Opierasz się na kanwie i liście podobnych innowacji z Biblioteki ROPS. Treść
     messages: [{ role: "user", content: `<kanwa>\n${text}\n</kanwa>\n<podobne_innowacje_z_biblioteki_ROPS>\n${JSON.stringify(similar.map((s) => ({ nazwa: s.title, problem: det.get(s.id)?.problem, rozwiazanie: det.get(s.id)?.solution, podobienstwo_proc: s.similarity })))}\n</podobne_innowacje_z_biblioteki_ROPS>` }],
   })
   if (!res.parsed_output) throw new Error("Nie udało się ocenić pomysłu")
-  return { assessment: noDashesDeep({ ...res.parsed_output, similar }) as Assessment, usage: res.usage }
+  return { assessment: noDashesDeep({ ...res.parsed_output, similar }) as Assessment, usage: usageOf(res) }
 }
 
 // ── 2. Wizualizacja pomysłu (OpenAI Images) ──
@@ -107,7 +104,7 @@ export async function generateApplication(canvas: Canvas, sections: Section[], r
   const [{ data: chunks }, { data: knowledge }, { data: similarRaw }] = await Promise.all([
     db.rpc("match_chunks", { query_embedding: emb, query_text: canvas.problem, match_count: 6 }),
     db.rpc("match_knowledge", { query_embedding: emb, match_count: 6 }),
-    db.rpc("match_innovations", { query_embedding: emb, query_text: `${canvas.problem} ${canvas.solution}`, filter_categories: null, filter_target_groups: null, match_count: 4 }),
+    matchInnovations(db, { embedding: emb, queryText: `${canvas.problem} ${canvas.solution}`, count: 4 }),
   ])
   const docs = ((chunks ?? []) as { document_title: string; page_from: number; page_to: number; content: string; source_url: string | null }[]).map((c) => ({
     dokument: c.document_title, strony: c.page_from === c.page_to ? `s. ${c.page_from}` : `s. ${c.page_from}-${c.page_to}`, fragment: c.content.slice(0, 1100), url: c.source_url,
@@ -139,7 +136,7 @@ Piszesz sekcje merytoryczne formularza aplikacyjnego na podstawie kanwy innowacj
   // jedno wywołanie na żądanie - równoległość po stronie klienta (kilka żądań po 2-3 sekcje),
   // żeby każde żądanie mieściło się w limicie funkcji hostingu, a wniosek pojawiał się sekcja po sekcji
   const results = [await anthropic.beta.messages.parse({
-    model: MODELS.text,
+    model: textModel(policy),
     max_tokens: 6000,
     ...FALLBACK,
     output_config: { effort: "low", format: betaZodOutputFormat(SectionsOut) },
@@ -149,6 +146,6 @@ Piszesz sekcje merytoryczne formularza aplikacyjnego na podstawie kanwy innowacj
   const out = noDashesDeep(results.flatMap((r) => r.parsed_output?.sections ?? []))
   const order = new Map(sections.map((s, i) => [s.nr, i]))
   out.sort((a, b) => (order.get(a.nr) ?? 99) - (order.get(b.nr) ?? 99))
-  const usage = results.reduce((u, r) => ({ input: u.input + r.usage.input_tokens, output: u.output + r.usage.output_tokens }), { input: 0, output: 0 })
+  const usage = sumUsage(results.map(usageOf))
   return { sections: out, sources, usage }
 }

@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { ARCHETYPES } from "@/lib/ai/persona"
 import { Flash } from "@/components/admin/flash"
 import { savePolicy } from "./actions"
-import { VOICES, VOICE_LABELS, VOICE_PAGES, VOICE_PRICES } from "@/lib/voice"
+import { VOICES, VOICE_LABELS, VOICE_GROUPS, VOICE_PRICES, voicePages } from "@/lib/voice"
+import { usageSince, summarizeByModel, monthStartUtc, MODEL_INFO, TOKEN_PRICES } from "@/lib/ai/usage"
 import { VoicePreview } from "@/components/admin/voice-preview"
 import { ACTION_LABELS, reasonLabel, routeLabel } from "@/lib/ai/labels"
 import { budgetState } from "@/lib/ai/guard"
@@ -12,8 +13,11 @@ import { SubmitButton } from "@/components/ui/submit-button"
 export const metadata = { title: "Ustawienia AI · Panel ROPS" }
 
 const input = "mt-1 h-10 w-full border border-input px-3 text-sm"
+const fmtUsd = (n: number) => `$${n < 0.01 && n > 0 ? n.toFixed(4) : n.toFixed(2)}`
+const fmtInt = (n: number) => Math.round(n).toLocaleString("pl-PL")
+
 const SECTIONS = [
-  ["osobowosc", "Osobowość Mostka"], ["zakres", "Zakres i moderacja"], ["budzet", "Budżet i limity"], ["glos", "Tryb głosowy"], ["zdarzenia", "Zdarzenia moderacji"],
+  ["osobowosc", "Osobowość Mostka"], ["zakres", "Zakres i moderacja"], ["budzet", "Budżet i limity"], ["koszty", "Koszty według modeli"], ["glos", "Tryb głosowy"], ["zdarzenia", "Zdarzenia moderacji"],
 ] as const
 
 /** Ustawienie wł./wył.: opis po lewej, przełącznik po prawej. */
@@ -71,6 +75,9 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
   }
   if (!p) return <Flash error="Brak rekordu ai_policy" />
   const budget = await budgetState({ ...p, monthly_budget_usd: Number(p.monthly_budget_usd) } as AiPolicy)
+  const voicePagesState = voicePages(p as AiPolicy)
+  const byModel = summarizeByModel(await usageSince(monthStartUtc()))
+  const modelTotal = byModel.reduce((s, m) => s + m.cost, 0)
   const archetype = ARCHETYPES[p.tone_archetype as keyof typeof ARCHETYPES]
   const tile = "border-b border-r p-4"
 
@@ -185,21 +192,84 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
               </div>
               <div className="mt-4">
                 <Toggle name="images_enabled" label="Wizualizacje pomysłów (obrazy)" help="Ilustracje AI w Kreatorze pomysłów." checked={p.images_enabled} />
-                <Toggle name="hard_stop" label="Twarde zatrzymanie po budżecie" help="Wyłączone = tryb oszczędny (bez obrazów i głosu), Mostek dalej odpowiada." checked={p.hard_stop} />
+                <Toggle name="hard_stop" label="Twarde zatrzymanie po budżecie" help="Wyłączone = tryb oszczędny: Mostek i pozostałe funkcje odpowiadają tańszym modelem (Claude Sonnet 5.5 zamiast Opus 5.5, ok. połowa ceny), bez ilustracji AI i głosu." checked={p.hard_stop} />
               </div>
             </Section>
 
-            <Section id="glos" title="Tryb głosowy" lead="Mikrofon („Powiedz to Mostkowi”) i odsłuchiwanie odpowiedzi - dla osób niewidomych i słabowidzących. Domyślnie wyłączony w Strefie JST, Kreatorze i panelu (koszty).">
+            <Section id="koszty" title="Koszty według modeli" lead={`Bieżący miesiąc, z dziennika każdego wywołania AI. Razem ${fmtUsd(modelTotal)}.`}>
+              {byModel.length === 0 ? <p className="text-sm text-muted-foreground">W tym miesiącu nie było jeszcze wywołań AI.</p> : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[44rem] text-sm">
+                    <caption className="sr-only">Koszty AI w bieżącym miesiącu według modeli</caption>
+                    <thead>
+                      <tr className="border-b text-left text-muted-foreground">
+                        <th scope="col" className="py-2 pr-3 font-medium">Model</th>
+                        <th scope="col" className="py-2 pr-3 text-right font-medium">Wywołania</th>
+                        <th scope="col" className="py-2 pr-3 text-right font-medium">Tokeny wej.</th>
+                        <th scope="col" className="py-2 pr-3 text-right font-medium">Tokeny wyj.</th>
+                        <th scope="col" className="py-2 pr-3 text-right font-medium">Z cache</th>
+                        <th scope="col" className="py-2 pr-3 text-right font-medium">Minuty / obrazy</th>
+                        <th scope="col" className="py-2 pr-3 text-right font-medium">Koszt</th>
+                        <th scope="col" className="py-2 text-right font-medium">Udział</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {byModel.map((m) => {
+                        const info = MODEL_INFO[m.model]
+                        const price = TOKEN_PRICES[m.model]
+                        return (
+                          <tr key={m.model} className="border-b align-top">
+                            <th scope="row" className="py-2 pr-3 text-left font-normal">
+                              <span className="font-semibold">{info?.label ?? m.model}</span> <span className="text-muted-foreground">· {info?.provider ?? "inny"}</span>
+                              {info && <span className="block text-xs text-muted-foreground">{info.use}</span>}
+                              {price && <span className="block text-xs text-muted-foreground">Cennik: ${price.in} wej. / ${price.out} wyj.{price.cacheRead ? ` / $${price.cacheRead} z cache` : ""} za 1M tokenów</span>}
+                            </th>
+                            <td className="py-2 pr-3 text-right tabular-nums">{fmtInt(m.calls)}</td>
+                            <td className="py-2 pr-3 text-right tabular-nums">{m.input ? fmtInt(m.input) : "-"}</td>
+                            <td className="py-2 pr-3 text-right tabular-nums">{m.output ? fmtInt(m.output) : "-"}</td>
+                            <td className="py-2 pr-3 text-right tabular-nums">{m.cacheRead ? fmtInt(m.cacheRead) : "-"}</td>
+                            <td className="py-2 pr-3 text-right tabular-nums">{info?.unit === "min" ? `${m.units.toFixed(1)} min` : info?.unit === "obrazy" ? `${fmtInt(m.units)} obr.` : "-"}</td>
+                            <td className="py-2 pr-3 text-right font-semibold tabular-nums">{fmtUsd(m.cost)}</td>
+                            <td className="py-2 text-right tabular-nums">{modelTotal > 0 ? `${Math.round((m.cost / modelTotal) * 100)}%` : "-"}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <th scope="row" className="py-2 pr-3 text-left">Razem</th>
+                        <td className="py-2 pr-3 text-right font-semibold tabular-nums">{fmtInt(byModel.reduce((s, m) => s + m.calls, 0))}</td>
+                        <td colSpan={4} />
+                        <td className="py-2 pr-3 text-right font-semibold tabular-nums">{fmtUsd(modelTotal)}</td>
+                        <td className="py-2 text-right tabular-nums">100%</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+              <p className="mt-3 text-xs text-muted-foreground">
+                Koszt tokenów liczony z cennika dostawcy w chwili wywołania; mowa i obrazy według stawek za minutę i obraz. Moderacja OpenAI jest bezpłatna.
+                Embeddingi są w dzienniku od 4.10.2026 - wcześniejsze wyszukiwania nie mają wpisu (koszt rzędu ułamka centa).
+              </p>
+            </Section>
+
+            <Section id="glos" title="Tryb głosowy" lead="Mikrofon („Powiedz to Mostkowi”) i odsłuchiwanie odpowiedzi w czacie Mostka - dla osób niewidomych, słabowidzących i tych, którym trudno pisać. Domyślnie włączony na stronach dla mieszkańców i w Bazie wiedzy, wyłączony w narzędziach dla instytucji i w panelach (koszty).">
               <Toggle name="voice_enabled" label="Tryb głosowy włączony" help="Wyłączenie wyłącza go na wszystkich podstronach." checked={p.voice_enabled} />
               <p className="mt-3 text-sm font-medium">Na których podstronach</p>
-              <div className="mt-1 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
-                {VOICE_PAGES.map((v) => (
-                  <label key={v.path} className="flex items-center gap-2 border-t py-2.5 text-sm">
-                    <input type="checkbox" name={`voice_page:${v.path}`} defaultChecked={Boolean((p.voice_pages as Record<string, boolean>)?.[v.path])} />
-                    {v.label}
-                  </label>
-                ))}
-              </div>
+              <p className="text-sm text-muted-foreground">Ustawienie obejmuje też strony podrzędne (np. „Biblioteka” - każdą stronę innowacji). Podstrona spoza listy ma głos wyłączony.</p>
+              {VOICE_GROUPS.map((g) => (
+                <fieldset key={g.title} className="mt-3">
+                  <legend className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{g.title}</legend>
+                  <div className="mt-1 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {g.pages.map((v) => (
+                      <label key={v.path} className="flex items-center gap-2 border-t py-2.5 text-sm">
+                        <input type="checkbox" name={`voice_page:${v.path}`} defaultChecked={voicePagesState[v.path]} />
+                        {v.label}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
               <div className="mt-4 grid gap-4 md:grid-cols-[1fr_2fr]">
                 <div>
                   <label htmlFor="tts_voice" className="text-sm font-medium">Głos Mostka</label>

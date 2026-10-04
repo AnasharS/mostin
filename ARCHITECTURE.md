@@ -67,10 +67,16 @@ opis problemu (tekst lub głos)
  → embedding
  → match_innovations w Postgresie: 0.65 wektor + 0.20 pełnotekstowe (rdzenie słów, bez polskich znaków)
    + 0.15 zgodność kategorii i grup; pula z obu rankingów
- → rerank i uzasadnienie (Opus 5.5): ocena 0-100, dlaczego pasuje, co dostosować, pierwszy krok, pokrycie i luka
+ → + osobne wyszukiwanie po rzadkich słowach z oryginalnego opisu (lib/match/rare.ts), premia zależna od rzadkości
+ → rerank i uzasadnienie (Opus 5.5, 10 kandydatów z przyciętymi opisami): ocena 0-100, dlaczego pasuje, co dostosować,
+   pierwszy krok, pokrycie i luka
  → walidacja: tylko ID z puli kandydatów
  → zapis potrzeby (podobne przypadki, Trendy w panelu)
 ```
+
+Rzadkie słowa: słowo użytkownika, które występuje w najwyżej 5 opublikowanych innowacjach (indeks pełnotekstowy), daje osobne wyszukiwanie i premię 0,4 × (1 / liczba innowacji z tym słowem). Innowacja z jedynym w Bibliotece słowem użytkownika zawsze trafia na listę. `matchInnovations()` z tego modułu używają dopasowanie, triaż rozmów i Kreator (podobne innowacje, wniosek); narzędzie Mostka `search_innovations` korzysta z tych samych rzadkich słów.
+
+Dopasowanie ma trzy wejścia (`components/match/match-page.tsx`): `/dla-mieszkancow`, `/dla-gmin/znajdz-rozwiazanie`, `/dla-organizacji/znajdz-rozwiazanie` - ten sam silnik, inne teksty i przyciski przy wynikach. Ostatni wynik jest w `sessionStorage` (powrót przyciskiem „wstecz”).
 
 Innowacje są przy imporcie normalizowane przez Claude do tej samej struktury i taksonomii (`lib/ai/taxonomy.ts`), a embedding liczy się z `search_text` pisanego językiem mieszkańca.
 
@@ -87,6 +93,7 @@ Synchronizacja z Biblioteką ROPS (`pnpm ingest`, przycisk w panelu) i dokument�
 - `propose_action` tworzy przycisk, który klika człowiek. Może wskazać tylko innowację lub krąg zwrócony wcześniej przez narzędzie w tej rozmowie.
 - Kontekst: bieżąca strona i ścieżka odbiorcy, tryb (mieszkańcy, gminy, panel ROPS), preferencja prostego języka.
 - Historia w `consultant_sessions`, tylko dopisywana. Klient wysyła tylko nową wiadomość, dostęp do sesji wymaga klucza z ciasteczka httpOnly.
+- Prompt caching: znaczniki cache na prompcie systemowym i na ostatnim bloku rozmowy (tylko w zapytaniu, nie w zapisanej historii), więc każdy krok z narzędziami i każde kolejne pytanie czyta dotychczasową rozmowę z cache.
 - Głos: `api/voice/transcribe` (mowa → tekst, tekst widoczny przed wysłaniem), `api/voice/speak` (czytanie odpowiedzi). Nagrania nie są zapisywane. ROPS włącza głos per podstrona.
 
 ## 7. Warstwa bezpieczeństwa AI (`lib/ai/guard.ts`, `lib/ai/policy.ts`)
@@ -101,7 +108,9 @@ wejście
  → zapis ai_usage i ai_moderation_events
 ```
 
-Budżet miesięczny, próg alertu, dzienne limity na sesję (zapytania, obrazy, minuty głosu) i tryb oszczędny są w `ai_policy` i edytowane w panelu. Ustawienia działają po kilkunastu sekundach (krótki cache).
+Budżet miesięczny, próg alertu, dzienne limity na sesję (zapytania, obrazy, minuty głosu) i tryb oszczędny są w `ai_policy` i edytowane w panelu. Ustawienia działają po kilkunastu sekundach (krótki cache). Tryb oszczędny (budżet przekroczony, bez twardego zatrzymania): `guardInput` ustawia `policy.economy`, a `textModel(policy)` wybiera Sonnet 5.5 zamiast Opus 5.5; ilustracje i głos są wtedy wyłączone.
+
+Koszty (`lib/ai/usage.ts`): każde wywołanie zapisuje do `ai_usage` model, który faktycznie odpowiedział (`response.model`, także model zapasowy po odmowie), tokeny wejściowe z zapisem do cache (1,25 × cena wejścia), tokeny z cache i koszt. Embeddingi też są logowane. Odczyt dziennika jest stronicowany (Supabase zwraca najwyżej 1000 wierszy). Panel pokazuje koszty według modeli, Mostek w panelu - narzędzie `koszty_ai`.
 
 ## 8. Długie zadania AI a limity hostingu
 

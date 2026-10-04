@@ -6,6 +6,7 @@ import { logUsage } from "@/lib/ai/usage"
 import { MODELS } from "@/lib/ai/clients"
 import { analyzeProblem } from "./analyze"
 import { rerank, type Candidate } from "./rerank"
+import { matchInnovations, type InnovationHit } from "./rare"
 
 export type MatchResult =
   | { ok: false; message: string; reason: string }
@@ -61,7 +62,9 @@ async function problemContext(db: ReturnType<typeof createAdminClient>, emb: str
   // z każdego wyzwania fakty najbliższe opisowi problemu (bez dopasowania słów - pomijamy, zamiast pokazywać przypadkowe)
   const facts = (challenges ?? []).flatMap((c) => ((c.indicators ?? []) as { fakt: string; strona?: number }[]).map((i) => ({
     score: overlap(i.fakt), challenge: c.title as string, fact: i.fakt, page: i.strona ?? null, source: c.source_label as string | null, url: c.source_url as string | null,
-  }))).filter((x) => x.score >= 2).sort((a, b) => b.score - a.score).slice(0, 2).map(({ score: _s, ...f }) => f) // eslint-disable-line @typescript-eslint/no-unused-vars
+  }))).filter((x) => x.score >= 2).sort((a, b) => b.score - a.score)
+    // ten sam wskaźnik bywa przypisany do kilku wyzwań - pokazujemy go raz
+    .filter((x, i, all) => all.findIndex((y) => y.fact === x.fact) === i).slice(0, 2).map(({ score: _s, ...f }) => f) // eslint-disable-line @typescript-eslint/no-unused-vars
   // raporty i diagnozy ROPS (bez dokumentacji modeli innowacji z paczek ZIP)
   type Chunk = { chunk_id: number; document_title: string; source_url: string | null; page_from: number; page_to: number; content: string }
   const chunks = (ch.data ?? []) as Chunk[]
@@ -106,7 +109,7 @@ export async function runMatchmaking(text: string, ctx: { userId?: string | null
   const { data: analysis, usage: aUsage } = await analyzeProblem(guard.text)
   mark("analyze")
   const usageBase = { model: MODELS.text, user_id: ctx.userId, session_key: ctx.sessionKey }
-  void logUsage({ ...usageBase, model: MODELS.fast, route: "match.analyze", input_tokens: aUsage.input_tokens, output_tokens: aUsage.output_tokens, cache_read_tokens: aUsage.cache_read_input_tokens ?? 0 })
+  void logUsage({ ...usageBase, model: MODELS.fast, route: "match.analyze", usage: aUsage })
 
   if (!analysis.on_topic) {
     return { ok: false, reason: "off_topic", message: guard.policy.refusal_message }
@@ -118,18 +121,16 @@ export async function runMatchmaking(text: string, ctx: { userId?: string | null
   // kontekst problemu liczymy równolegle z wyszukiwaniem i rerankiem (przed zapisem tej potrzeby - żeby nie liczyć jej jako „podobnej”)
   const contextP = problemContext(db, toPgVector(embedding), `${analysis.search_text} ${analysis.summary} ${analysis.needs.join(" ")}`, analysis.categories)
     .catch(() => ({ facts: [], reports: [], similar: { count: 0, examples: [] } }) as MatchContext)
-  const { data: candidates, error } = await db.rpc("match_innovations", {
-    query_embedding: toPgVector(embedding),
-    query_text: `${analysis.search_text} ${analysis.needs.join(" ")}`,
-    filter_categories: analysis.categories.length ? analysis.categories : null,
-    filter_target_groups: analysis.target_groups.length ? analysis.target_groups : null,
-    match_count: 15,
+  // analiza przepisuje opis ogólniej („niepełnosprawność ruchowa” zamiast „spastyczność”), więc rzadkie słowa zgłaszającego
+  // szukamy osobno (lib/match/rare.ts) - inaczej innowacja nazywająca dokładnie ten problem (Edki) nie trafia nawet do kandydatów
+  const { data: rows, rare, error } = await matchInnovations(db, {
+    embedding: toPgVector(embedding), queryText: `${analysis.search_text} ${analysis.needs.join(" ")}`, userText: guard.text,
+    categories: analysis.categories, groups: analysis.target_groups, count: 10, // 10 kandydatów do oceny (było 15) - ok. 1/3 taniej
   })
   if (error) throw error
   mark("retrieve")
 
-  type Signal = { id: number; semantic: number; lexical: number; meta: number; score: number }
-  const rows = (candidates ?? []) as Signal[]
+  type Signal = InnovationHit
   const ids = rows.map((c) => c.id)
   const { data: details } = await db
     .from("innovations")
@@ -141,11 +142,14 @@ export async function runMatchmaking(text: string, ctx: { userId?: string | null
   const ranked = await rerank(
     analysis,
     guard.text,
-    ids.map((id) => ({ ...byId.get(id), score: signalsById.get(id)!.score }) as Candidate),
+    ids.map((id) => ({
+      ...byId.get(id), score: signalsById.get(id)!.score,
+      rare_hits: signalsById.get(id)!.rare ? rare.map((st) => st + "…") : undefined,
+    }) as Candidate),
     guard.policy,
   )
   mark("rerank")
-  void logUsage({ ...usageBase, route: "match.rerank", input_tokens: ranked.usage.input_tokens, output_tokens: ranked.usage.output_tokens, cache_read_tokens: ranked.usage.cache_read_input_tokens ?? 0 })
+  void logUsage({ ...usageBase, route: "match.rerank", usage: ranked.usage })
 
   const matches = ranked.matches.map((m) => {
     const d = byId.get(m.innovation_id)!

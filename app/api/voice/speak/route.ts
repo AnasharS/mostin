@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getSessionKey } from "@/lib/session"
 import { getPolicy } from "@/lib/ai/policy"
+import { budgetState } from "@/lib/ai/guard"
 import { openai } from "@/lib/ai/clients"
 import { getCurrentProfile } from "@/lib/auth"
 import { voiceAllowed, VOICE_PRICES, VOICES, ttsMinutes } from "@/lib/voice"
@@ -28,6 +29,9 @@ export async function POST(req: Request) {
     if (profile?.role !== "admin") return Response.json({ ok: false }, { status: 403 })
   } else if (!voiceAllowed(policy, p.data.page)) {
     return Response.json({ ok: false, message: "Tryb głosowy jest wyłączony na tej stronie." }, { status: 403 })
+  } else if ((await budgetState(policy)).over) {
+    // po przekroczeniu budżetu (tryb oszczędny lub twarde zatrzymanie) głos jest wyłączony
+    return Response.json({ ok: false, message: "Tryb głosowy jest chwilowo wyłączony - wykorzystano miesięczny budżet AI. Mostek dalej odpowiada tekstem." }, { status: 403 })
   }
   // czytamy tekst bez znaczników źródeł i formatowania
   const input = p.data.text.replace(/\[[^\]]{3,160}\]/g, "").replace(/\*\*/g, "").replace(/\s+/g, " ").trim().slice(0, 3500)

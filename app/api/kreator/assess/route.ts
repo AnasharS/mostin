@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   if ("error" in p) return p.error
   try {
     const { assessment, usage } = await assessIdea(p.canvas, p.policy)
-    void logUsage({ route: "kreator.assess", model: MODELS.text, input_tokens: usage.input_tokens, output_tokens: usage.output_tokens, cache_read_tokens: usage.cache_read_input_tokens ?? 0, user_id: p.user?.id, session_key: p.sessionKey })
+    void logUsage({ route: "kreator.assess", model: MODELS.text, usage, user_id: p.user?.id, session_key: p.sessionKey })
     return Response.json({ ok: true, assessment })
   } catch (e) {
     console.error(e)

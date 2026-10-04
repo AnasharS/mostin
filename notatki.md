@@ -17,6 +17,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 
 ### I. Matchmaking społeczny (obowiązkowy) - „Znajdź rozwiązanie”
 - Opisujesz problem własnymi słowami (pisząc albo głosem), dostajesz innowacje z oceną 0-100, „dlaczego pasuje”, „co dostosować” i „pierwszy krok”.
+- Dopasowanie jest dla każdego, nie tylko dla mieszkańców: trzy wejścia (Dla Mieszkańców, Dla gmin, Dla organizacji), ten sam silnik, własne teksty, przykłady i dalsze kroki. Mieszkaniec przy wyniku ma „Zobacz rozwiązanie” i „Oceń rozwiązanie”, instytucja „Dostosuj z Mostkiem”. Wynik zostaje po powrocie przyciskiem „wstecz”.
 - Obok: „Co wiemy o tym problemie” - podobne zgłoszenia z MostIn (anonimowo), fakty z Mapy Wyzwań i fragment raportu ROPS ze stroną. To jest „wyszukuje podobne przypadki i informacje o kwestii” z zadania.
 - Pod spodem: analiza opisu (Sonnet) → embedding → wyszukiwanie hybrydowe w Postgresie (0.65 znaczenie, 0.20 słowa kluczowe, 0.15 zgodność kategorii) → ocena i uzasadnienie (Opus) → serwer sprawdza, że model wskazał tylko innowacje z puli kandydatów.
 - Decyzje:
@@ -25,9 +26,10 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
   - Lepiej 2 trafne niż 5 naciąganych. Gdy katalog nie pokrywa problemu, system to mówi i prowadzi do Kreatora („nie ma rozwiązania, stwórz je”).
   - Supabase nie ma polskiego słownika, więc pełnotekstowe szuka po rdzeniach słów (`spastyczn:*`) i bez polskich znaków. Resztę odmiany łapią embeddingi.
 - Strojenie na prawdziwym scenariuszu: „syn ma spastyczność rąk, nie stać mnie na rehabilitację” powinno dać Edki (kredki terapeutyczne). Na starcie 8. miejsce, po poprawkach (rdzenie słów, pula z obu rankingów, waga rzadkich słów użytkownika, drugie wyszukiwanie po dosłownych słowach) pierwsze. Scenariusze kontrolne (seniorzy, rodziny z Ukrainy) dalej działają.
+- Rzadkie słowa (`lib/match/rare.ts`): ogólne słowa z pytania („innowacje”, „osoby”) pasują do dziesiątek opisów, a „spastyczność” jest tylko w opisie Edek. Do tego analiza AI potrafi przepisać „spastyczność” na „niepełnosprawność ruchową”. Dlatego słowa występujące w najwyżej 5 innowacjach bierzemy z oryginalnego tekstu, szukamy po nich osobno i dajemy premię zależną od rzadkości. Ten sam mechanizm działa w dopasowaniu, Mostku, triażu rozmów i Kreatorze. Test: 5 sformułowań ze spastycznością w 5 miejscach - Edki pierwsze (raz drugie, przy pomyśle wypożyczalni).
 
 ### II. Zasobnik wiedzy - Baza wiedzy
-- **Biblioteka innowacji**: 115 innowacji, wyszukiwanie i filtry na żywo (obszar, dla kogo, etap). Tagi na stronie innowacji prowadzą do Biblioteki z tym filtrem.
+- **Biblioteka innowacji**: 115 innowacji, wyszukiwanie i filtry na żywo (obszar, dla kogo, etap). Wyszukiwanie po rdzeniach słów („dziecko” trafia w „dzieci”); gdy nic nie zawiera wszystkich słów, pokazuje innowacje pasujące do części. Tagi na stronie innowacji prowadzą do Biblioteki z tym filtrem.
 - **Strona innowacji**: problem, rozwiązanie, wymagania, film (26 innowacji ma film), materiały, autorzy, nabór testów jeśli trwa, opinie testerów.
 - **Mapa Wyzwań i raporty**: 8 obszarów, 51 wyzwań z linkiem do strony PDF, raporty ROPS. Mapa to dane ogólnopolskie, raporty małopolskie, Mostek to rozróżnia.
 - **Materiały edukacyjne**: kanwa innowacji, wzór formularza, poradniki ROPS, wszystkie filmy.
@@ -72,8 +74,8 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 
 ### VII. Middleman Innowacji - „Dostosuj z Mostkiem”
 - Formularz: typ instytucji, miejscowość, odbiorcy, ludzie, budżet, czas, ograniczenia. Wynik: wykonalność 0-100, tabela „w oryginale / u Ciebie”, etapy z rolami, budżet orientacyjny, partnerzy, ryzyka, wskaźniki, pierwszy tydzień i założenia do sprawdzenia.
-- Wejście z wyników dopasowania, ze strony innowacji i z Mostka.
-- Formularz zamiast czatu: szybszy, działa z klawiatury i czytnikiem, nie wymaga umiejętności „rozmawiania z AI”. Plan generuję w dwóch równoległych częściach, żeby zmieścić się w limicie hostingu.
+- Wejście z wyników dopasowania w ścieżkach gmin i organizacji oraz z przycisku Mostka.
+- Formularz z polami do wyboru: szybki, działa z klawiatury i czytnikiem ekranu, nie wymaga prowadzenia rozmowy. Plan generuję w dwóch równoległych częściach, żeby zmieścić się w limicie hostingu.
 
 ### Strefa JST - dla gmin (wskazanie ROPS)
 - Radar naborów z odliczaniem dni, kwotą i warunkami - każda liczba z cytatem strony regulaminu. Termin w demo jest oznaczony jako przykładowy.
@@ -96,6 +98,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - Tryb głosowy (mów i słuchaj) dla osób, którym trudno pisać lub czytać. ROPS włącza go per podstrona i wybiera głos.
 - Decyzje:
   - Historia rozmowy jest na serwerze i tylko dopisywana. Opus odrzuca historię z wyciętymi wywołaniami narzędzi, więc klient wysyła tylko nową wiadomość.
+  - Cache całej rozmowy: każdy krok i każde kolejne pytanie czyta dotychczasową historię z cache (Opus: 0,20 zamiast 4 USD za 1M tokenów). Zmierzone: pierwsza odpowiedź 0,08 USD zamiast 0,14, druga w tej samej rozmowie 0,015 zamiast 0,10.
   - Narzędzia tylko czytają. Jedyne „działanie” to przycisk, który klika człowiek, i może on wskazać tylko innowację albo krąg, które Mostek naprawdę dostał z narzędzia w tej rozmowie.
 
 ## 3. AI pod kontrolą ROPS
@@ -105,7 +108,8 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - Ton Mostka z 6 archetypów marki (Opiekun, Mędrzec, Towarzysz, Przewodnik, Twórca, Bohater). ROPS wybiera kliknięciem, nie pisze promptów. Ton nigdy nie zmienia zakresu merytorycznego.
 - „Prosty język” z paska dostępności zmienia wszystkie odpowiedzi AI dla mieszkańców (czat, uzasadnienia, ocena w Kreatorze, plan wdrożenia). Szkic wniosku zostaje formalny.
 - Dziennik automatycznej moderacji po polsku: co, gdzie i dlaczego zablokowano, bez danych osobowych.
-- Budżet miesięczny, próg alertu, dzienne limity na osobę (zapytania, obrazy, minuty głosu). Po przekroczeniu tryb oszczędny albo zatrzymanie.
+- Budżet miesięczny, próg alertu, dzienne limity na osobę (zapytania, obrazy, minuty głosu). Po przekroczeniu tryb oszczędny albo zatrzymanie. Tryb oszczędny: wszystkie funkcje odpowiadają Sonnetem 5.5 zamiast Opusa (ok. połowa ceny), bez ilustracji i głosu.
+- Tryb głosowy włączany per podstrona, lista pogrupowana jak menu serwisu. Domyślnie włączony dla mieszkańców i w Bazie wiedzy, wyłączony w narzędziach dla instytucji i w panelach.
 
 ## 4. Bezpieczeństwo i prywatność
 
@@ -133,12 +137,12 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 
 ## 6. Interfejs
 
-- **Styl serwisu publicznego, nie „AI look”.** Pierwsza wersja wyglądała jak typowy generowany UI: zaokrąglone karty, ikona w każdej karcie, kolorowe pigułki. Przeszedłem na ostre krawędzie, linie i listy 01 / 02 / 03 - bliżej gov.uk i biznes.gov.pl. Urzędnik ufa temu bardziej, a układ lepiej znosi powiększony tekst.
+- **Styl serwisu publicznego.** Ostre krawędzie, linie i numerowane listy 01 / 02 / 03, w duchu gov.pl i biznes.gov.pl. Prosty układ pozostaje czytelny przy powiększonym tekście i w wysokim kontraście.
 - **Jedno główne działanie na ekranie**, duży nagłówek, krótki wstęp.
 - **Zakładki odbiorców**: Dla Mieszkańców (wielka litera celowo), Dla gmin i instytucji, Dla organizacji i innowatorów, Baza wiedzy. Okruszki na każdej podstronie.
 - **Nagłówek chowa się przy przewijaniu w dół** i wraca przy ruchu w górę.
 - **Telefon**: menu ☰, czat na cały ekran, okno czatu dopasowane do klawiatury ekranowej.
-- **Bez zdjęć stockowych**: na stronie głównej kadry z filmów ROPS o innowacjach.
+- **Kadry z filmów ROPS** o innowacjach na stronie głównej.
 - **Czekanie na AI jest widoczne**: w czacie i Kreatorze etapy („Szukam podobnych rozwiązań…”), licznik sekund i typowy czas. Każdy przycisk wysyłający pokazuje, że akcja trwa.
 - **Wszystko, co jest pokazem, ma ramkę DEMO** (przykładowe pytania, logowanie e-mailem, ustawienia konta), żeby było jasne, co jest demo, a co usługą.
 
@@ -148,14 +152,16 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **Anna** opiekuje się mamą po udarze, ma profil potrzeb i krąg w Przęsłach. **dr Marek** ma Panel mentora z trzema sprawami. **Koordynatorka** widzi pełny panel z przykładowymi leadami, wnioskami, rozmowami, zgłoszeniami i opiniami.
 - **Logowanie i rejestracja** w demo to podgląd, a „zarejestruj się automatycznie jako mieszkaniec / specjalista” wpuszcza jako przykładowa osoba. W wersji docelowej logowanie e-mailem.
 - Dane przykładowe: `pnpm seed:demo` i `pnpm seed:demo-extra` (można puszczać wiele razy).
+- W stopce: „Prototyp konkursowy HackYeah 2026 (zadanie ROPS Kraków), nie jest oficjalnym serwisem ROPS”. Bez logo ROPS - znak instytucji wymaga zgody, a obok są dane kontaktowe ROPS, więc ktoś mógłby wziąć prototyp za oficjalną usługę. Źródło danych podane tekstem (CC BY 4.0). Cały serwis ma `noindex` - prototyp nie trafia do wyszukiwarek.
+- Makiety UX/UI (`/makiety`) to zrzuty z działającej aplikacji, z opisem decyzji przy każdym ekranie.
 
 ## 8. Koszty i utrzymanie
 
 - Infrastruktura: Supabase Pro ok. 25 USD / mies., Netlify Pro ok. 19 USD / mies.
-- AI, zmierzone na prototypie: dopasowanie ok. 0,07 USD, odpowiedź Mostka 0,05-0,10 USD, plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,01 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD.
+- AI, zmierzone na prototypie: dopasowanie ok. 0,06 USD, odpowiedź Mostka ok. 0,08 USD (kolejne w tej samej rozmowie 0,015-0,03 USD), plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,01 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD.
 - Głos: rozpoznawanie ok. 0,003 USD / min, czytanie ok. 0,015 USD / min. 1000 rozmów głosowych (2 min mówienia + 3 min słuchania) to ok. 51 USD / mies.
-- Przykład dla regionu: 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie to ok. 150-200 USD / mies. za AI. Budżet i limity ustawia ROPS.
-- Każde wywołanie AI zapisuje tokeny i koszt. Koszt miesiąca jest na pulpicie, a Mostek w panelu odpowiada na „ile wydaliśmy na AI” liczbami z dziennika.
+- Przykład dla regionu: 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie to ok. 130-170 USD / mies. za AI, w trybie oszczędnym ok. połowa. Budżet i limity ustawia ROPS.
+- Każde wywołanie AI zapisuje tokeny i koszt, z modelem, który faktycznie odpowiedział (także model zapasowy przy odmowie) i zapisem do cache. W panelu tabela kosztów według modeli, na pulpicie koszt miesiąca, a Mostek w panelu odpowiada na „ile wydaliśmy na AI”. Sprawdzone z rachunkiem Anthropic: Opus 3.10 - 7,53 USD w dzienniku, 7,54 USD w konsoli.
 - Treści: synchronizacja z Biblioteką ROPS (docelowo raz dziennie), CMS dla pracowników, import PDF jednym kliknięciem.
 
 ## 9. Zgodność z zadaniem
@@ -186,9 +192,9 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **Czy AI nie zmyśla innowacji?** Nie może. Wybiera tylko spośród kandydatów z bazy, serwer sprawdza każde ID, każda karta ma link do źródła ROPS.
 - **A liczby w naborach?** Tylko z regulaminu, z dosłownym cytatem i automatycznym sprawdzeniem (`pnpm verify:facts`). Czego nie ma w źródle, Mostek nie podaje.
 - **Co, jeśli ROPS zmieni treści na stronie?** Synchronizacja po skrócie treści wykrywa zmiany i przetwarza tylko je.
-- **Ile to kosztuje?** Ok. 150-200 USD / mies. za AI dla regionu plus ok. 45 USD infrastruktury. Budżet i limity ustawia ROPS.
+- **Ile to kosztuje?** Ok. 130-170 USD / mies. za AI dla regionu (w trybie oszczędnym ok. połowa) plus ok. 45 USD infrastruktury. Budżet i limity ustawia ROPS.
 - **Da się go zmusić do przeklinania albo polityki?** Cztery warstwy, przełączniki ROPS i dziennik zdarzeń.
-- **Dlaczego nie zwykły chatbot?** Matchmaking działa na uporządkowanej wiedzy, a Mostek prowadzi do działania (zgłoszenie, fiszka, plan, krąg, rozmowa z ROPS), które zawsze zatwierdza człowiek.
+- **Czym MostIn różni się od asystenta czatowego?** Matchmaking działa na uporządkowanej wiedzy, a Mostek prowadzi do działania (zgłoszenie, fiszka, plan, krąg, rozmowa z ROPS), które zawsze zatwierdza człowiek.
 - **ROPS mówi o ok. 200 innowacjach, a tu jest 115?** Publiczna Biblioteka ROPS ma dokładnie 115 opisanych innowacji i wszystkie są w MostIn. Pozostałe są tylko w publikacjach - CMS i importer pozwalają je dodać bez zmian w kodzie.
 - **Czy to spełnia WCAG?** Projektowane pod WCAG 2.1 AA, 0 naruszeń w automatycznym teście axe na 16 stronach. Pełny audyt z czytnikiem w planach.
 

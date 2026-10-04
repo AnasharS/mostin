@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { ARCHETYPES, LENGTH_PROMPT, ADDRESS_PROMPT, type ArchetypeId } from "./persona"
 
 export type AiPolicy = {
+  /** tryb oszczędny - ustawiany przez guardInput po przekroczeniu budżetu (nie jest kolumną w bazie) */
+  economy?: boolean
   block_profanity: boolean
   block_insults: boolean
   mask_personal_data: boolean

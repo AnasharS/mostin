@@ -1,7 +1,8 @@
 import "server-only"
 import { sitemapPrompt } from "@/lib/site/sitemap"
 import Anthropic from "@anthropic-ai/sdk"
-import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
+import { anthropic, FALLBACK, textModel } from "@/lib/ai/clients"
+import { usageOf, type AiUsage } from "@/lib/ai/usage"
 import { policyPrompt, tonePrompt, type AiPolicy } from "@/lib/ai/policy"
 import { sanitizeOutput } from "@/lib/ai/guard"
 import { factsPrompt } from "@/lib/jst/facts"
@@ -61,6 +62,19 @@ ${factsPrompt()}
 const MAX_STEPS = 6
 
 /**
+ * Kopia rozmowy ze znacznikiem cache na ostatnim bloku: kolejne kroki (wyniki narzędzi) i kolejne pytania czytają dotychczasową
+ * historię z cache (Opus: 0,20 zamiast 4 USD za 1M tokenów). Znacznik tylko w zapytaniu - zapisana historia zostaje bez niego
+ * (Anthropic dopuszcza najwyżej 4 znaczniki; tu: prompt systemowy x2 + koniec rozmowy).
+ */
+function withCacheTail(messages: Anthropic.Beta.BetaMessageParam[]): Anthropic.Beta.BetaMessageParam[] {
+  const last = messages.at(-1)
+  if (!last) return messages
+  const blocks = (typeof last.content === "string" ? [{ type: "text" as const, text: last.content }] : [...last.content]) as Anthropic.Beta.BetaContentBlockParam[]
+  blocks[blocks.length - 1] = { ...blocks[blocks.length - 1], cache_control: { type: "ephemeral" } } as Anthropic.Beta.BetaContentBlockParam
+  return [...messages.slice(0, -1), { ...last, content: blocks }]
+}
+
+/**
  * Pętla agenta (manualna, ze strumieniowaniem). Historia `messages` jest append-only -
  * zwracamy dopisane wiadomości, które route zapisuje w sesji bez modyfikacji.
  */
@@ -68,7 +82,7 @@ export async function* runMostek(
   history: Anthropic.Beta.BetaMessageParam[],
   userText: string,
   policy: AiPolicy,
-  opts: { plain?: boolean; mode?: "grant" | "rops"; onUsage?: (u: Anthropic.Beta.BetaUsage) => void } = {},
+  opts: { plain?: boolean; mode?: "grant" | "rops"; onUsage?: (u: AiUsage) => void } = {},
 ): AsyncGenerator<MostekEvent, Anthropic.Beta.BetaMessageParam[]> {
   const appended: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: userText }]
   const messages = [...history, ...appended]
@@ -94,16 +108,18 @@ export async function* runMostek(
     ...(opts.mode === "grant" ? [{ type: "text" as const, text: GRANT_SYSTEM() }] : []),
     ...(opts.mode === "rops" ? [{ type: "text" as const, text: ROPS_SYSTEM }] : []),
   ]
+  // cały prompt systemowy w cache (ton, mapa serwisu, tryb) - drugi znacznik na ostatnim bloku
+  system[system.length - 1] = { ...system[system.length - 1], cache_control: { type: "ephemeral" } }
 
   for (let step = 0; step < MAX_STEPS; step++) {
     const stream = anthropic.beta.messages.stream({
-      model: MODELS.text,
+      model: textModel(policy),
       max_tokens: 4000,
       ...FALLBACK,
       output_config: { effort: "low" },
       system,
       tools: opts.mode === "rops" ? [...TOOLS, ...ROPS_TOOLS] : TOOLS,
-      messages,
+      messages: withCacheTail(messages),
     })
 
     const queue: MostekEvent[] = []
@@ -123,7 +139,7 @@ export async function* runMostek(
       else await new Promise<void>((r) => (wake = r))
     }
     const message = await final
-    opts.onUsage?.(message.usage)
+    opts.onUsage?.(usageOf(message))
 
     const assistant: Anthropic.Beta.BetaMessageParam = { role: "assistant", content: message.content }
     messages.push(assistant)

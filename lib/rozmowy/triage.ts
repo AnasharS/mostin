@@ -5,8 +5,9 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
 import { getPolicy, policyPrompt, tonePrompt } from "@/lib/ai/policy"
 import { embedOne, toPgVector } from "@/lib/ai/embeddings"
-import { logUsage } from "@/lib/ai/usage"
+import { logUsage, usageOf } from "@/lib/ai/usage"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { matchInnovations } from "@/lib/match/rare"
 
 export const THREAD_CATEGORIES = {
   pytanie_ogolne: "Pytanie ogólne",
@@ -38,13 +39,7 @@ export async function triageThread(threadId: number) {
   const policy = await getPolicy()
 
   // kilka pasujących innowacji, żeby szkic mógł się do nich odwołać (tylko dane z bazy)
-  const { data: inn } = await db.rpc("match_innovations", {
-    query_embedding: toPgVector(await embedOne(text)),
-    query_text: text,
-    filter_categories: null,
-    filter_target_groups: null,
-    match_count: 4,
-  })
+  const { data: inn } = await matchInnovations(db, { embedding: toPgVector(await embedOne(text)), queryText: text, count: 4 })
   const ids = ((inn ?? []) as { id: number }[]).map((i) => i.id)
   const { data: full } = await db.from("innovations").select("id, title, summary, problem, solution, implementation_requirements, contact").in("id", ids.length ? ids : [-1])
   const res = await anthropic.beta.messages.parse({
@@ -62,7 +57,7 @@ export async function triageThread(threadId: number) {
     }],
   })
   if (!res.parsed_output) return
-  void logUsage({ route: "rozmowy.triage", model: MODELS.fast, input_tokens: res.usage.input_tokens, output_tokens: res.usage.output_tokens, cache_read_tokens: res.usage.cache_read_input_tokens ?? 0 })
+  void logUsage({ route: "rozmowy.triage", model: MODELS.fast, usage: usageOf(res) })
   const r = noDashesDeep(res.parsed_output)
   await db.from("threads").update({ category: r.category, priority: r.priority, ai_summary: r.summary, ai_draft: r.draft_reply }).eq("id", threadId)
 }

@@ -76,7 +76,7 @@ export async function MatchPage({ audience, problem }: { audience: MatchAudience
       <Breadcrumbs items={audience === "res" ? [] : [{ label: "Znajdź rozwiązanie" }]} />
       <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight md:text-5xl">{c.title}</h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">{c.lead(count ?? 0)}</p>
-      <MatchFlow initialText={problem} label={c.label} placeholder={c.placeholder} examples={c.examples} />
+      <MatchFlow audience={audience} initialText={problem} label={c.label} placeholder={c.placeholder} examples={c.examples} />
       <ol className="mt-10 border-t">
         {c.next.map(([href, t, d], i) => (
           <li key={href} className="border-b">

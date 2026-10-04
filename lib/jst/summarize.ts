@@ -4,7 +4,7 @@ import { z } from "zod"
 import type Anthropic from "@anthropic-ai/sdk"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
-import { logUsage } from "@/lib/ai/usage"
+import { logUsage, usageOf } from "@/lib/ai/usage"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 const LeadSummary = z.object({
@@ -35,7 +35,7 @@ export async function summarizeLead(leadId: string, messages: Anthropic.Beta.Bet
     messages: [{ role: "user", content: `<rozmowa>\n${transcript}\n</rozmowa>` }],
   })
   if (!res.parsed_output) return
-  void logUsage({ route: "jst.summary", model: MODELS.fast, input_tokens: res.usage.input_tokens, output_tokens: res.usage.output_tokens })
+  void logUsage({ route: "jst.summary", model: MODELS.fast, usage: usageOf(res) })
   await createAdminClient().from("jst_leads").update({
     ...noDashesDeep(res.parsed_output), status: "w_rozmowie", last_activity_at: new Date().toISOString(),
   }).eq("id", leadId).in("status", ["nowy", "w_rozmowie"])

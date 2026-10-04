@@ -51,9 +51,7 @@ export async function POST(req: Request) {
     void logUsage({
       route: "adapt",
       model: MODELS.text,
-      input_tokens: usage.input_tokens,
-      output_tokens: usage.output_tokens,
-      cache_read_tokens: usage.cache_read_input_tokens ?? 0,
+      usage,
       user_id: user?.id,
       session_key: sessionKey,
     })

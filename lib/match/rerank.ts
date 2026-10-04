@@ -2,7 +2,8 @@ import "server-only"
 import { noDashesDeep } from "@/lib/text"
 import { z } from "zod"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
-import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
+import { anthropic, FALLBACK, textModel } from "@/lib/ai/clients"
+import { usageOf } from "@/lib/ai/usage"
 import { policyPrompt, tonePrompt, prefersPlain, type AiPolicy } from "@/lib/ai/policy"
 import type { ProblemStructure } from "./analyze"
 
@@ -16,6 +17,8 @@ export type Candidate = {
   location: string | null
   implementation_requirements?: string | null
   score: number
+  /** rzadkie w katalogu słowa zgłaszającego, które ten kandydat zawiera (np. „spastyczność”) */
+  rare_hits?: string[]
 }
 
 const Ranked = z.object({
@@ -31,18 +34,21 @@ const Ranked = z.object({
 })
 
 export async function rerank(problem: ProblemStructure, original: string, candidates: Candidate[], policy: AiPolicy) {
+  // opisy przycięte do sedna - ocena dopasowania nie potrzebuje pełnych tekstów, a to największa część kosztu tego kroku
+  const clip = (t: string | null | undefined, n: number) => (t && t.length > n ? t.slice(0, n).replace(/\s\S*$/, "") + "…" : t ?? null)
   const list = candidates.map((c) => ({
     id: c.id,
     tytul: c.title,
-    opis: c.summary,
-    problem: c.problem,
-    rozwiazanie: c.solution,
+    opis: clip(c.summary, 250),
+    problem: clip(c.problem, 300),
+    rozwiazanie: clip(c.solution, 300),
     odbiorcy: c.target_groups,
     gdzie: c.location,
-    wymagania: c.implementation_requirements,
+    wymagania: clip(c.implementation_requirements, 150),
+    ...(c.rare_hits?.length ? { nazywa_problem_zglaszajacego: c.rare_hits } : {}),
   }))
   const res = await anthropic.beta.messages.parse({
-    model: MODELS.text,
+    model: textModel(policy),
     max_tokens: 6000,
     ...FALLBACK,
     output_config: { effort: "low", format: betaZodOutputFormat(Ranked) },
@@ -52,7 +58,9 @@ export async function rerank(problem: ProblemStructure, original: string, candid
         text: `Jesteś doradcą Małopolskiego Hubu Innowacji Społecznych. Oceniasz, które innowacje z katalogu
 najlepiej odpowiadają na zgłoszony problem. Wybierasz WYŁĄCZNIE spośród podanych kandydatów (po ich id).
 Piszesz po polsku, prosto i życzliwie, zwracając się do zgłaszającego na „Ty”/„Państwo” zależnie od typu użytkownika.
-Uczciwie oceniasz dopasowanie - lepiej pokazać 2 trafne rozwiązania niż 5 naciąganych.`,
+Uczciwie oceniasz dopasowanie - lepiej pokazać 2 trafne rozwiązania niż 5 naciąganych.
+Kandydat z polem nazywa_problem_zglaszajacego zawiera słowo ze zgłoszenia, które w katalogu jest rzadkie (np. nazwę schorzenia) -
+to zwykle najtrafniejsza odpowiedź: jeśli pasują odbiorcy, umieść go na pierwszym miejscu.`,
         cache_control: { type: "ephemeral" },
       },
       { type: "text", text: policyPrompt(policy) + "\n" + tonePrompt(policy, { plain: await prefersPlain() }) },
@@ -67,5 +75,5 @@ Uczciwie oceniasz dopasowanie - lepiej pokazać 2 trafne rozwiązania niż 5 nac
   const allowed = new Set(candidates.map((c) => c.id))
   const out = noDashesDeep(res.parsed_output)
   const matches = out.matches.filter((m) => allowed.has(m.innovation_id)).slice(0, 5)
-  return { ...out, matches, usage: res.usage }
+  return { ...out, matches, usage: usageOf(res) }
 }

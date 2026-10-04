@@ -3,6 +3,7 @@ import { noDashesDeep } from "@/lib/text"
 import { z } from "zod"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
+import { usageOf } from "@/lib/ai/usage"
 import { CATEGORIES, TARGET_GROUPS } from "@/lib/ai/taxonomy"
 
 export const ProblemStructure = z.object({
@@ -39,5 +40,5 @@ export async function analyzeProblem(text: string) {
     messages: [{ role: "user", content: `<zgloszenie>\n${text}\n</zgloszenie>` }],
   })
   if (res.stop_reason === "refusal" || !res.parsed_output) throw new Error("Nie udało się przeanalizować opisu")
-  return { data: noDashesDeep(res.parsed_output), usage: res.usage }
+  return { data: noDashesDeep(res.parsed_output), usage: usageOf(res) }
 }

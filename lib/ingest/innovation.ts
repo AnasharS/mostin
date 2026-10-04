@@ -21,9 +21,7 @@ export async function ingestInnovation(id: number) {
     await logUsage({
       route: "ingest.innovation",
       model: MODELS.text,
-      input_tokens: usage.input_tokens,
-      output_tokens: usage.output_tokens,
-      cache_read_tokens: usage.cache_read_input_tokens ?? 0,
+      usage,
     })
     const searchText = `${row.title}. ${data.search_text}`
     const embedding = await embedOne(searchText)

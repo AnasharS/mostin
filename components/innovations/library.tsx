@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useState } from "react"
 import Link from "next/link"
 import { Play, Search, X } from "lucide-react"
 import { CATEGORIES, TARGET_GROUPS, label } from "@/lib/ai/taxonomy"
-import { norm } from "@/lib/search"
+import { queryStems } from "@/lib/search"
 
 export type LibraryItem = {
   id: number
@@ -33,14 +33,16 @@ export function Library({ items, initial }: { items: LibraryItem[]; initial: { q
   const [etap, setEtap] = useState(initial.etap)
   const ids = { q: useId(), k: useId(), d: useId(), e: useId() }
 
-  const results = useMemo(() => {
-    const words = norm(q).split(/[^a-z0-9]+/).filter((w) => w.length > 1)
-    return items.filter((i) =>
-      (!kategoria || i.categories.includes(kategoria)) &&
-      (!dla || i.target_groups.includes(dla)) &&
-      (!etap || i.stage === etap) &&
-      words.every((w) => i.haystack.includes(" " + w)),
-    )
+  const { results, partial } = useMemo(() => {
+    const words = queryStems(q)
+    const filtered = items.filter((i) => (!kategoria || i.categories.includes(kategoria)) && (!dla || i.target_groups.includes(dla)) && (!etap || i.stage === etap))
+    const all = filtered.filter((i) => words.every((w) => i.haystack.includes(" " + w)))
+    if (all.length || words.length < 2) return { results: all, partial: false }
+    // całe pytanie („mam dziecko ze spastycznością, co mogę zrobić?”) rzadko pasuje słowo w słowo - wtedy pokazujemy innowacje
+    // pasujące do największej liczby słów, z informacją, że to wyniki częściowe
+    const hits = filtered.map((i) => ({ i, n: words.filter((w) => i.haystack.includes(" " + w)).length })).filter((x) => x.n > 0)
+    const best = Math.max(0, ...hits.map((x) => x.n))
+    return { results: hits.filter((x) => x.n === best).map((x) => x.i), partial: true }
   }, [items, q, kategoria, dla, etap])
 
   // adres odzwierciedla filtry (bez przeładowania); wpisywany tekst z krótkim opóźnieniem
@@ -98,6 +100,7 @@ export function Library({ items, initial }: { items: LibraryItem[]; initial: { q
 
       <p className="mt-6 flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground" role="status" aria-live="polite">
         <span><strong className="text-foreground">{results.length}</strong> {results.length === 1 ? "innowacja" : results.length % 10 >= 2 && results.length % 10 <= 4 && (results.length % 100 < 12 || results.length % 100 > 14) ? "innowacje" : "innowacji"}</span>
+        {partial && results.length > 0 && <span>pasujących do części słów - żadna nie zawiera wszystkich</span>}
         {any && (
           <button type="button" onClick={clear} className="inline-flex items-center gap-1 underline underline-offset-4 hover:text-foreground">
             <X aria-hidden="true" className="size-3.5" /> wyczyść filtry

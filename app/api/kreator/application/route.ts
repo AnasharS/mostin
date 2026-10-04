@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   if (!wanted.length) return Response.json({ ok: false, message: "Brak sekcji do napisania" }, { status: 400 })
   try {
     const { sections, sources, usage } = await generateApplication(p.canvas, wanted, rules, p.policy)
-    void logUsage({ route: "kreator.application", model: MODELS.text, input_tokens: usage.input, output_tokens: usage.output, user_id: p.user?.id, session_key: p.sessionKey })
+    void logUsage({ route: "kreator.application", model: MODELS.text, usage, user_id: p.user?.id, session_key: p.sessionKey })
     if (typeof p.body?.ideaId === "number") {
       // jeden szkic wniosku na pomysł i nabór - kolejne części dopisują sekcje
       const { data: existing } = await db.from("applications").select("id, content").eq("idea_id", p.body.ideaId).eq("call_id", call.id).maybeSingle()

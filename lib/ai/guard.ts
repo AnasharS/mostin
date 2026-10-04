@@ -3,6 +3,7 @@ import { openai } from "./clients"
 import { noDashes } from "@/lib/text"
 import { getPolicy, type AiPolicy } from "./policy"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { usageSince, monthStartUtc } from "./usage"
 
 // ── filtr deterministyczny (szybki, darmowy, działa przed jakimkolwiek modelem) ──
 
@@ -48,11 +49,8 @@ async function logEvent(e: { route: string; stage: "input" | "output"; reason: s
 // ── budżet i limity ──
 
 export async function budgetState(p: AiPolicy) {
-  const start = new Date()
-  start.setUTCDate(1)
-  start.setUTCHours(0, 0, 0, 0)
-  const { data } = await createAdminClient().from("ai_usage").select("cost_usd").gte("created_at", start.toISOString())
-  const spent = (data ?? []).reduce((s, r) => s + Number(r.cost_usd), 0)
+  const data = await usageSince(monthStartUtc(), "cost_usd")
+  const spent = data.reduce((s, r) => s + Number(r.cost_usd), 0)
   const pct = p.monthly_budget_usd > 0 ? (spent / p.monthly_budget_usd) * 100 : 0
   return { spent, pct, over: pct >= 100, alert: pct >= p.alert_threshold_pct }
 }
@@ -131,5 +129,6 @@ export async function guardInput(input: { text: string; route: string; userId?: 
   if (masked !== text) {
     await logEvent({ route: input.route, stage: "input", reason: "personal_data", action: "masked", userId: input.userId })
   }
-  return { ok: true, text: masked, policy, economy: budget.over }
+  // tryb oszczędny jedzie razem z polityką - każda funkcja AI wybiera wtedy tańszy model (textModel)
+  return { ok: true, text: masked, policy: { ...policy, economy: budget.over }, economy: budget.over }
 }

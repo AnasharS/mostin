@@ -32,7 +32,9 @@ function fitLabel(fit: number) {
   return "Słabe dopasowanie"
 }
 
-export function MatchFlow({ initialText = "", label = "Twój problem lub potrzeba", placeholder = "Np. Prowadzę klub seniora w małej gminie i chcemy pomóc osobom, które nie wychodzą z domu…", examples = EXAMPLES }: {
+export function MatchFlow({ audience = "res", initialText = "", label = "Twój problem lub potrzeba", placeholder = "Np. Prowadzę klub seniora w małej gminie i chcemy pomóc osobom, które nie wychodzą z domu…", examples = EXAMPLES }: {
+  /** mieszkańcy: „Zobacz rozwiązanie” i „Oceń”; gminy i organizacje: „Dostosuj z Mostkiem” (plan wdrożenia w instytucji) */
+  audience?: "res" | "jst" | "org"
   initialText?: string
   label?: string
   placeholder?: string
@@ -45,6 +47,30 @@ export function MatchFlow({ initialText = "", label = "Twój problem lub potrzeb
   const [result, setResult] = useState<Ok | null>(null)
   const [error, setError] = useState("")
   const resultsRef = useRef<HTMLHeadingElement>(null)
+  const restored = useRef(false)
+  const storeKey = `mostin-match-${audience}`
+
+  // powrót przyciskiem „wstecz” (np. ze strony innowacji) przywraca wyniki i miejsce na stronie - zapis tylko w tej karcie
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(storeKey) ?? "null") as { text: string; result: Ok; y?: number } | null
+      if (!saved?.result || (initialText && initialText !== saved.text)) return
+      restored.current = true
+      /* eslint-disable react-hooks/set-state-in-effect -- odczyt sessionStorage możliwy dopiero po hydratacji */
+      setText(saved.text)
+      setResult(saved.result)
+      setState("done")
+      /* eslint-enable react-hooks/set-state-in-effect */
+      if (saved.y) setTimeout(() => window.scrollTo({ top: saved.y }), 0)
+    } catch {}
+  }, [storeKey, initialText])
+
+  const rememberScroll = () => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(storeKey) ?? "null")
+      if (saved) sessionStorage.setItem(storeKey, JSON.stringify({ ...saved, y: window.scrollY }))
+    } catch {}
+  }
 
   useEffect(() => {
     if (state !== "loading") return
@@ -57,6 +83,7 @@ export function MatchFlow({ initialText = "", label = "Twój problem lub potrzeb
   }, [state])
 
   useEffect(() => {
+    if (restored.current) { restored.current = false; return }
     if (state === "done" || state === "error") resultsRef.current?.focus()
   }, [state])
 
@@ -79,6 +106,7 @@ export function MatchFlow({ initialText = "", label = "Twój problem lub potrzeb
       }
       setResult(data)
       setState("done")
+      try { sessionStorage.setItem(storeKey, JSON.stringify({ text, result: data })) } catch {}
     } catch {
       setState("error")
       setError("Nie udało się połączyć. Sprawdź internet i spróbuj ponownie.")
@@ -138,13 +166,13 @@ export function MatchFlow({ initialText = "", label = "Twój problem lub potrzeb
           </div>
         )}
 
-        {state === "done" && result && <Results result={result} headingRef={resultsRef} problem={text} />}
+        {state === "done" && result && <Results result={result} headingRef={resultsRef} problem={text} audience={audience} onLeave={rememberScroll} />}
       </div>
     </>
   )
 }
 
-function Results({ result, headingRef, problem }: { result: Ok; headingRef: React.RefObject<HTMLHeadingElement | null>; problem: string }) {
+function Results({ result, headingRef, problem, audience, onLeave: rememberScroll }: { result: Ok; headingRef: React.RefObject<HTMLHeadingElement | null>; problem: string; audience: "res" | "jst" | "org"; onLeave: () => void }) {
   const { analysis, matches, coverage, gap, context } = result
   const creatorHref = `/kreator?problem=${encodeURIComponent(analysis.summary)}&luka=${encodeURIComponent(gap)}`
   return (
@@ -209,12 +237,26 @@ function Results({ result, headingRef, problem }: { result: Ok; headingRef: Reac
                   </div>
                 </dl>
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Link href={`/innowacje/${m.id}/dostosuj?problem=${encodeURIComponent(problem)}`} className={buttonVariants({ size: "lg" }) + " h-10 px-4"}>
-                  Dostosuj z Mostkiem
-                </Link>
-                <Link href={`/innowacje/${m.id}`} className={buttonVariants({ variant: "outline", size: "lg" }) + " h-10 px-4"}>
-                  Szczegóły
-                </Link>
+                {audience === "res" ? (
+                  <>
+                    {/* mieszkaniec: najpierw samo rozwiązanie; plan wdrożenia („Dostosuj”) jest dla instytucji */}
+                    <Link href={`/innowacje/${m.id}`} onClick={rememberScroll} className={buttonVariants({ size: "lg" }) + " h-10 px-4"}>
+                      Zobacz rozwiązanie
+                    </Link>
+                    <Link href={`/innowacje/${m.id}#opinie`} onClick={rememberScroll} className={buttonVariants({ variant: "outline", size: "lg" }) + " h-10 px-4"}>
+                      Oceń rozwiązanie
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href={`/innowacje/${m.id}/dostosuj?problem=${encodeURIComponent(problem)}`} onClick={rememberScroll} className={buttonVariants({ size: "lg" }) + " h-10 px-4"}>
+                      Dostosuj z Mostkiem
+                    </Link>
+                    <Link href={`/innowacje/${m.id}`} onClick={rememberScroll} className={buttonVariants({ variant: "outline", size: "lg" }) + " h-10 px-4"}>
+                      Szczegóły
+                    </Link>
+                  </>
+                )}
                 {m.media.find((x) => x.type === "video") && (
                   <a href={m.media.find((x) => x.type === "video")!.url} className="text-sm underline" target="_blank" rel="noreferrer">
                     Film o innowacji <span className="sr-only">(otwiera się w nowej karcie)</span>

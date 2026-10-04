@@ -137,7 +137,7 @@ export function SiteFooter() {
           <p>
             Dane innowacji: <a href="https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie" target="_blank" rel="noreferrer">Biblioteka Innowacji Społecznych ROPS Kraków</a> (CC BY 4.0)
           </p>
-          <p>Prototyp na HackYeah 2026 · Projekt i realizacja: Maciej Senderowski · <a href="https://redrocks.dev" target="_blank" rel="noreferrer">RedRockS</a></p>
+          <p>Prototyp konkursowy HackYeah 2026 (zadanie ROPS Kraków), nie jest oficjalnym serwisem ROPS · <Link href="/makiety">Makiety UX/UI</Link> · Projekt i realizacja: Maciej Senderowski · <a href="https://redrocks.dev" target="_blank" rel="noreferrer">RedRockS</a></p>
         </div>
       </div>
     </footer>

@@ -10,7 +10,7 @@
  * obramowanie pól/bg 3.26:1 (WCAG 1.4.11).
  */
 :root {
-  --radius: 0rem;                /* ostre krawędzie - styl serwisów publicznych, bez „zaokrąglonych kart AI” */
+  --radius: 0rem;                /* ostre krawędzie - styl serwisów publicznych */
 
   --brand: #e85d2a;              /* MostIn Orange - znak, „In”, linia mostu, kropka Mostka */
   --brand-dark: #a83b18;         /* linki w tekście */

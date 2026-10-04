@@ -2,7 +2,8 @@ import "server-only"
 import { noDashesDeep } from "@/lib/text"
 import { z } from "zod"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
-import { anthropic, MODELS, FALLBACK } from "@/lib/ai/clients"
+import { anthropic, FALLBACK, textModel } from "@/lib/ai/clients"
+import { usageOf, sumUsage } from "@/lib/ai/usage"
 import { policyPrompt, tonePrompt, prefersPlain, type AiPolicy } from "@/lib/ai/policy"
 
 export const AdaptContext = z.object({
@@ -80,7 +81,7 @@ export async function generateAdaptationPlan(innovation: InnovationForAdapt, ctx
   const content = `<innowacja>\n${JSON.stringify(innovation)}\n</innowacja>\n<instytucja>\n${JSON.stringify(ctx)}\n</instytucja>`
   const call = <T extends typeof PartA | typeof PartB>(schema: T, focus: string) =>
     anthropic.beta.messages.parse({
-      model: MODELS.text,
+      model: textModel(policy),
       max_tokens: 5000,
       ...FALLBACK,
       output_config: { effort: "low", format: betaZodOutputFormat(schema) },
@@ -96,10 +97,6 @@ export async function generateAdaptationPlan(innovation: InnovationForAdapt, ctx
     if (r.stop_reason === "refusal" || !r.parsed_output) throw new Error("Nie udało się przygotować planu")
   }
   const plan = noDashesDeep({ ...a.parsed_output!, ...b.parsed_output! }) as AdaptationPlan
-  const usage = {
-    input_tokens: a.usage.input_tokens + b.usage.input_tokens,
-    output_tokens: a.usage.output_tokens + b.usage.output_tokens,
-    cache_read_input_tokens: (a.usage.cache_read_input_tokens ?? 0) + (b.usage.cache_read_input_tokens ?? 0),
-  }
+  const usage = sumUsage([usageOf(a), usageOf(b)])
   return { plan, usage }
 }
