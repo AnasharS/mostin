@@ -153,7 +153,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **Anna** opiekuje się mamą po udarze, ma profil potrzeb i krąg w Przęsłach. **dr Marek** ma Panel mentora z trzema sprawami. **Koordynatorka** widzi pełny panel z przykładowymi leadami, wnioskami, rozmowami, zgłoszeniami i opiniami.
 - **Logowanie i rejestracja** w demo to podgląd, a „zarejestruj się automatycznie jako mieszkaniec / specjalista” wpuszcza jako przykładowa osoba. W wersji docelowej logowanie e-mailem.
 - Dane przykładowe: `pnpm seed:demo` i `pnpm seed:demo-extra` (można puszczać wiele razy).
-- W stopce: „Prototyp konkursowy HackYeah 2026 (zadanie ROPS Kraków), nie jest oficjalnym serwisem ROPS”. Bez logo ROPS - znak instytucji wymaga zgody, a obok są dane kontaktowe ROPS, więc ktoś mógłby wziąć prototyp za oficjalną usługę. Źródło danych podane tekstem (CC BY 4.0). Cały serwis ma `noindex` - prototyp nie trafia do wyszukiwarek.
+- W stopce: „Prototyp konkursowy HackYeah 2026 (zadanie ROPS Kraków), nie jest oficjalnym serwisem ROPS”. Bez logo ROPS (znak instytucji wymaga zgody) i bez prawdziwych danych kontaktowych ROPS - w stopce są dane przykładowe, żeby nikt nie wziął prototypu za oficjalną usługę. Źródło danych podane tekstem (CC BY 4.0). Cały serwis ma `noindex` - prototyp nie trafia do wyszukiwarek.
 - Makiety UX/UI (`/makiety`) to zrzuty z działającej aplikacji, z opisem decyzji przy każdym ekranie.
 
 ## 8. Koszty i utrzymanie

@@ -10,7 +10,7 @@ export default async function AdminAccount() {
     <div className="max-w-3xl">
       <h1 className="text-2xl font-semibold">Moje konto</h1>
       <p className="mt-1 text-sm text-muted-foreground">Zalogowano jako <strong className="text-foreground">{me.display_name}</strong>.</p>
-      <AccountMock className="mt-6" email={me.email ?? "k***@rops.krakow.pl"} note="Docelowo konto pracownika ROPS z logowaniem e-mailem." />
+      <AccountMock className="mt-6" email={me.email ?? "k***@przyklad.pl"} note="Docelowo konto pracownika ROPS z logowaniem e-mailem." />
     </div>
   )
 }

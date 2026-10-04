@@ -73,17 +73,14 @@ export async function SiteHeader() {
   )
 }
 
-// Dane kontaktowe ROPS ze stopki i strony Kontakt na rops.krakow.pl (sprawdzone 3.10.2026)
-const ROPS = {
-  name: "Regionalny Ośrodek Polityki Społecznej w Krakowie",
-  address: "ul. Piastowska 32, 30-070 Kraków",
-  phone: "(+48 12) 422 06 36",
-  phoneHref: "tel:+48124220636",
-  email: "biuro@rops.krakow.pl",
+// Dane kontaktowe instytucji prowadzącej Hub - w prototypie przykładowe, żeby serwis nie udawał oficjalnego kanału ROPS.
+// We wdrożeniu wystarczy podmienić te pola.
+const CONTACT = {
+  name: "Instytucja prowadząca Hub",
+  address: "ul. Przykładowa 1, 00-000 Miasto",
+  phone: "00 000 00 00",
+  email: "kontakt@przyklad.pl",
   hours: "pon.-pt. 8:00-16:00",
-  contact: "https://rops.krakow.pl/kontakt/regionalny-osrodek-polityki-spolecznej-w-krakowie",
-  facebook: "https://www.facebook.com/ROPS.Krakow/",
-  youtube: "https://www.youtube.com/channel/UC4KEW7FaoODgDKLxbUwhnVw",
 }
 
 export function SiteFooter() {
@@ -96,20 +93,16 @@ export function SiteFooter() {
           <p className="mt-3 max-w-xs text-muted-foreground"><Tagline /> - cyfrowe serce Małopolskiego Hubu Innowacji Społecznych.</p>
         </div>
         <div>
-          <p className={head}>Kontakt z ROPS</p>
+          <p className={head}>Kontakt</p>
           <address className="mt-3 space-y-1 not-italic">
-            <span className="block font-semibold">{ROPS.name}</span>
-            <span className="block">{ROPS.address}</span>
-            <span className="block">tel. <a href={ROPS.phoneHref}>{ROPS.phone}</a> · {ROPS.hours}</span>
-            <span className="block"><a href={`mailto:${ROPS.email}`}>{ROPS.email}</a></span>
+            <span className="block font-semibold">{CONTACT.name}</span>
+            <span className="block">{CONTACT.address}</span>
+            <span className="block">tel. {CONTACT.phone} · {CONTACT.hours}</span>
+            <span className="block">{CONTACT.email}</span>
           </address>
-          <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+          <p className="mt-2 text-xs text-muted-foreground">Dane przykładowe - w prototypie nie podajemy prawdziwych danych kontaktowych.</p>
+          <p className="mt-3">
             <Link href="/rozmowy/nowa">Napisz przez MostIn</Link>
-            <a href={ROPS.contact} target="_blank" rel="noreferrer">Pełne dane kontaktowe</a>
-          </p>
-          <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-            <a href={ROPS.facebook} target="_blank" rel="noreferrer">Facebook ROPS</a>
-            <a href={ROPS.youtube} target="_blank" rel="noreferrer">YouTube ROPS</a>
           </p>
         </div>
         <div>
