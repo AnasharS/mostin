@@ -133,7 +133,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-x-6 gap-y-2 px-4 py-4 text-xs text-muted-foreground">
+        <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-x-6 gap-y-2 px-4 pt-4 pb-24 text-xs text-muted-foreground">
           <p>
             Dane innowacji: <a href="https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie" target="_blank" rel="noreferrer">Biblioteka Innowacji Społecznych ROPS Kraków</a> (CC BY 4.0)
           </p>

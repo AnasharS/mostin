@@ -26,7 +26,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
   - Lepiej 2 trafne niż 5 naciąganych. Gdy katalog nie pokrywa problemu, system to mówi i prowadzi do Kreatora („nie ma rozwiązania, stwórz je”).
   - Supabase nie ma polskiego słownika, więc pełnotekstowe szuka po rdzeniach słów (`spastyczn:*`) i bez polskich znaków. Resztę odmiany łapią embeddingi.
 - Strojenie na prawdziwym scenariuszu: „syn ma spastyczność rąk, nie stać mnie na rehabilitację” powinno dać Edki (kredki terapeutyczne). Na starcie 8. miejsce, po poprawkach (rdzenie słów, pula z obu rankingów, waga rzadkich słów użytkownika, drugie wyszukiwanie po dosłownych słowach) pierwsze. Scenariusze kontrolne (seniorzy, rodziny z Ukrainy) dalej działają.
-- Rzadkie słowa (`lib/match/rare.ts`): ogólne słowa z pytania („innowacje”, „osoby”) pasują do dziesiątek opisów, a „spastyczność” jest tylko w opisie Edek. Do tego analiza AI potrafi przepisać „spastyczność” na „niepełnosprawność ruchową”. Dlatego słowa występujące w najwyżej 5 innowacjach bierzemy z oryginalnego tekstu, szukamy po nich osobno i dajemy premię zależną od rzadkości. Ten sam mechanizm działa w dopasowaniu, Mostku, triażu rozmów i Kreatorze. Test: 5 sformułowań ze spastycznością w 5 miejscach - Edki pierwsze (raz drugie, przy pomyśle wypożyczalni).
+- Rzadkie słowa (`lib/match/rare.ts`): ogólne słowa z pytania („innowacje”, „osoby”) pasują do dziesiątek opisów, a „spastyczność” jest tylko w opisie Edek. Do tego analiza AI potrafi przepisać „spastyczność” na „niepełnosprawność ruchową”. Dlatego słowa występujące w najwyżej 5 innowacjach biorę z oryginalnego tekstu, szukam po nich osobno i daję premię zależną od rzadkości. Ten sam mechanizm działa w dopasowaniu, Mostku, triażu rozmów i Kreatorze. Test: 5 sformułowań ze spastycznością w 5 miejscach - Edki pierwsze (raz drugie, przy pomyśle wypożyczalni).
 
 ### II. Zasobnik wiedzy - Baza wiedzy
 - **Biblioteka innowacji**: 115 innowacji, wyszukiwanie i filtry na żywo (obszar, dla kogo, etap). Wyszukiwanie po rdzeniach słów („dziecko” trafia w „dzieci”); gdy nic nie zawiera wszystkich słów, pokazuje innowacje pasujące do części. Tagi na stronie innowacji prowadzą do Biblioteki z tym filtrem.
@@ -46,7 +46,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **Wyślij do ROPS** jednym kliknięciem - rozmowa w skrzynce ROPS z pełną kanwą.
 - **Generator wniosku** - tylko gdy trwa nabór z formularzem (dziś „Inkubator Włączenia Społecznego 2.0”, 10 sekcji według prawdziwego wzoru). Diagnoza bierze dane z raportów ROPS i Mapy Wyzwań. Kwot i zespołu nie wymyśla, wstawia [DO UZUPEŁNIENIA]. Szkic do pobrania jako .docx i .odt, do skopiowania albo druku.
 - Decyzje:
-  - Sekcje 2 (dane pomysłodawcy) i 12 (oświadczenia) świadomie bez AI: dane osobowe i odpowiedzialność karna.
+  - Sekcje 2 (dane pomysłodawcy) i 12 (oświadczenia) bez AI: dane osobowe i odpowiedzialność karna.
   - Cały wniosek w jednym wywołaniu to ok. 40 s, a Netlify ucina po 30 s. Przeglądarka wysyła 6 równoległych żądań po 1-3 sekcje i sekcje pojawiają się po kolei.
   - .docx i .odt składam w przeglądarce (to zipy z XML-em), bez dużych bibliotek.
   - Gdy ROPS ogłasza nabór z obszarami, autorzy fiszek z tych obszarów dostają wiadomość (raz na nabór).
@@ -119,7 +119,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **Maskowanie danych osobowych** (PESEL, telefon, e-mail, numer konta), zanim tekst trafi do AI i do bazy.
 - **Nie pytam o niepełnosprawność ani diagnozy.** Do dopasowania wystarczą obszary potrzeb.
 - **Bez konta**: anonimowa sesja z kluczem w ciasteczku httpOnly. Profil potrzeb i lead gminy są przypięte do sesji.
-- **Przęsła bez konta - świadomie.** Nie weryfikuję, kim ktoś jest, tylko że to ta sama osoba (klucz sesji `mostin_sid`, 30 dni). Każda akcja w kręgu sprawdza na serwerze członkostwo, rozmowę czytają tylko członkowie. Chronię treść, nie tożsamość: moderacja każdej wiadomości, ukryte dane kontaktowe, kontakt prywatny za zgodą obu stron, zgłoszenia rozpatruje ROPS. Konto z e-mailem odstraszyłoby osoby, którym grupa wsparcia jest najbardziej potrzebna. Ograniczenia: dołączyć może każdy, po wyczyszczeniu ciasteczek ta sama osoba wraca jako nowa, a na innym urządzeniu nie ma dostępu do swojego kręgu.
+- **Przęsła bez konta.** Nie weryfikuję, kim ktoś jest, tylko że to ta sama osoba (klucz sesji `mostin_sid`, 30 dni). Każda akcja w kręgu sprawdza na serwerze członkostwo, rozmowę czytają tylko członkowie. Chronię treść, nie tożsamość: moderacja każdej wiadomości, ukryte dane kontaktowe, kontakt prywatny za zgodą obu stron, zgłoszenia rozpatruje ROPS. Konto z e-mailem odstraszyłoby osoby, którym grupa wsparcia jest najbardziej potrzebna. Ograniczenia: dołączyć może każdy, po wyczyszczeniu ciasteczek ta sama osoba wraca jako nowa, a na innym urządzeniu nie ma dostępu do swojego kręgu.
 - **Persona administratora tylko w trybie demo** (`DEMO_MODE=true`). Tryb panelu w Mostku sprawdzam na serwerze rolą administratora, a narzędzie kosztów odmawia poza tym trybem.
 - **Pliki od użytkowników**: typ sprawdzany po zawartości pliku, limit rozmiaru i dzienny, moderacja obrazu przed zapisem, zapis przez serwer (kosz w Storage przyjmuje zapis tylko od administratora).
 - **Nagrania głosu** nie są zapisywane, idą tylko do rozpoznania mowy.
@@ -134,7 +134,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - Klawiatura wszędzie, widoczny fokus, „Przejdź do treści”, landmarki, okruszki, etykiety pól, komunikaty dla czytnika, statusy zawsze tekstem.
 - Formularze z opcjami do zaznaczenia zamiast pustych pól, z myślą o seniorach.
 - **Test axe-core (WCAG 2.0 / 2.1 A i AA): 0 naruszeń na 16 stronach publicznych i 6 w widoku telefonu.** Przed poprawkami były 4 rodzaje problemów (kontrast „In” w haśle, link w grupie zakładek, linki odróżnione tylko kolorem, lista w makiecie konta).
-- Uczciwie: to test automatyczny. Pełny audyt (klawiatura, NVDA, panel ROPS) jeszcze przede mną. PDF-y ROPS i filmy na YouTube są poza moją kontrolą.
+- To test automatyczny. Pełny audyt (klawiatura, NVDA, panel ROPS) jeszcze przede mną. PDF-y ROPS i filmy na YouTube są poza moją kontrolą.
 
 ## 6. Interfejs
 
@@ -198,7 +198,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 - **Da się go zmusić do przeklinania albo polityki?** Cztery warstwy, przełączniki ROPS i dziennik zdarzeń.
 - **Czym MostIn różni się od asystenta czatowego?** Matchmaking działa na uporządkowanej wiedzy, a Mostek prowadzi do działania (zgłoszenie, fiszka, plan, krąg, rozmowa z ROPS), które zawsze zatwierdza człowiek.
 - **ROPS mówi o ok. 200 innowacjach, a tu jest 115?** Publiczna Biblioteka ROPS ma dokładnie 115 opisanych innowacji i wszystkie są w MostIn. Pozostałe są tylko w publikacjach - CMS i importer pozwalają je dodać bez zmian w kodzie.
-- **Jak sprawdzacie, kto jest w kręgu, skoro bez konta?** Nie weryfikujemy tożsamości, tylko chronimy treść: rozmowy widzą wyłącznie członkowie kręgu, każda wiadomość jest moderowana, dane kontaktowe są ukrywane, a ROPS reaguje na zgłoszenia. We wdrożeniu dochodzą kręgi z akceptacją moderatora i opcjonalne konto.
+- **Jak sprawdzasz, kto jest w kręgu, skoro bez konta?** Nie weryfikuję tożsamości, chronię treść: rozmowy widzą wyłącznie członkowie kręgu, każda wiadomość jest moderowana, dane kontaktowe są ukrywane, a ROPS reaguje na zgłoszenia. We wdrożeniu dochodzą kręgi z akceptacją moderatora i opcjonalne konto.
 - **Czy to spełnia WCAG?** Projektowane pod WCAG 2.1 AA, 0 naruszeń w automatycznym teście axe na 16 stronach. Pełny audyt z czytnikiem w planach.
 
 ## 12. AI przy budowie

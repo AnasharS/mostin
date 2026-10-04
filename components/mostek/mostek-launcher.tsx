@@ -103,14 +103,14 @@ export function MostekLauncher({ mode }: { mode?: "rops" }) {
           aria-haspopup="dialog"
           aria-keyshortcuts="Alt+M"
         >
-          <span className="hidden border bg-card px-3 py-2 text-left text-sm leading-tight sm:block">
+          <span className={`hidden border bg-card px-3 py-2 text-left text-sm leading-tight ${mode === "rops" ? "" : "sm:block"}`}>
             <span className="block font-semibold">{mode === "rops" ? "Czego szukasz?" : audience?.label ?? "Masz pytanie?"}</span>
             <span className="text-muted-foreground">Zapytaj asystenta Mostka</span>
           </span>
           <span className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground group-hover:bg-brand-dark">
             <MessageCircle aria-hidden="true" className="size-7" />
           </span>
-          <span className="sr-only sm:hidden">Zadaj pytanie asystentowi Mostkowi (Alt+M)</span>
+          <span className={`sr-only ${mode === "rops" ? "" : "sm:hidden"}`}>Zadaj pytanie asystentowi Mostkowi (Alt+M)</span>
         </button>
       )}
       <dialog

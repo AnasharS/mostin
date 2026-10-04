@@ -58,7 +58,7 @@ ROPS ma ogromny zasób wiedzy: opracowane innowacje, raporty, diagnozy, Mapę Wy
 ## Bezpieczeństwo i dane
 
 - Supabase (PostgreSQL, region UE) z **Row Level Security na każdej tabeli**. Klucz serwisowy tylko na serwerze, po sprawdzeniu uprawnień.
-- **Dane kontaktowe w osobnych tabelach, nigdy nie trafiają do AI.** Dane osobowe w opisach są maskowane (PESEL, telefon, e-mail, konto). Nie pytamy o niepełnosprawność ani diagnozy.
+- **Dane kontaktowe w osobnych tabelach, nigdy nie trafiają do AI.** Dane osobowe w opisach są maskowane (PESEL, telefon, e-mail, konto). Serwis nie pyta o niepełnosprawność ani diagnozy.
 - Bez konta: anonimowa sesja w ciasteczku httpOnly. Persona administratora tylko w trybie demo.
 - Zdjęcia od użytkowników: rozpoznanie typu po zawartości, limit rozmiaru i dzienny, moderacja przed zapisem. Nagrania głosu nie są zapisywane.
 - Bez analityki i śledzenia, tylko ciasteczka niezbędne.

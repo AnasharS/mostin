@@ -46,7 +46,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </form>
         </div>
       </aside>
-      <main id="tresc" className="p-4 md:p-8">{children}</main>
+      <main id="tresc" className="p-4 pb-24 md:p-8 md:pb-24">{children}</main>
       <MostekLauncher mode="rops" />
     </div>
   )

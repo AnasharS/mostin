@@ -294,7 +294,8 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
               </div>
             </Section>
 
-            <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-4 border-t bg-background/95 px-4 py-3">
+            {/* pr-24: przycisk zapisu na lewo od pływającego przycisku Mostka (prawy dolny róg) */}
+            <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-4 border-t bg-background/95 py-3 pl-4 pr-24">
               <p className="text-sm text-muted-foreground">Zmiany działają od następnej odpowiedzi Mostka.</p>
               <SubmitButton size="lg" className="h-10 px-5">Zapisz ustawienia</SubmitButton>
             </div>
