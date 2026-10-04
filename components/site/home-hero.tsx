@@ -96,7 +96,7 @@ export function HomeHero({ qualifyHref, below }: {
       <div role="tabpanel" id={`panel-${p.id}`} aria-labelledby={`tab-${p.id}`} className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.25fr_1fr] md:py-16 [&>*]:min-w-0">
         <div>
           <Breadcrumbs section={p.id} />
-          <h1 className="mt-5 text-4xl font-bold leading-[1.12] tracking-tight [overflow-wrap:anywhere] hyphens-auto md:text-5xl">
+          <h1 className="mt-5 text-4xl font-bold leading-[1.12] tracking-tight text-balance md:text-5xl">
             {/* duży tekst (≥ 24 px) - próg AA 3:1; brand/bg = 3.17:1 */}
             <span className="font-extrabold text-brand">{p.title[0]}</span>{" "}
             <br className="hidden sm:block" />

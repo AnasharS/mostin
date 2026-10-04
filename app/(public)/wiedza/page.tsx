@@ -53,7 +53,7 @@ export default async function Wiedza() {
                 <details>
                   <summary className="flex cursor-pointer items-center gap-3 py-4 hover:bg-muted/60 min-[360px]:gap-5">
                     <span className="w-8 shrink-0 text-lg font-bold tabular-nums text-brand-dark">{String(i + 1).padStart(2, "0")}</span>
-                    <span className="min-w-0 flex-1 text-lg font-semibold [overflow-wrap:anywhere]">{a.name}</span>
+                    <span className="min-w-0 flex-1 text-lg font-semibold">{a.name}</span>
                     <span className="shrink-0 text-sm text-muted-foreground">{list.length} wyzwań</span>
                     <ChevronRight aria-hidden="true" className="size-5 shrink-0" />
                   </summary>
