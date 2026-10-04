@@ -180,9 +180,12 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 | WCAG 2.1 AA | Pasek dostępności, 0 naruszeń axe na 16 stronach |
 | Bez prawdziwych danych osobowych | Osoby w demo są syntetyczne |
 
-## 10. Czego jeszcze nie ma
+## 10. Możliwe rozszerzenia
 
-- Powiadomienia e-mail i SMS (dziś powiadomienia są tylko w serwisie; pole preferowanego kontaktu jest już w bazie).
+Prototyp jest przygotowany pod te funkcje (dane i struktura już są), ale w ramach hackathonu ich nie budowałem:
+
+
+- Powiadomienia e-mail i SMS. Dziś powiadomienia i zaproszenia są widoczne w serwisie, a w bazie jest już pole preferowanego kontaktu.
 - Automatyczna synchronizacja z harmonogramu (dziś przycisk w panelu).
 - Długie zadania AI w Supabase Edge Functions zamiast funkcji Netlify.
 - Pełny audyt WCAG z czytnikiem ekranu, także panelu ROPS.

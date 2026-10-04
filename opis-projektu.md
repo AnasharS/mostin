@@ -87,6 +87,6 @@ Next.js 16 (TypeScript, Tailwind 4, Base UI), Supabase (PostgreSQL + pgvector, R
 - **Przy budowie:** asystent kodowania Claude Code (Anthropic). Część danych (uporządkowanie opisów 46 innowacji i Mapa Wyzwań) przygotowałem z jego pomocą w trakcie pracy, bez osobnych wywołań API, i sprawdziłem tym samym schematem walidacji co produkcyjny import.
 - Decyzje techniczne i architektura: `notatki.md`, `ARCHITECTURE.md`.
 
-## Co dalej
+## Możliwe rozszerzenia
 
-Powiadomienia e-mail i SMS, automatyczna synchronizacja z harmonogramu, prawdziwe logowanie dla mieszkańców, zweryfikowane organizacje i wydarzenia (np. kawiarnia aktywizująca osoby z niepełnosprawnością dodaje zajęcia, a ROPS je zatwierdza), pełny audyt WCAG z czytnikiem ekranu, integracja z bazą grantową ROPS.
+Architektura jest przygotowana m.in. pod: powiadomienia e-mail i SMS (dziś powiadomienia są w serwisie), automatyczna synchronizacja z harmonogramu, prawdziwe logowanie dla mieszkańców, zweryfikowane organizacje i wydarzenia (np. kawiarnia aktywizująca osoby z niepełnosprawnością dodaje zajęcia, a ROPS je zatwierdza), pełny audyt WCAG z czytnikiem ekranu, integracja z bazą grantową ROPS.
