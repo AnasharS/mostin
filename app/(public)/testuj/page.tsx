@@ -42,7 +42,7 @@ export default async function TestujPage({
       <h1 className="mt-3 text-3xl font-bold tracking-tight">Testuj innowacje</h1>
       <p className="mt-2 max-w-3xl text-lg text-muted-foreground">
         Nowe rozwiązania społeczne powstają z udziałem ludzi, dla których są tworzone. Zgłoś się do testów, oceniaj i podpowiadaj,
-        co poprawić - albo zapisz się na listę, a damy znać, gdy pojawi się innowacja pasująca do Twojej sytuacji.
+        co poprawić - albo zapisz się na listę, a zaproszenie pojawi się tutaj, gdy ruszy test innowacji pasującej do Twojej sytuacji.
       </p>
       <div className="mt-4"><Flash ok={sp.ok ?? (sp.zapisano ? `Zapisano profil.${Number(sp.zaproszenia) ? ` Masz ${sp.zaproszenia} nowe zaproszenie do testów!` : ""}` : undefined)} error={sp.blad} /></div>
 
@@ -67,9 +67,9 @@ export default async function TestujPage({
                 <ul className="mt-2 flex flex-wrap gap-1.5">{t.categories.map((c: string) => <li key={c} className="rounded-full border px-2 py-0.5 text-xs">{label(c)}</li>)}</ul>
                 <div className="mt-4">
                   {mine.get(t.id) === "accepted" ? (
-                    <p className="flex items-center gap-1.5 font-semibold"><Check aria-hidden="true" className="size-5 text-success" /> Zgłoszono - ROPS skontaktuje się w sprawie szczegółów</p>
+                    <p className="flex items-center gap-1.5 font-semibold"><Check aria-hidden="true" className="size-5 text-success" /> Zgłoszono - zespół ROPS widzi Twoje zgłoszenie</p>
                   ) : mine.get(t.id) && t.status !== "open" ? (
-                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground"><Bell aria-hidden="true" className="size-4" /> Damy znać, gdy test ruszy</p>
+                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground"><Bell aria-hidden="true" className="size-4" /> Zaproszenie pojawi się tutaj, gdy test ruszy</p>
                   ) : (
                     <form action={applyToTest.bind(null, t.id)}>
                       <SubmitButton size="lg" variant={t.status === "open" ? "default" : "outline"} className="h-11 px-5 text-base">
@@ -134,7 +134,7 @@ export default async function TestujPage({
 
           <p className="mt-4 text-sm text-muted-foreground">
             {me.consent_tests
-              ? !(invitations.data ?? []).length && "Powiadomienia o testach włączone - damy znać, gdy ROPS otworzy test pasujący do Twojego profilu."
+              ? !(invitations.data ?? []).length && "Powiadomienia o testach włączone - zaproszenie pojawi się tutaj, gdy ROPS otworzy test pasujący do Twojego profilu."
               : "Powiadomienia o testach wyłączone - włączysz je w profilu poniżej."}
             {!me.consent_przesla && " Nie jesteś widoczny/a w Przęsłach."}
           </p>

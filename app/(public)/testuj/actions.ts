@@ -92,7 +92,7 @@ export async function saveNeedsProfile(form: FormData) {
     const status = await signUpForTest(saved.id, d.apply_test)
     if (status) {
       revalidatePath("/testuj")
-      redirect(`/testuj?ok=${encodeURIComponent(status === "accepted" ? "Zapisano profil i zgłoszono Cię do testu. ROPS skontaktuje się w sprawie szczegółów." : "Zapisano profil. Damy znać, gdy test ruszy.")}#otwarte`)
+      redirect(`/testuj?ok=${encodeURIComponent(status === "accepted" ? "Zapisano profil i zgłoszono Cię do testu. Zespół ROPS widzi Twoje zgłoszenie." : "Zapisano profil. Zaproszenie pojawi się tutaj, gdy test ruszy.")}#otwarte`)
     }
   }
   revalidatePath("/testuj")
@@ -138,6 +138,6 @@ export async function applyToTest(testId: number) {
   const status = await signUpForTest(me.id, testId)
   revalidatePath("/testuj")
   if (!status) redirect(`/testuj?blad=${encodeURIComponent("Ten test nie przyjmuje już zgłoszeń")}#otwarte`)
-  redirect(`/testuj?ok=${encodeURIComponent(status === "accepted" ? "Zgłoszono Cię do testu. ROPS skontaktuje się w sprawie szczegółów." : "Damy znać, gdy test ruszy.")}#otwarte`)
+  redirect(`/testuj?ok=${encodeURIComponent(status === "accepted" ? "Zgłoszono Cię do testu. Zespół ROPS widzi Twoje zgłoszenie." : "Zaproszenie pojawi się tutaj, gdy test ruszy.")}#otwarte`)
 }
 
