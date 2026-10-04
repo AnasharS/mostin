@@ -7,7 +7,7 @@ const ROUTES: [string, string][] = [
   ["kreator.upload", "Moderacja dołączonych zdjęć"], ["kreator", "Kreator pomysłów"], ["rozmowy", "Rozmowy z ROPS"],
   ["jst", "Asystent grantowy (gminy)"], ["voice.stt", "Rozpoznawanie mowy"], ["voice.tts", "Czytanie odpowiedzi"],
   ["ingest", "Import Biblioteki i dokumentów"], ["przesla", "Przęsła - kręgi wsparcia"], ["testuj", "Profil potrzeb (Testuj)"],
-  ["reviews", "Opinie o innowacjach"], ["demo", "Przykład (dane demo)"],
+  ["reviews", "Opinie o innowacjach"], ["demo", "Przykład (dane demo)"], ["embeddings", "Wyszukiwanie (embeddingi)"],
 ]
 export const routeLabel = (r: string) => ROUTES.find(([k]) => r === k || r.startsWith(`${k}.`) || r.startsWith(k))?.[1] ?? r
 

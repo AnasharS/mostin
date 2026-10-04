@@ -28,6 +28,7 @@ export const PAGES: Page[] = [
   { path: "/admin/rozmowy", title: "Rozmowy do odpowiedzi", hint: "Wiadomości od użytkowników z projektem odpowiedzi AI", keywords: ["rozmowy", "wiadomości", "odpowiedz", "skrzynka", "zgłoszenia"], admin: true },
   { path: "/admin/pomysly", title: "Pomysły wg kategorii", hint: "Pomysły z Kreatora, powiadomienia o naborach", keywords: ["pomysły", "kategorie", "kreator", "zgłoszone"], admin: true },
   { path: "/admin/przesla", title: "Zgłoszenia z Przęseł", hint: "Wiadomości zgłoszone przez uczestników kręgów", keywords: ["przęsła", "zgłoszenia", "krąg", "moderacja", "zgłoś"], admin: true },
+  { path: "/admin/aktywnosc", title: "Aktywność AI", hint: "Kto i kiedy korzystał z AI - dzień po dniu, godzina po godzinie", keywords: ["aktywność", "wywołania", "dzisiaj", "jury", "godziny", "sesje", "koszt", "statystyki"], admin: true },
   { path: "/admin/ustawienia-ai", title: "Ustawienia AI", hint: "Budżet, limity, ton Mostka, głos, moderacja", keywords: ["ustawienia", "ai", "budżet", "limit", "koszt", "głos", "ton", "archetyp", "moderacja", "kaganiec"], admin: true },
   { path: "/admin/innowacje", title: "Innowacje (CMS)", hint: "Dodawanie i edycja innowacji", keywords: ["dodaj innowację", "edytuj innowację", "cms"], admin: true },
   { path: "/admin/dokumenty", title: "Dokumenty (CMS)", hint: "Raporty i regulaminy w bazie wiedzy", keywords: ["dokument", "pdf", "regulamin", "wgraj"], admin: true },

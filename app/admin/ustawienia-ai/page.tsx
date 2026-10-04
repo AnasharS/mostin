@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { ARCHETYPES } from "@/lib/ai/persona"
 import { Flash } from "@/components/admin/flash"
@@ -197,6 +198,7 @@ export default async function AiSettings({ searchParams }: { searchParams: Promi
             </Section>
 
             <Section id="koszty" title="Koszty według modeli" lead={`Bieżący miesiąc, z dziennika każdego wywołania AI. Razem ${fmtUsd(modelTotal)}.`}>
+              <p className="mb-3 text-sm"><Link href="/admin/aktywnosc">Aktywność dzień po dniu i godzina po godzinie →</Link></p>
               {byModel.length === 0 ? <p className="text-sm text-muted-foreground">W tym miesiącu nie było jeszcze wywołań AI.</p> : (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[44rem] text-sm">
