@@ -89,4 +89,4 @@ Next.js 16 (TypeScript, Tailwind 4, Base UI), Supabase (PostgreSQL + pgvector, R
 
 ## Możliwe rozszerzenia
 
-Architektura jest przygotowana m.in. pod: powiadomienia e-mail i SMS (dziś powiadomienia są w serwisie), automatyczna synchronizacja z harmonogramu, prawdziwe logowanie dla mieszkańców, zweryfikowane organizacje i wydarzenia (np. kawiarnia aktywizująca osoby z niepełnosprawnością dodaje zajęcia, a ROPS je zatwierdza), pełny audyt WCAG z czytnikiem ekranu, integracja z bazą grantową ROPS.
+Architektura jest przygotowana m.in. pod: powiadomienia e-mail i SMS (dziś powiadomienia są w serwisie), automatyczną synchronizację z harmonogramu, prawdziwe logowanie dla mieszkańców, zweryfikowane organizacje i wydarzenia (np. kawiarnia aktywizująca osoby z niepełnosprawnością dodaje zajęcia, a ROPS je zatwierdza) i integrację z bazą grantową ROPS. Przed wdrożeniem warto też zrobić pełny audyt WCAG z czytnikiem ekranu.
