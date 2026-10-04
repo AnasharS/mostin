@@ -111,7 +111,6 @@ export function SiteFooter() {
             <li><Link href="/innowacje">Biblioteka innowacji</Link></li>
             <li><Link href="/wiedza">Baza wiedzy</Link></li>
             <li><Link href="/aktualnosci">Aktualności</Link></li>
-            <li><Link href="/rozmowy">Rozmowy z ROPS</Link></li>
             <li><Link href="/mostek">Mostek - asystent</Link></li>
           </ul>
         </div>

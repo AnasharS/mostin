@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getOwnerKeys, KIND_LABELS } from "@/lib/rozmowy"
 import { buttonVariants } from "@/components/ui/button"
 import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { DemoNotice } from "@/components/site/demo-notice"
 
 export const metadata = { title: "Rozmowy z ROPS · MostIn" }
 
@@ -26,6 +27,10 @@ export default async function RozmowyPage() {
         Zadaj pytanie zespołowi Małopolskiego Hubu Innowacji Społecznych, poproś o kontakt z ekspertem albo zaproponuj współpracę.
         Bez zakładania konta - rozmowa jest zapisana w tej przeglądarce.
       </p>
+      <DemoNotice title="Wersja demonstracyjna - to nie jest prawdziwy kontakt z ROPS" className="mt-5">
+        Rozmowy pokazują, jak mógłby działać kontakt z zespołem Hubu w docelowym serwisie. Wiadomości nie trafiają do pracowników ROPS i nikt na nie nie odpowie.
+        W sprawach realnych skontaktuj się z ROPS Kraków przez jego oficjalną stronę.
+      </DemoNotice>
       <div className="mt-6 flex flex-wrap gap-2">
         <Link href="/rozmowy/nowa" className={buttonVariants({ size: "lg" }) + " h-11 px-5 text-base"}>Napisz do ROPS</Link>
         <Link href="/rozmowy/nowa?rodzaj=mentoring" className={buttonVariants({ variant: "outline", size: "lg" }) + " h-11 px-5 text-base"}>Poproś o eksperta</Link>

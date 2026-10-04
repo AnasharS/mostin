@@ -1,4 +1,5 @@
 import { Flash } from "@/components/admin/flash"
+import { DemoNotice } from "@/components/site/demo-notice"
 import { getCurrentProfile } from "@/lib/auth"
 import { createThread } from "../actions"
 import { Breadcrumbs } from "@/components/site/breadcrumbs"
@@ -23,7 +24,12 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Pr
     <div className="mx-auto max-w-3xl px-4 py-10">
       <Breadcrumbs section={null} items={[{ label: "Rozmowy z ROPS", href: "/rozmowy" }, { label: "Napisz do ROPS" }]} />
       <h1 className="mt-3 text-3xl font-bold tracking-tight">Napisz do ROPS</h1>
-      <p className="mt-2 text-muted-foreground">Odpowiadamy zwykle w ciągu 1 dnia roboczego. Nie podawaj danych wrażliwych - wystarczy opis sprawy.</p>
+      <p className="mt-2 text-muted-foreground">Nie podawaj danych wrażliwych - wystarczy opis sprawy.</p>
+      <DemoNotice title="Wersja demonstracyjna - to nie jest prawdziwy kontakt z ROPS" className="mt-5">
+        Rozmowy pokazują, jak mógłby działać kontakt z zespołem Hubu w docelowym serwisie. Wiadomości nie trafiają do pracowników ROPS i nikt na nie nie odpowie.
+        W sprawach realnych skontaktuj się z ROPS Kraków przez jego oficjalną stronę.
+      </DemoNotice>
+
       <div className="mt-4"><Flash error={blad} /></div>
       <form action={createThread} className="mt-6 grid gap-5 border-t-2 border-foreground pt-6">
         <input type="hidden" name="source" value={fromMostek ? "mostek" : "form"} />
@@ -58,7 +64,7 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Pr
             <input id="phone" name="phone" type="tel" autoComplete="tel" className={field} />
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">Kontakt widzi tylko zespół ROPS. Odpowiedź pojawi się też tutaj, w rozmowie.</p>
+        <p className="text-sm text-muted-foreground">W docelowym serwisie kontakt widziałby tylko zespół Hubu, a odpowiedź pojawiłaby się tutaj, w rozmowie.</p>
         <div><SubmitButton size="lg" className="h-11 px-5 text-base">Wyślij do ROPS</SubmitButton></div>
       </form>
     </div>
