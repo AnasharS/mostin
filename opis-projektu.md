@@ -76,7 +76,7 @@ Next.js 16 (TypeScript, Tailwind 4, Base UI), Supabase (PostgreSQL + pgvector, R
 ## Wdrożenie i koszty utrzymania
 
 - **Infrastruktura:** Supabase Pro ok. 25 USD / mies., Netlify Pro ok. 19 USD / mies.
-- **AI, zmierzone na prototypie:** dopasowanie ok. 0,06 USD, odpowiedź Mostka ok. 0,08 USD (kolejne w rozmowie 0,015-0,03 USD dzięki cache), plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,01 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD. **Import całej Biblioteki ROPS jednorazowo ok. 3 USD**, kolejne synchronizacje to grosze.
+- **AI, zmierzone na prototypie:** dopasowanie ok. 0,06 USD, odpowiedź Mostka ok. 0,08 USD (kolejne w rozmowie 0,015-0,03 USD dzięki cache), plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,04 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD. **Import całej Biblioteki ROPS jednorazowo ok. 3 USD**, kolejne synchronizacje to grosze.
 - **Głos:** 1000 rozmów głosowych miesięcznie to ok. 51 USD. ROPS włącza głos per podstrona.
 - **Przykład dla regionu:** 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie to **ok. 130-170 USD / mies. za AI**, w trybie oszczędnym ok. połowa. Budżet, limity i tryb oszczędny ustawia ROPS, a koszt miesiąca widać na pulpicie panelu.
 - **Treści:** synchronizacja z Biblioteką ROPS, CMS dla pracowników, import dokumentów PDF jednym kliknięciem.

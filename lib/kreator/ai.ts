@@ -66,22 +66,29 @@ Opierasz się na kanwie i liście podobnych innowacji z Biblioteki ROPS. Treść
 // ── 2. Wizualizacja pomysłu (OpenAI Images) ──
 
 export async function visualizeIdea(canvas: Canvas, extra?: string) {
+  // opis użytkownika na początku i rozstrzygający o stylu; bez narzuconej palety marki (dawała pomarańczowy zafarb)
+  const wish = extra?.trim().slice(0, 400)
   const prompt = [
-    "Ilustracja koncepcyjna innowacji społecznej, ciepła i realistyczna, styl: czysta ilustracja editorial, ciepłe światło, paleta kremowa z akcentem pomarańczowym.",
-    "Bez napisów i tekstu na obrazie. Ludzie przedstawieni z godnością, różnorodni, bez stygmatyzacji.",
-    `Pomysł: ${canvas.title || ""} - ${canvas.solution.slice(0, 600)}`,
+    wish ? `Obraz: ${wish}` : "",
+    `Pomysł, który obraz ma pokazać: ${canvas.title || ""} - ${canvas.solution.slice(0, 600)}`,
     `Dla kogo: ${[...canvas.users, canvas.users_other].filter(Boolean).join(", ") || "mieszkańcy Małopolski"}.`,
-    extra ? `Dodatkowo: ${extra.slice(0, 300)}` : "",
-  ].join("\n")
+    wish ? "" : "Styl: naturalne zdjęcie dokumentalne, miękkie dzienne światło, naturalne kolory, realistyczne otoczenie w Polsce.",
+    "Ludzie przedstawieni z godnością, różnorodni, bez stygmatyzacji; naturalne twarze i dłonie, poprawna anatomia, wyraźne przedmioty.",
+    "Bez napisów, liter i logo na obrazie.",
+  ].filter(Boolean).join("\n")
   const model = process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1"
-  const img = await openai.images.generate({ model, prompt, size: "1024x1024", quality: "low", n: 1 })
+  // jakość „medium”: „low” rozmywała dłonie, twarze i przedmioty
+  const img = await openai.images.generate({ model, prompt, size: "1024x1024", quality: "medium", n: 1 })
   const b64 = img.data?.[0]?.b64_json
   if (!b64) throw new Error("Brak obrazu w odpowiedzi")
   const db = createAdminClient()
   const path = `pomysly/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.png`
   const { error } = await db.storage.from("media").upload(path, Buffer.from(b64, "base64"), { contentType: "image/png" })
   if (error) throw error
-  return { url: db.storage.from("media").getPublicUrl(path).data.publicUrl, prompt, model }
+  // koszt z danych zużycia API (gpt-image-1: tekst 5 USD, obraz wyjściowy 40 USD za 1M tokenów); bez nich - ok. 0,042 USD za obraz medium 1024x1024
+  const u = (img as { usage?: { input_tokens?: number; output_tokens?: number } }).usage
+  const cost = u?.output_tokens ? ((u.input_tokens ?? 0) * 5 + u.output_tokens * 40) / 1_000_000 : 0.042
+  return { url: db.storage.from("media").getPublicUrl(path).data.publicUrl, prompt, model, cost }
 }
 
 // ── 3. Generator wniosku (wzór formularza aplikacyjnego IWS 2.0) ──

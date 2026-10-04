@@ -25,8 +25,8 @@ export async function POST(req: Request) {
   }
   try {
     const img = await visualizeIdea(p.canvas, typeof p.body?.extra === "string" ? p.body.extra : undefined)
-    // gpt-image-1, 1024×1024, jakość „low” ≈ $0.011 za obraz
-    await db.from("ai_usage").insert({ route: "kreator.visualize", model: img.model, units: 1, cost_usd: 0.011, user_id: p.user?.id ?? null, session_key: p.sessionKey })
+    // gpt-image-1, 1024×1024, jakość „medium” - koszt z danych zużycia API
+    await db.from("ai_usage").insert({ route: "kreator.visualize", model: img.model, units: 1, cost_usd: img.cost, user_id: p.user?.id ?? null, session_key: p.sessionKey })
     return Response.json({ ok: true, url: img.url, prompt: img.prompt })
   } catch (e) {
     console.error(e)

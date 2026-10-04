@@ -159,7 +159,7 @@ Moje notatki do pitchu i dla ROPS: co zbudowałem, jak to działa i dlaczego tak
 ## 8. Koszty i utrzymanie
 
 - Infrastruktura: Supabase Pro ok. 25 USD / mies., Netlify Pro ok. 19 USD / mies.
-- AI, zmierzone na prototypie: dopasowanie ok. 0,06 USD, odpowiedź Mostka ok. 0,08 USD (kolejne w tej samej rozmowie 0,015-0,03 USD), plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,01 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD.
+- AI, zmierzone na prototypie: dopasowanie ok. 0,06 USD, odpowiedź Mostka ok. 0,08 USD (kolejne w tej samej rozmowie 0,015-0,03 USD), plan wdrożenia ok. 0,10 USD, ocena pomysłu ok. 0,04 USD, ilustracja ok. 0,04 USD, triaż sprawy ok. 0,01 USD, szkic wniosku 0,5-0,8 USD.
 - Głos: rozpoznawanie ok. 0,003 USD / min, czytanie ok. 0,015 USD / min. 1000 rozmów głosowych (2 min mówienia + 3 min słuchania) to ok. 51 USD / mies.
 - Przykład dla regionu: 500 dopasowań, 1000 rozmów z Mostkiem, 50 planów i 20 wniosków miesięcznie to ok. 130-170 USD / mies. za AI, w trybie oszczędnym ok. połowa. Budżet i limity ustawia ROPS.
 - Każde wywołanie AI zapisuje tokeny i koszt, z modelem, który faktycznie odpowiedział (także model zapasowy przy odmowie) i zapisem do cache. W panelu tabela kosztów według modeli, na pulpicie koszt miesiąca, a Mostek w panelu odpowiada na „ile wydaliśmy na AI”. Sprawdzone z rachunkiem Anthropic: Opus 3.10 - 7,53 USD w dzienniku, 7,54 USD w konsoli.
